@@ -1,0 +1,24 @@
+&fortin
+
+ p_ref = 6.0795d7
+ u_ref = 1.0d0
+ T_ref = 300.0d0
+ vel_jet = 2500.0d0
+ vel_coflow = -1000.0d0
+ jet_width = 0.02d0
+ decay_factor = 0.1
+ temp_jet = 470.0d0
+ temp_coflow = 700.0d0
+/
+
+&flctin
+ flct_file = "/ascldap/users/marient/current_new/PeleC/Exec/Turb_Jet_3D/turb.temporal.jet.new"
+/
+
+&tagging
+  temperr = 1200.
+  max_temperr_lev = 1
+/
+
+&extern
+/
