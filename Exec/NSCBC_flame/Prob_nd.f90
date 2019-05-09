@@ -184,6 +184,8 @@ contains
        end do
     end do
   
+  call destroy(eos_state)
+
   end subroutine pc_initdata
 
   subroutine pc_prob_close() &
