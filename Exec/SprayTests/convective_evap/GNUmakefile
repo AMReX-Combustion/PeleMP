@@ -33,8 +33,8 @@ Reactions_dir := Fuego
 # This sets the model directory in $(PELE_PHYSICS_HOME)/Support/Fuego/Mechanism/Models
 #Chemistry_Model := chem-H
 #Chemistry_Model := grimech12
-Chemistry_Model := heptane_3sp
-#Chemistry_Model := decane_3sp
+#Chemistry_Model := heptane_3sp
+Chemistry_Model := decane_3sp
 
 # This sets the transport directory in $(PELE_PHYSICS_HOME)/Transport
 Transport_dir := EGLib
