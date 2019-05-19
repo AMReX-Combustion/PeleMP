@@ -10,7 +10,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer untin,i
 
-  namelist /fortin/ reynolds, mach, prandtl
+  namelist /fortin/ reynolds, mach, u_ref, p_ref, T_ref
     
   ! Build "probin" filename -- the name of file containing fortin namelist.
   integer, parameter :: maxlen = 256
@@ -27,7 +27,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   ! set namelist defaults here
   reynolds = 1600.0
   mach = 0.1
-  prandtl = 0.71
 
   ! Read namelists
   untin = 9
@@ -95,7 +94,7 @@ end subroutine amrex_probinit
   
   type(eos_t) :: eos_state
   
-  integer :: iN2
+  integer :: iN2, iO2
 
   if ( nspec .ne. nspecies ) then
       write(*,*) 'Something very wrong'
@@ -105,21 +104,23 @@ end subroutine amrex_probinit
   endif
 
   iN2 = get_species_index("N2")
+  iO2 = get_species_index("O2")
   call build(eos_state)
 
   ! Define the length scale
   L = 1.d0/M_PI
 
   ! Initial pressure and temperature
-  p0 = 1.013d6 ! [erg cm^-3]
-  !T0 = 273.d0
-  T0 = 298.d0
+  p0 = p_ref ! [erg cm^-3]
+  T0 = T_ref
 
   ! Set the equation of state variables
   eos_state % p = p0
   eos_state % T = T0
   eos_state % massfrac    = 0.d0
-  eos_state % massfrac(iN2) = 1.d0
+  eos_state % massfrac(iO2) = 0.15d0
+  eos_state % massfrac(iN2) = 0.85d0
+
   call eos_tp(eos_state)
   write(*,*) 'Initial T', eos_state % T
   write(*,*) 'Initial p ', eos_state % p
@@ -128,22 +129,12 @@ end subroutine amrex_probinit
 
   ! Initial density, velocity, and material properties
   rho0 = eos_state % rho
-  v0   = -300d0 ! cgs
+  v0   = u_ref ! cgs
   !const_bulk_viscosity = 0.d0
   !const_diffusivity = 0.d0
   !const_viscosity = rho0 * v0 * L / reynolds
-  !const_conductivity = const_viscosity * eos_state % cp / prandtl
   state(:,:,:,UTEMP) = T0
 
-  ! Write this out to file (might be useful for postprocessing)
-  !open(unit=out_unit,file="ic.txt",action="write",status="replace")
-  !write(out_unit,*)"L, rho0, v0, p0, T0, gamma, mu, k, c_s0, Reynolds, Mach, Prandtl"
-  !write(out_unit,*) L, "," , eos_state % rho, "," , v0, "," , eos_state % p, "," , &
-  !     eos_state % T, ",", const_viscosity, "," , &
-  !     const_conductivity, "," , eos_state % cs, "," , &
-  !     reynolds, "," , mach, "," , prandtl
-  !close(out_unit)
-  
   do k = lo(3), hi(3)
      z = (k+HALF)*delta(3)
 
