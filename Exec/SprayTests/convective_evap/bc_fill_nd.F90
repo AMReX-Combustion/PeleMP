@@ -184,16 +184,35 @@ contains
     eos_state % massfrac(iO2) = 0.15d0
     eos_state % massfrac(iN2) = 0.85d0
     eos_state % p = p_ref
-    eos_state % T = 298
+    eos_state % T = T_ref
     call eos_tp(eos_state)
-    u = 0
+    u(1) = u_ref
+    u(2) = 0.0d0
+    u(3) = 0.0d0
 
 ! at hi and low  BC
-      if (sgn == -1.or.sgn == 1) then
+      if (sgn == 1) then ! hi X
+      !if(0) then
+
+        relax_U = 20d0
+        relax_V = 20d0
+        relax_T = -relax_V
+        beta = 1.2d0
+
+        which_bc_type = Inflow
+
+        eos_state % p = p_ref
+        eos_state % T = T_ref
+        call eos_tp(eos_state)
+
+      else if (sgn == -1) then ! lo X
+      !else
+
         ! Set outflow pressure
         which_bc_type = Outflow
         sigma_out = 0.28d0
-        beta = sgn
+        beta = -1.0d0 ! This means that local mach number will be used
+
       endif
 
         u_ext(URHO ) = eos_state % rho
