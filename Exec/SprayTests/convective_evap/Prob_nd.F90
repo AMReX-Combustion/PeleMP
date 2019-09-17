@@ -68,8 +68,8 @@ end subroutine amrex_probinit
        delta,xlo,xhi) bind(C, name="pc_initdata")
 
   use probdata_module
-  use network, only: naux
-  use chemistry_module, only : nspecies, get_species_index
+  use network, only: nspecies, naux
+  use chemistry_module, only : get_species_index
   use eos_type_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, &
        UEDEN, UEINT, UFS, UTEMP, small_temp
@@ -95,7 +95,6 @@ end subroutine amrex_probinit
   type(eos_t) :: eos_state
   
   integer :: iN2, iO2
-
 
   iN2 = get_species_index("N2")
   iO2 = get_species_index("O2")
