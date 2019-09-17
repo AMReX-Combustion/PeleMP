@@ -132,4 +132,10 @@ SprayParticleContainer::injectParticles (Real time, int nstep, int lev)
   }
 
   Redistribute();
+}
+
+void
+SprayParticleContainer::InitParticlesUniform(const int& lev, const int& num_ppc)
+{
+
 } 
