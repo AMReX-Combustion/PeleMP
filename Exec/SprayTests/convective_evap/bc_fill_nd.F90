@@ -134,7 +134,7 @@ contains
     use eos_type_module
     use eos_module
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, NVAR
-    use network, only: nspec, naux
+    use network, only: nspecies
     use prob_params_module, only : Interior, Inflow, Outflow, SlipWall, NoSlipWall, &
                                    problo, probhi, dim
     use amrex_constants_module, only: M_PI
@@ -155,8 +155,6 @@ contains
     double precision :: relax_U, relax_V, relax_W, relax_T, beta, sigma_out
     integer :: flag_nscbc, which_bc_type
     integer :: iN2, iO2
-
-    !double precision, allocatable :: pmf_vals(:)
 
     flag_nscbc = 0
 
@@ -192,12 +190,11 @@ contains
 
 ! at hi and low  BC
       if (sgn == 1) then ! hi X
-      !if(0) then
-
-        relax_U = 20d0
-        relax_V = 20d0
-        relax_T = -relax_V
-        beta = 1.2d0
+         !if(0) then
+         relax_U = 1.0d0
+         relax_V = 1.0d-5
+         relax_T = -0.1d0
+         beta = 1.0d0
 
         which_bc_type = Inflow
 
@@ -206,7 +203,6 @@ contains
         call eos_tp(eos_state)
 
       else if (sgn == -1) then ! lo X
-      !else
 
         ! Set outflow pressure
         which_bc_type = Outflow
@@ -222,7 +218,7 @@ contains
         u_ext(UEINT) = eos_state % rho  *  eos_state % e
         u_ext(UEDEN) = eos_state % rho  * (eos_state % e + 0.5d0 * (u(1)**2 + u(2)**2 + u(3)**2))
         u_ext(UTEMP) = eos_state % T
-        u_ext(UFS:UFS+nspec-1) = eos_state % rho  *  eos_state % massfrac(1:nspec)
+        u_ext(UFS:UFS+nspecies-1) = eos_state % rho  *  eos_state % massfrac(1:nspecies)
 
 ! Here the optional parameters are filled by the local variables if they were present
     if (flag_nscbc == 1) then
