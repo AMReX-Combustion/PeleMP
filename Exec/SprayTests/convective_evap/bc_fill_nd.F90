@@ -134,11 +134,11 @@ contains
     use eos_type_module
     use eos_module
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, NVAR
-    use network, only: nspec, naux
+    use network, only: naux
     use prob_params_module, only : Interior, Inflow, Outflow, SlipWall, NoSlipWall, &
                                    problo, probhi, dim
     use amrex_constants_module, only: M_PI
-    use chemistry_module, only : get_species_index
+    use chemistry_module, only : get_species_index, nspecies
     
     implicit none
 
@@ -222,7 +222,7 @@ contains
         u_ext(UEINT) = eos_state % rho  *  eos_state % e
         u_ext(UEDEN) = eos_state % rho  * (eos_state % e + 0.5d0 * (u(1)**2 + u(2)**2 + u(3)**2))
         u_ext(UTEMP) = eos_state % T
-        u_ext(UFS:UFS+nspec-1) = eos_state % rho  *  eos_state % massfrac(1:nspec)
+        u_ext(UFS:UFS+nspecies-1) = eos_state % rho  *  eos_state % massfrac(1:nspecies)
 
 ! Here the optional parameters are filled by the local variables if they were present
     if (flag_nscbc == 1) then
