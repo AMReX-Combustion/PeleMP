@@ -1,6 +1,6 @@
 
 #include <SprayParticles.H>
-#include <AMReX_Particles_F.H>
+#include <AMReX_Particles.H>
 #include <Transport_F.H>
 #include <drag_F.H>
 
