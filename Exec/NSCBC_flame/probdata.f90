@@ -60,8 +60,8 @@ contains
        yl = 0.d0
        yr = 0.d0 ! FIXME: get plo into saved data somehow
        !call pmf(yl,yr,pmf_vals,nPMF)
-       !eos_state % molefrac(1:nspec) = MAX(0.d0,pmf_vals(4:3+nspec))
-       eos_state % molefrac(iN2) = 1.d0 - (sum(eos_state % molefrac(1:nspec)) - eos_state % molefrac(iN2))
+       !eos_state % molefrac(1:nspecies) = MAX(0.d0,pmf_vals(4:3+nspecies))
+       eos_state % molefrac(iN2) = 1.d0 - (sum(eos_state % molefrac(1:nspecies)) - eos_state % molefrac(iN2))
        !eos_state % T = pmf_vals(1)
        !vn_in = pmf_vals(2)
     else
