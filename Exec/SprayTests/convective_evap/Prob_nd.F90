@@ -68,7 +68,7 @@ end subroutine amrex_probinit
        delta,xlo,xhi) bind(C, name="pc_initdata")
 
   use probdata_module
-  use network, only: nspecies
+  use network, only: nspecies, naux
   use chemistry_module, only : get_species_index
   use eos_type_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, &
