@@ -91,12 +91,12 @@ contains
        dx,xlo,xhi) bind(C, name="pc_initdata")
     use eos_type_module
     use probdata_module, only : p_ref, T_ref, vel_jet, vel_coflow, jet_width, decay_factor, temp_jet, temp_coflow
-    use network, only: nspec, naux !, molec_wt
+    use network, only: naux !, molec_wt
     use meth_params_module, only : URHO, UMX, UMY, UMZ, UEINT, UEDEN, UTEMP, UFS
     use prob_params_module, only : problo, probhi
     use eos_module
     use turbinflow_module
-    use chemistry_module, only : get_species_index
+    use chemistry_module, only : get_species_index, nspecies
 
     implicit none
 
@@ -176,7 +176,7 @@ contains
              state(i,j,k,UEINT) = eos_state % rho  *  eos_state % e
              state(i,j,k,UEDEN) = eos_state % rho * (eos_state % e+0.5d0 *(vel_tot(1)**2+vel_tot(2)**2+vel_tot(3)**2))
              state(i,j,k,UTEMP) = eos_state % T
-             do n=1, nspec
+             do n=1, nspecies
                 state(i,j,k,UFS+n-1) = eos_state % rho  *  eos_state % massfrac(n)
              end do
 

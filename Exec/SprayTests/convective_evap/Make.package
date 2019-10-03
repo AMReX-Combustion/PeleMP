@@ -1,3 +1,4 @@
+CEXE_sources += SprayParticlesInitInsert.cpp
 f90EXE_sources += probdata.f90
 F90EXE_sources += bc_fill_nd.F90
 
