@@ -12,7 +12,7 @@
 /
 
 &flctin
- flct_file = "./turb.temporal.jet.new"
+ flct_file = "/gpfs/alpine/scratch/arientm/csc340/PeleC_Ascent/Exercises/pjet_flame/turb.temporal.jet.new"
 /
 
 &tagging
