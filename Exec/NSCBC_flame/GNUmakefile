@@ -46,12 +46,14 @@ DEFINES += -DDEBUG
 endif
 
 ifeq ($(USE_ASCENT), TRUE)
-DEFINES += -DASCENT 
+DEFINES +=-DUSE_ASCENT 
 ASCENT_INSTALL_DIR=/gpfs/alpine/proj-shared/csc340/larsen/stats_no_cuda_shared/ascent/install
 include $(ASCENT_INSTALL_DIR)/share/ascent/ascent_config.mk
+include $(AMREX_HOME)/Src/Extern/Conduit/Make.package
 ASCENT_LINK_FLAGS = $(subst -pthread,, $(ASCENT_MPI_LIB_FLAGS))
-endif
 INCLUDE_LOCATIONS += $(ASCENT_INCLUDE_FLAGS)
+INCLUDE_LOCATIONS += /ccs/home/arientm/ECP/repoversion/amrex/Src/Extern/Conduit
+endif
 # To add lblas
 LIBRARY_LOCATIONS +=/gpfs/alpine/proj-shared/csc340/arientm/sw4_uberenv/uberenv_libs/spack/opt/spack/linux-rhel7-ppc64le/gcc-5.4.0/netlib-lapack-3.8.0-2zkztxddylrbg4yua4bgm7afwcsgyh34/lib64/
 override XTRALIBS += -lblas
