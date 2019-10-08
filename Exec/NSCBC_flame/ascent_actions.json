@@ -29,7 +29,7 @@
           {  
             "type": "pseudocolor",
             "pipeline": "pipe1",
-            "field": "valSampled"
+            "field": "Temperature"
           }      
         },
         
