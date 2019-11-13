@@ -9,7 +9,8 @@ contains
   subroutine update_particles(np, lev, particles, state, state_lo, state_hi, &
                               source, source_lo, source_hi, domlo, domhi, &
                               plo, phi, reflect_lo, reflect_hi, &
-                              dx, flow_dt, do_move) &
+                              dx, flow_dt, do_move, num_scal_in, xvel_in, &
+                              density_in, temp_in, first_spec_in, nspecs) &
        bind(c,name='update_particles')
 
     use iso_c_binding
@@ -17,7 +18,7 @@ contains
     use eos_module
     use network
     use amrex_fort_module, only : amrex_real
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
+    !use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
     use particle_mod      , only: particle_t
     use fuel_properties
     use control_parameters
@@ -31,12 +32,15 @@ contains
     integer,          intent(in   )        :: source_lo(3), source_hi(3)
     integer,          intent(in   )        :: domlo(3), domhi(3)
     real(amrex_real), intent(in   )        :: state &
-         (state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+         (state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),num_scal_in+1)
     real(amrex_real), intent(inout)        :: source &
-         (source_lo(1):source_hi(1),source_lo(2):source_hi(2),source_lo(3):source_hi(3),NVAR)
+         (source_lo(1):source_hi(1),source_lo(2):source_hi(2),source_lo(3):source_hi(3),num_scal_in+1)
     real(amrex_real), intent(in   )        :: plo(3),phi(3),dx(3),flow_dt
     integer,          intent(in   )        :: do_move, lev
     integer,          intent(in   )        :: reflect_lo(3), reflect_hi(3)
+    integer,          intent(in   )        :: num_scal_in, xvel_in, &
+                                              density_in, temp_in, first_spec_in, nspecs ! indices for state
+
 
     integer          :: i,j,k,i2,j2,k2,n,nc,nf,iloc,jloc,kloc,ii,jj,kk,is_heat_skip,is_mass_skip,ispec_loc
     integer          :: isub, nsub
@@ -108,6 +112,8 @@ contains
     real*8, parameter :: Ru = 8.31447e+7 ! dyn.cm
 
     type (eos_t) :: eos_state
+
+    integer      :: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UFS
 
     inv_dx = 1.0d0/dx
     inv_vol = inv_dx(1) * inv_dx(2) * inv_dx(3)
@@ -206,7 +212,7 @@ contains
           kk = kloc-1
           eos_state % rho = state(i+ii,j+jj,k+kk,URHO)
           eos_state % T   = state(i+ii,j+jj,k+kk,UTEMP) ! Initial guess for the EOS
-          eos_state % e   = state(i+ii,j+jj,k+kk,UEINT)           / state(i+ii,j+jj,k+kk,URHO)
+          !eos_state % e   = state(i+ii,j+jj,k+kk,UEINT)           / state(i+ii,j+jj,k+kk,URHO)
 
           do ispec_loc = 1,nspecies
             if(state(i+ii,j+jj,k+kk,UFS+ispec_loc-1).lt.-0.00001) then
@@ -596,42 +602,42 @@ contains
 
        endif
 
-       if(is_heat_tran.eq.1) then
-
-          source(i2,   j2  ,k2  ,UEINT) = source(i2,   j2  ,k2  ,UEINT) - coef_lll*heat_src
-          source(i2,   j2+1,k2  ,UEINT) = source(i2,   j2+1,k2  ,UEINT) - coef_lhl*heat_src
-          source(i2+1, j2  ,k2  ,UEINT) = source(i2+1, j2  ,k2  ,UEINT) - coef_hll*heat_src
-          source(i2+1, j2+1,k2  ,UEINT) = source(i2+1, j2+1,k2  ,UEINT) - coef_hhl*heat_src
-          source(i2,   j2  ,k2+1,UEINT) = source(i2,   j2  ,k2+1,UEINT) - coef_llh*heat_src
-          source(i2,   j2+1,k2+1,UEINT) = source(i2,   j2+1,k2+1,UEINT) - coef_lhh*heat_src
-          source(i2+1, j2  ,k2+1,UEINT) = source(i2+1, j2  ,k2+1,UEINT) - coef_hlh*heat_src
-          source(i2+1, j2+1,k2+1,UEINT) = source(i2+1, j2+1,k2+1,UEINT) - coef_hhh*heat_src
-
-          source(i2  ,j2  ,k2  ,UEDEN) = source(i2  ,j2  ,k2  ,UEDEN) - coef_lll*( &
-                     heat_src + kinetic_src )
-
-          source(i2+1,j2  ,k2  ,UEDEN) = source(i2+1,j2  ,k2  ,UEDEN) - coef_hll*( &
-                     heat_src + kinetic_src )
-
-          source(i2  ,j2+1,k2  ,UEDEN) = source(i2  ,j2+1,k2  ,UEDEN) - coef_lhl* ( &
-                     heat_src + kinetic_src )
-
-          source(i2+1,j2+1,k2  ,UEDEN) = source(i2+1,j2+1,k2  ,UEDEN) - coef_hhl* ( &
-                     heat_src + kinetic_src )
-
-          source(i2  ,j2  ,k2+1,UEDEN) = source(i2  ,j2  ,k2+1,UEDEN) - coef_llh* ( &
-                     heat_src + kinetic_src )
-
-          source(i2+1,j2  ,k2+1,UEDEN) = source(i2+1,j2  ,k2+1,UEDEN) - coef_hlh* ( &
-                     heat_src + kinetic_src )
-  
-          source(i2  ,j2+1,k2+1,UEDEN) = source(i2  ,j2+1,k2+1,UEDEN) - coef_lhh* ( &
-                     heat_src + kinetic_src )
-
-          source(i2+1,j2+1,k2+1,UEDEN) = source(i2+1,j2+1,k2+1,UEDEN) - coef_hhh* ( &
-                     heat_src + kinetic_src )
-
-       endif
+!       if(is_heat_tran.eq.1) then
+!
+!          source(i2,   j2  ,k2  ,UEINT) = source(i2,   j2  ,k2  ,UEINT) - coef_lll*heat_src
+!          source(i2,   j2+1,k2  ,UEINT) = source(i2,   j2+1,k2  ,UEINT) - coef_lhl*heat_src
+!          source(i2+1, j2  ,k2  ,UEINT) = source(i2+1, j2  ,k2  ,UEINT) - coef_hll*heat_src
+!          source(i2+1, j2+1,k2  ,UEINT) = source(i2+1, j2+1,k2  ,UEINT) - coef_hhl*heat_src
+!          source(i2,   j2  ,k2+1,UEINT) = source(i2,   j2  ,k2+1,UEINT) - coef_llh*heat_src
+!          source(i2,   j2+1,k2+1,UEINT) = source(i2,   j2+1,k2+1,UEINT) - coef_lhh*heat_src
+!          source(i2+1, j2  ,k2+1,UEINT) = source(i2+1, j2  ,k2+1,UEINT) - coef_hlh*heat_src
+!          source(i2+1, j2+1,k2+1,UEINT) = source(i2+1, j2+1,k2+1,UEINT) - coef_hhh*heat_src
+!
+!          source(i2  ,j2  ,k2  ,UEDEN) = source(i2  ,j2  ,k2  ,UEDEN) - coef_lll*( &
+!                     heat_src + kinetic_src )
+!
+!          source(i2+1,j2  ,k2  ,UEDEN) = source(i2+1,j2  ,k2  ,UEDEN) - coef_hll*( &
+!                     heat_src + kinetic_src )
+!
+!          source(i2  ,j2+1,k2  ,UEDEN) = source(i2  ,j2+1,k2  ,UEDEN) - coef_lhl* ( &
+!                     heat_src + kinetic_src )
+!
+!          source(i2+1,j2+1,k2  ,UEDEN) = source(i2+1,j2+1,k2  ,UEDEN) - coef_hhl* ( &
+!                     heat_src + kinetic_src )
+!
+!          source(i2  ,j2  ,k2+1,UEDEN) = source(i2  ,j2  ,k2+1,UEDEN) - coef_llh* ( &
+!                     heat_src + kinetic_src )
+!
+!          source(i2+1,j2  ,k2+1,UEDEN) = source(i2+1,j2  ,k2+1,UEDEN) - coef_hlh* ( &
+!                     heat_src + kinetic_src )
+!  
+!          source(i2  ,j2+1,k2+1,UEDEN) = source(i2  ,j2+1,k2+1,UEDEN) - coef_lhh* ( &
+!                     heat_src + kinetic_src )
+!
+!          source(i2+1,j2+1,k2+1,UEDEN) = source(i2+1,j2+1,k2+1,UEDEN) - coef_hhh* ( &
+!                     heat_src + kinetic_src )
+!
+!       endif
 
        ! ****************************************************
        ! Now apply the forcing term to the particles
