@@ -17,10 +17,6 @@ USE_GRAV   = FALSE
 # Include support for participating or tracer particles
 USE_PARTICLES = TRUE
 
-SPRAY_COMPONENTS = 8
-
-DEFINES += -DSPRAY_COMPONENTS=$(SPRAY_COMPONENTS)
-
 # This sets the EOS directory in $(PELE_PHYSICS_HOME)/Eos
 Eos_dir := Fuego
 
