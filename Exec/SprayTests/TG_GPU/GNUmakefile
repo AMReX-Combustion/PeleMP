@@ -3,6 +3,8 @@ DIM = 2
 COMP = gnu
 PRECISION = DOUBLE
 
+BL_NO_FORT = TRUE
+
 # Profiling
 PROFILE = FALSE
 TINY_PROFILE = FALSE
@@ -27,8 +29,8 @@ USE_REACT = FALSE
 USE_EB = FALSE
 Eos_dir := Fuego
 Reactions_dir := Fuego
-Chemistry_Model := heptane_3sp
-Transport_dir := Simple
+Chemistry_Model := air
+Transport_dir := Constant
 
 # PeleC-MP
 USE_PARTICLES = TRUE
