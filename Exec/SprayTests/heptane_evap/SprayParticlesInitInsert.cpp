@@ -6,16 +6,16 @@
 
 using namespace amrex;
 
-void
+bool
 SprayParticleContainer::insertParticles (Real time, int nstep, int lev)
 {
-
+  return false;
 }
 
-void
+bool
 SprayParticleContainer::injectParticles (Real time, int nstep, int lev)
 {
-
+  return false;
 } 
 
 void
