@@ -11,8 +11,6 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real p0 = 1.013e6; // [erg cm^-3]
 AMREX_GPU_DEVICE_MANAGED amrex::Real T0 = 300.0;
 AMREX_GPU_DEVICE_MANAGED amrex::Real rho0 = 0.0;
 AMREX_GPU_DEVICE_MANAGED amrex::Real v0 = 0.0;
-AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2 = 0.233;
-AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2 = 0.767;
 AMREX_GPU_DEVICE_MANAGED amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
 AMREX_GPU_DEVICE_MANAGED amrex::Real rhoRatio = 1000.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real partRho = 1.;
@@ -40,8 +38,6 @@ amrex_probinit(
   pp.query("convecting", ProbParm::convecting);
   pp.query("ref_p", ProbParm::p0);
   pp.query("ref_T", ProbParm::T0);
-  pp.query("init_O2", ProbParm::Y_O2);
-  pp.query("init_N2", ProbParm::Y_N2);
   pp.query("st_mod", ProbParm::Stmod);
   for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
     pp.querykth("num_particles", dir, ProbParm::partNum[dir], 0);
@@ -52,9 +48,7 @@ amrex_probinit(
 
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;
-  amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  massfrac[O2_ID] = ProbParm::Y_O2;
-  massfrac[N2_ID] = ProbParm::Y_N2;
+  amrex::Real massfrac[NUM_SPECIES] = {1.0};
   EOS::PYTR2E(ProbParm::p0, massfrac, ProbParm::T0, ProbParm::rho0, eint);
   EOS::RTY2Cs(ProbParm::rho0, ProbParm::T0, massfrac, cs);
   EOS::TY2Cp(ProbParm::T0, massfrac, cp);
