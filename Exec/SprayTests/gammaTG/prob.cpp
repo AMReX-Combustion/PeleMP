@@ -95,6 +95,7 @@ amrex_probinit(
   for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
     amrex::Print(ofs) << ", " << ProbParm::partNum[dir];
   amrex::Print(ofs) << std::endl;
+  amrex::Print(ofs) << "particle mass: " << 6./M_PI*ProbParm::partRho*std::pow(ProbParm::partDia, 3) << std::endl;
   amrex::Print(ofs) << "rho_d/rho_f: " << ProbParm::rhoRatio << std::endl;
   amrex::Print(ofs) << "rho0: " << ProbParm::rho0 << std::endl;
   amrex::Print(ofs) << "cs: " << cs << std::endl;

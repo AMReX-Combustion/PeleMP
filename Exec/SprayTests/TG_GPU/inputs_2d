@@ -11,6 +11,7 @@ geometry.prob_hi     = 2. 2. 2.
 # use with single level
 amr.n_cell = 64 64 64
 prob.num_particles = 100 100 100
+amr.max_grid_size = 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<

@@ -10,6 +10,7 @@ geometry.prob_hi     = 2. 2. 2.
 
 # use with single level
 amr.n_cell = 144 144 144
+# Number of particles in each direction
 prob.num_particles = 300 300 400
 
 amr.max_grid_size_x = 48
@@ -82,14 +83,9 @@ amr.plot_vars = density Temp rho_E xmom ymom zmom eden
 amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure MachNumber magvel
 amr.file_name_digits = 6
 
-#PROBIN FILENAME
-amr.probin_file = probin
-
 # PROBLEM PARAMETERS
 prob.reynolds = 1600.
 prob.mach = 0.1
-# Number of particles in each direction
-prob.particle_diameter = 0.0001
 prob.ref_p = 1.01325E6
 prob.ref_T = 300.
 prob.density_ratio = 10000.

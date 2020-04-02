@@ -32,30 +32,31 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
   const Box& boxDom = Geom(lev).Domain();
   const Real len = phi[0] - plo[0];
   const RealVect dx_part(AMREX_D_DECL(len/Real(num_part[0]),
-					     len/Real(num_part[1]),
-					     len/Real(num_part[2])));
-  // Number of particles per cell per direction
-  // Makes sure there is at least 1 per cell
+				      len/Real(num_part[1]),
+				      len/Real(num_part[2])));
   for (MFIter mfi = MakeMFIter(lev); mfi.isValid(); ++mfi) {
     Box tile_box = mfi.tilebox();
     tile_box &= boxDom;
     const RealBox tile_realbox(tile_box, Geom(lev).CellSize(), Geom(lev).ProbLo());
     Gpu::HostVector<ParticleType> host_particles;
-    RealVect lo_end;
-    IntVect ppc_pdir;
+    RealVect hi_end;
+    RealVect start_part;
+    RealVect part_loc;
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
       Real box_length = tile_realbox.length(dir);
-      lo_end[dir] = tile_realbox.lo(dir);
-      ppc_pdir[dir] = ProbParm::partNum[dir]*box_length/len;
+      Real lo_end = tile_realbox.lo(dir);
+      hi_end[dir] = tile_realbox.hi(dir);
+      Real close_part = lo_end/dx_part[dir] - 0.5;
+      int part_n = std::floor(close_part);
+      start_part[dir] = (part_n + 1.5)*dx_part[dir];
+      part_loc[dir] = start_part[dir];
     }
-    RealVect part_loc = RealVect::Zero;
-    for (int x_part = 0; x_part != ppc_pdir[0]; ++x_part) {
-      part_loc[0] = lo_end[0] + (0.5 + Real(x_part))*dx_part[0];
-      for (int y_part = 0; y_part != ppc_pdir[1]; ++y_part) {
-	part_loc[1]= lo_end[1] + (0.5 + Real(y_part))*dx_part[1];
+    while (part_loc[0] < hi_end[0]) {
+      part_loc[1] = start_part[1];
+      while (part_loc[1] < hi_end[1]) {
 #if AMREX_SPACEDIM == 3
-	for (int z_part = 0; z_part != ppc_pdir[2]; ++z_part) {
-	  part_loc[2] = lo_end[2] + (0.5 + Real(z_part))*dx_part[2];
+	part_loc[2] = start_part[2];
+	while (part_loc[2] < hi_end[2]) {
 #endif
 	  ParticleType p;
 	  p.id() = ParticleType::NextID();
@@ -73,9 +74,12 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
 	  p.rdata(PeleC::pstateY) = 1.; // Only use the first fuel species
 	  host_particles.push_back(p);
 #if AMREX_SPACEDIM == 3
+	  part_loc[2] += dx_part[2];
 	}
 #endif
+	part_loc[1] += dx_part[1];
       }
+      part_loc[0] += dx_part[0];
     }
     auto& particles = GetParticles(lev);
     auto& particle_tile = particles[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
