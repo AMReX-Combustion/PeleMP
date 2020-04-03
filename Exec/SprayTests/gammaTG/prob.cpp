@@ -39,8 +39,7 @@ amrex_probinit(
   pp.query("ref_p", ProbParm::p0);
   pp.query("ref_T", ProbParm::T0);
   pp.query("st_mod", ProbParm::Stmod);
-  for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-    pp.querykth("num_particles", dir, ProbParm::partNum[dir], 0);
+  pp.query("num_particles", ProbParm::partNum);
   pp.query("density_ratio", ProbParm::rhoRatio);
 
   // Define the length scale

@@ -11,7 +11,7 @@ geometry.prob_hi     = 2. 2. 2.
 # use with single level
 amr.n_cell = 144 144 144
 # Number of particles in each direction
-prob.num_particles = 300 300 400
+prob.num_particles = (300,300,400)
 
 amr.max_grid_size_x = 48
 amr.max_grid_size_y = 48
