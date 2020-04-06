@@ -31,9 +31,9 @@ amrex_probinit(
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[N2_ID] = ProbParm::Y_N2;
   massfrac[O2_ID] = ProbParm::Y_O2;
-  EOS::tp(ProbParm::p0, massfrac, ProbParm::T0, ProbParm::rho0, eint);
-  EOS::get_cs(ProbParm::rho0, ProbParm::T0, massfrac, cs);
-  EOS::get_cp(ProbParm::T0, massfrac, cp);
+  EOS::PYTR2E(ProbParm::p0, massfrac, ProbParm::T0, ProbParm::rho0, eint);
+  EOS::RTY2Cs(ProbParm::rho0, ProbParm::T0, massfrac, cs);
+  EOS::TY2Cp(ProbParm::T0, massfrac, cp);
 }
 }
 void

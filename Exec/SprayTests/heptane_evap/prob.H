@@ -44,7 +44,7 @@ pc_initdata(
   massfrac[O2_ID] = ProbParm::Y_O2;
   massfrac[N2_ID] = ProbParm::Y_N2;
   amrex::Real Tval = ProbParm::T0;
-  EOS::tp(p, massfrac, Tval, rho, eint);
+  EOS::PYTR2E(p, massfrac, Tval, rho, eint);
 
   // Set the state
   state(i, j, k, URHO) = rho;
@@ -86,7 +86,7 @@ bcnormal(
     Real massfrac[NUM_SPECIES] = {0.0};
     massfrac[N2_ID] = ProbParm::Y_N2;
     massfrac[O2_ID] = ProbParm::Y_O2;
-    EOS::tp(p, massfrac, T, rho, eint);
+    EOS::PYTR2E(p, massfrac, T, rho, eint);
     s_ext[URHO] = rho;
     s_ext[UMX] = rho*u[0];
     s_ext[UMY] = rho*u[1];
