@@ -1,0 +1,94 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 100
+stop_time = 0.008
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0 1
+geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo    =  0. 0.
+geometry.prob_hi     = 8. 0.5
+amr.n_cell = 128 8
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+pelec.lo_bc        = "Hard" "Interior"
+pelec.hi_bc        = "Hard" "Interior"
+
+# WHICH PHYSICS
+pelec.do_hydro = 1
+pelec.diffuse_vel = 1
+pelec.diffuse_temp = 1
+pelec.diffuse_enth = 1
+pelec.diffuse_spec = 1
+pelec.do_react = 0
+pelec.do_grav = 0
+pelec.allow_negative_energy = 1
+
+# TIME STEP CONTROL
+pelec.cfl            = 0.8    # cfl number for hyperbolic system
+pelec.init_shrink    = 0.3     # scale back initial timestep
+pelec.change_max     = 1.1     # max time step growth
+pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
+
+# DIAGNOSTICS & VERBOSITY
+pelec.sum_interval   = -1   # timesteps between computing mass
+pelec.v              = 0   # verbosity in Castro.cpp
+amr.v                = 1    # verbosity in Amr.cpp
+#amr.data_log         = datlog
+#amr.grid_log        = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING 
+amr.max_level       = 2       # maximum level number allowed
+amr.initial_grid_file = gridfile
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = -1 -1 -1 -1 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 32
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# PARTICLES / SPRAY
+pelec.do_spray_particles = 1
+particles.v = 0
+particles.mom_transfer = 1
+particles.mass_transfer = 1
+particles.heat_transfer = 1
+particles.particle_init_uniform = 0 # one particle per cell
+particles.particle_init_file = "initspraydata"
+particles.write_spray_ascii_files = 1
+
+particles.fuel_species = NC10H22
+# properties for decane
+particles.fuel_crit_temp = 617.8 # K
+particles.fuel_boil_temp = 447.27 # K
+# If we want the reference point to be same as the boiling temperature
+# particles.fuel_ref_temp = 447.27
+# particles.fuel_latent = 2.758E9
+#particles.fuel_cp = 2.79E7
+# particles.fuel_ref_temp = 313.
+# particles.fuel_latent = 3.52E9 # Latent enthalpy at 298 K
+# particles.fuel_cp = 2.232E7
+particles.fuel_ref_temp = 298.15
+particles.fuel_latent = 3.5899E9
+particles.fuel_cp = 2.1921E7 # Cp at 298 K
+
+# CHECKPOINT FILES
+#amr.checkpoint_files_output = 0
+amr.check_file      = chk  # root name of checkpoint file
+amr.check_int       = -1   # number of timesteps between checkpoints
+#amr.restart         = chk0000100
+
+# PLOTFILES
+#amr.plot_files_output = 0
+amr.plot_file       = plt # root name of plotfile
+amr.plot_int        = 10 # number of timesteps between plotfiles
+amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC10H22
+amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
+amr.file_name_digits = 7
+
+prob.ref_T = 1500.
+prob.ref_p = 1.01325E7
+prob.init_v = 0.
