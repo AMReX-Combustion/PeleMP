@@ -33,6 +33,9 @@ Transport_dir := Simple
 # PeleC-MP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
+# Cannot read ascii files for SOA
+# Do not use SOA until it is fixed in AMReX
+#USE_SPRAY_SOA = FALSE
 
 # GNU Make
 Bpack := ./Make.package

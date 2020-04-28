@@ -37,8 +37,13 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
   for (MFIter mfi = MakeMFIter(lev); mfi.isValid(); ++mfi) {
     Box tile_box = mfi.tilebox();
     tile_box &= boxDom;
+    const auto lo = amrex::lbound(tile_box);
+    const auto hi = amrex::ubound(tile_box);
     const RealBox tile_realbox(tile_box, Geom(lev).CellSize(), Geom(lev).ProbLo());
     Gpu::HostVector<ParticleType> host_particles;
+#ifdef USE_SPRAY_SOA
+    std::array<Gpu::HostVector<Real>, NAR_SPR > host_real_attribs;
+#endif
     RealVect hi_end;
     RealVect start_part;
     RealVect part_loc;
@@ -61,17 +66,27 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
 	  ParticleType p;
 	  p.id() = ParticleType::NextID();
 	  p.cpu() = ParallelDescriptor::MyProc();
-	  for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
+	  for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
 	    p.pos(dir) = part_loc[dir];
-	    p.rdata(PeleC::pstateVel+dir) = 0.;
-	  }
+#ifdef USE_SPRAY_SOA
+          for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
+            host_real_attribs[PeleC::pstateVel+dir].push_back(0.);
+          host_real_attribs[PeleC::pstateT].push_back(T_ref);
+          host_real_attribs[PeleC::pstateDia].push_back(part_dia);
+          host_real_attribs[PeleC::pstateRho].push_back(part_rho);
+          host_real_attribs[PeleC::pstateY].push_back(1.);
+          for (int sp = 1; sp != SPRAY_FUEL_NUM; ++sp)
+            host_real_attribs[PeleC::pstateY+sp].push_back(0.);
+#else
+          for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
+            p.rdata(PeleC::pstateVel+dir) = 0.;
 	  p.rdata(PeleC::pstateT) = T_ref; // temperature
 	  p.rdata(PeleC::pstateDia) = part_dia; // diameter
 	  p.rdata(PeleC::pstateRho) = part_rho; // liquid fuel density
-	  for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp) {
+	  for (int sp = 1; sp != SPRAY_FUEL_NUM; ++sp)
 	    p.rdata(PeleC::pstateY + sp) = 0.;
-	  }
 	  p.rdata(PeleC::pstateY) = 1.; // Only use the first fuel species
+#endif
 	  host_particles.push_back(p);
 #if AMREX_SPACEDIM == 3
 	  part_loc[2] += dx_part[2];
@@ -90,6 +105,12 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
     // Copy the AoS part of the host particles to the GPU
     Gpu::copy(Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
 	      particle_tile.GetArrayOfStructs().begin() + old_size);
+#ifdef USE_SPRAY_SOA
+    for (int i = 0; i != NAR_SPR; ++i) {
+      Gpu::copy(Gpu::hostToDevice, host_real_attribs[i].begin(), host_real_attribs[i].end(),
+                particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+    }
+#endif
   }
   Redistribute();
 }
