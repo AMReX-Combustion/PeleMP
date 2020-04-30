@@ -75,6 +75,8 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
           for (int spf = 1; spf != SPRAY_FUEL_NUM; ++spf)
             host_real_attribs[PeleC::pstateY+spf].push_back(0.);
 #else
+          for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
+            p.rdata(PeleC::pstateVel+dir) = 0.;
           p.rdata(PeleC::pstateT) = T_ref; // temperature
           p.rdata(PeleC::pstateDia) = part_dia; // diameter
           p.rdata(PeleC::pstateRho) = part_rho; // liquid fuel density
