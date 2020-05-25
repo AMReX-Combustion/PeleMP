@@ -14,7 +14,7 @@ USE_GPROF = FALSE
 # Performance
 USE_MPI = FALSE
 USE_OMP = FALSE
-USE_CUDA = TRUE
+USE_CUDA = FALSE
 USE_HIP = FALSE
 
 # Debugging
@@ -33,6 +33,8 @@ Transport_dir := Simple
 # PeleC-MP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
+# If comparing results with MPI or regression data
+#DEFINES += -DCONVERGENCE
 #USE_SPRAY_SOA = TRUE
 
 # GNU Make
