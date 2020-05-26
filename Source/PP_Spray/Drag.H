@@ -5,7 +5,8 @@
 #include <AMReX_FArrayBox.H>
 #include <AMReX_AmrParticles.H>
 #include <AMReX_Particles.H>
-#include <PeleC.H>
+//#include <PeleC.H>
+#include <PeleLM.H>
 #include <SprayParticles.H>
 
 using namespace amrex;

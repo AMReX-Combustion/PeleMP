@@ -2,9 +2,10 @@
 #include <SprayParticles.H>
 #include <AMReX_Particles.H>
 #include <AMReX_ParticleReduce.H>
-#include "Constants.H"
+//#include "Constants.H"
 #include "Transport.H"
 #include "Drag.H"
+#include "PeleLM.H"
 
 using namespace amrex;
 
@@ -71,7 +72,7 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
 				       const int   tmp_src_width,
 				       const bool  do_move,
 				       const int   where_width)
-{  
+{
   BL_PROFILE("ParticleContainer::moveKickDrift()");
   AMREX_ASSERT(lev >= 0);
   AMREX_ASSERT(state.nGrow() >= 2);
@@ -125,8 +126,8 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
   BL_PROFILE_VAR_STOP(UPD_PART);
 
   // ********************************************************************************
-  // Make sure the momentum put into ghost cells of each grid is added to both 
-  //      valid regions AND the ghost cells of other grids.  If at level = 0 
+  // Make sure the momentum put into ghost cells of each grid is added to both
+  //      valid regions AND the ghost cells of other grids.  If at level = 0
   //      we can accomplish this with SumBoundary; however if this level has ghost
   //      cells not covered at this level then we need to do more.
   // ********************************************************************************
@@ -150,7 +151,7 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
   if (lev > 0)
     source.FillBoundary(Geom(lev).periodicity());
 
-  // Only delete this if in fact we created it.  Note we didn't change state_ptr so 
+  // Only delete this if in fact we created it.  Note we didn't change state_ptr so
   //  we don't need to copy anything back into state
   if (tempState) delete state_ptr;
 
@@ -200,7 +201,7 @@ SprayParticleContainer::estTimestep (int lev, Real cfl) const
   BL_PROFILE("ParticleContainer::estTimestep()");
   // TODO: Clean up this mess and bring the num particle functionality back
   Real dt = std::numeric_limits<Real>::max();
-  if (this->GetParticles().size() == 0 || PeleC::particle_mom_tran == 0)
+  if (this->GetParticles().size() == 0 || PeleLM::particle_mom_tran == 0)
     return dt;
 
   const Real strttime = ParallelDescriptor::second();
@@ -289,17 +290,17 @@ SprayParticleContainer::updateParticles(const int&  lev,
   EOS::molecular_weight(mw_fluid);
   EOS::inv_molecular_weight(invmw);
   // Extract control parameters for mass, heat, and momentum transfer
-  const int heat_trans = PeleC::particle_heat_tran;
-  const int mass_trans = PeleC::particle_mass_tran;
-  const int mom_trans = PeleC::particle_mom_tran;
+  const int heat_trans = PeleLM::particle_heat_tran;
+  const int mass_trans = PeleLM::particle_mass_tran;
+  const int mom_trans = PeleLM::particle_mom_tran;
   const Real inv_Ru = 1./EOS::RU;
-  const Real ref_T = PeleC::sprayRefT;
+  const Real ref_T = PeleLM::sprayRefT;
   // Particle components indices
-  const int pstateVel = PeleC::pstateVel;
-  const int pstateT   = PeleC::pstateT;
-  const int pstateRho = PeleC::pstateRho;
-  const int pstateDia = PeleC::pstateDia;
-  const int pstateY   = PeleC::pstateY;
+  const int pstateVel = PeleLM::pstateVel;
+  const int pstateT   = PeleLM::pstateT;
+  const int pstateRho = PeleLM::pstateRho;
+  const int pstateDia = PeleLM::pstateDia;
+  const int pstateY   = PeleLM::pstateY;
   bool get_xi = false;
   bool get_Ddiag = true;
   bool get_lambda = true;
@@ -309,11 +310,13 @@ SprayParticleContainer::updateParticles(const int&  lev,
     get_lambda = false;
   }
 
+  // martin: will need to find solution for PeleLM state space indices
+  // set to 0 for now
   // Component indices for conservative state
-  const int rhoIndx = PeleC::Density;
-  const int momIndx = PeleC::Xmom;
-  const int engIndx = PeleC::Eden;
-  const int specIndx = PeleC::FirstSpec;
+  const int rhoIndx = 0;//PeleLM::Density;
+  const int momIndx = 0;//PeleLM::Xmom;
+  const int engIndx = 0;//PeleLM::Eden;
+  const int specIndx = 0;//PeleLM::FirstSpec;
   // Start the ParIter, which loops over separate sets of particles in different boxes
   for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
     const Box& tile_box = pti.growntilebox(numGhost);
