@@ -7,7 +7,7 @@ BL_NO_FORT = TRUE
 
 # Profiling
 PROFILE = FALSE
-TINY_PROFILE = FALSE
+TINY_PROFILE = TRUE
 COMM_PROFILE = FALSE
 TRACE_PROFILE = FALSE
 MEM_PROFILE = FALSE
@@ -29,8 +29,8 @@ USE_REACT = FALSE
 USE_EB = FALSE
 Eos_dir := Fuego
 Reactions_dir := Fuego
-Chemistry_Model := air
-Transport_dir := Constant
+Chemistry_Model := decane_3sp
+Transport_dir := Simple
 
 # PeleC-MP
 USE_PARTICLES = TRUE

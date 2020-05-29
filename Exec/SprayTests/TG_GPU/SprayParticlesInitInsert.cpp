@@ -24,7 +24,7 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
   const int numGrids = pelec->numGrids();
   Real part_rho = ProbParm::partRho;
   Real part_dia = ProbParm::partDia;
-  Real T_ref = ProbParm::T0;
+  Real T_ref = ProbParm::partTemp;
   const IntVect num_part = ProbParm::partNum;
   const auto dx = Geom(lev).CellSizeArray();
   const auto plo = Geom(lev).ProbLoArray();

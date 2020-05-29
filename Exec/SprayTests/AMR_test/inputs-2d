@@ -43,9 +43,17 @@ amr.v                = 1    # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING 
 amr.max_level       = 2       # maximum level number allowed
-amr.initial_grid_file = gridfile
-amr.ref_ratio       = 2 2 2 2 # refinement ratio
+
+# To use fixed refinement, use the following
 amr.regrid_int      = -1 -1 -1 -1 # how often to regrid
+amr.initial_grid_file = gridfile
+
+# To use adaptive refinement based on temperature gradients,
+# comment out the two lines above and uncomment the following lines
+#amr.regrid_int = 8 8 8 8
+#tagging.tempgrad = 1.
+
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 32
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
