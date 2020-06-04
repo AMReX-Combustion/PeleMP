@@ -64,7 +64,7 @@ pc_initdata(
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[O2_ID] = ProbParm::Y_O2;
   massfrac[N2_ID] = ProbParm::Y_N2;
-  EOS::PYTR2E(p, massfrac, ProbParm::T0, rho, eint);
+  EOS::PYT2RE(p, massfrac, ProbParm::T0, rho, eint);
 
   // Set the state
   state(i, j, k, URHO) = rho;
