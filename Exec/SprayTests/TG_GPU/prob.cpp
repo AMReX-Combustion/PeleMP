@@ -73,19 +73,21 @@ amrex_probinit(
   EOS::TRY2P(ProbParm::T0, ProbParm::rho0, massfrac, ProbParm::p0);
 
   // Output IC
-  std::ofstream ofs("ic.txt", std::ofstream::out);
-  amrex::Print(ofs) << "number of particles: " << ProbParm::partNum[0];
-  for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
-    amrex::Print(ofs) << ", " << ProbParm::partNum[dir];
-  amrex::Print(ofs) << std::endl;
-  amrex::Print(ofs) << "rho0: " << ProbParm::rho0 << std::endl;
-  amrex::Print(ofs) << "p0: " << ProbParm::p0 << std::endl;
-  amrex::Print(ofs) << "cs: " << cs << std::endl;
-  amrex::Print(ofs) << "U: " << ProbParm::v0 << std::endl;
-  amrex::Print(ofs) << "Re: " << ProbParm::reynolds << std::endl;
-  amrex::Print(ofs) << "particle diameter: " << ProbParm::partDia << std::endl;
-  amrex::Print(ofs) << "particle density: " << ProbParm::partRho << std::endl;
-  ofs.close();
+  if (amrex::ParallelDescriptor::IOProcessor()) {
+    std::ofstream ofs("ic.txt", std::ofstream::out);
+    amrex::Print(ofs) << "number of particles: " << ProbParm::partNum[0];
+    for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
+      amrex::Print(ofs) << ", " << ProbParm::partNum[dir];
+    amrex::Print(ofs) << std::endl;
+    amrex::Print(ofs) << "rho0: " << ProbParm::rho0 << std::endl;
+    amrex::Print(ofs) << "p0: " << ProbParm::p0 << std::endl;
+    amrex::Print(ofs) << "cs: " << cs << std::endl;
+    amrex::Print(ofs) << "U: " << ProbParm::v0 << std::endl;
+    amrex::Print(ofs) << "Re: " << ProbParm::reynolds << std::endl;
+    amrex::Print(ofs) << "particle diameter: " << ProbParm::partDia << std::endl;
+    amrex::Print(ofs) << "particle density: " << ProbParm::partRho << std::endl;
+    ofs.close();
+  }
 }
 }
 

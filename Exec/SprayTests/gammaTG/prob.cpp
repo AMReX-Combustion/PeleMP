@@ -89,25 +89,27 @@ amrex_probinit(
   }
   ProbParm::partDia = dia;
   // Output IC
-  std::ofstream ofs("ic.txt", std::ofstream::out);
-  amrex::Print(ofs) << "number of particles: " << ProbParm::partNum[0];
-  for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
-    amrex::Print(ofs) << ", " << ProbParm::partNum[dir];
-  amrex::Print(ofs) << std::endl;
-  amrex::Print(ofs) << "particle mass: " << 6./M_PI*ProbParm::partRho*std::pow(ProbParm::partDia, 3) << std::endl;
-  amrex::Print(ofs) << "rho_d/rho_f: " << ProbParm::rhoRatio << std::endl;
-  amrex::Print(ofs) << "rho0: " << ProbParm::rho0 << std::endl;
-  amrex::Print(ofs) << "cs: " << cs << std::endl;
-  amrex::Print(ofs) << "U: " << ProbParm::v0 << std::endl;
-  amrex::Print(ofs) << "mu: " << transport_params::const_viscosity << std::endl;
-  amrex::Print(ofs) << "Re: " << ProbParm::reynolds << std::endl;
-  amrex::Print(ofs) << "Stokes number: " << ProbParm::Stmod << "*Stc " << std::endl;
-  amrex::Print(ofs) << "particle diameter: " << ProbParm::partDia << std::endl;
-  amrex::Print(ofs) << "particle density: " << ProbParm::partRho << std::endl;
-  amrex::Print(ofs) << "tau_d: " << tau_d << std::endl;
-  amrex::Print(ofs) << "Re_d: " << Re_d << std::endl;
-  amrex::Print(ofs) << "final time (72 tau_g): " << 72.*tau_g << std::endl;
-  ofs.close();
+  if (amrex::ParallelDescriptor::IOProcessor()) {
+    std::ofstream ofs("ic.txt", std::ofstream::out);
+    amrex::Print(ofs) << "number of particles: " << ProbParm::partNum[0];
+    for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
+      amrex::Print(ofs) << ", " << ProbParm::partNum[dir];
+    amrex::Print(ofs) << std::endl;
+    amrex::Print(ofs) << "particle mass: " << 6./M_PI*ProbParm::partRho*std::pow(ProbParm::partDia, 3) << std::endl;
+    amrex::Print(ofs) << "rho_d/rho_f: " << ProbParm::rhoRatio << std::endl;
+    amrex::Print(ofs) << "rho0: " << ProbParm::rho0 << std::endl;
+    amrex::Print(ofs) << "cs: " << cs << std::endl;
+    amrex::Print(ofs) << "U: " << ProbParm::v0 << std::endl;
+    amrex::Print(ofs) << "mu: " << transport_params::const_viscosity << std::endl;
+    amrex::Print(ofs) << "Re: " << ProbParm::reynolds << std::endl;
+    amrex::Print(ofs) << "Stokes number: " << ProbParm::Stmod << "*Stc " << std::endl;
+    amrex::Print(ofs) << "particle diameter: " << ProbParm::partDia << std::endl;
+    amrex::Print(ofs) << "particle density: " << ProbParm::partRho << std::endl;
+    amrex::Print(ofs) << "tau_d: " << tau_d << std::endl;
+    amrex::Print(ofs) << "Re_d: " << Re_d << std::endl;
+    amrex::Print(ofs) << "final time (72 tau_g): " << 72.*tau_g << std::endl;
+    ofs.close();
+  }
 }
 }
 
