@@ -53,12 +53,17 @@ SprayParticleContainer::moveKick (MultiFab&   state,
 				  const Real  time,
 				  const bool  isVirtual,
 				  const bool  isGhost,
-				  const int   tmp_src_width)
+				  const int   tmp_src_width,
+          const int   rhoIndx,
+          const int   momIndx,
+          const int   tempIndx,
+          const int   engIndx,
+          const int   specIndx)
 {
   bool do_move = false;
   int width = 0;
   moveKickDrift(state, source, lev, dt, time, isVirtual, isGhost,
-		tmp_src_width, do_move, width);
+		tmp_src_width, do_move, width, rhoIndx, momIndx, tempIndx, engIndx, specIndx);
 }
 
 void
@@ -71,7 +76,12 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
 				       const bool  isGhost,
 				       const int   tmp_src_width,
 				       const bool  do_move,
-				       const int   where_width)
+				       const int   where_width,
+               const int   rhoIndx,
+               const int   momIndx,
+               const int   tempIndx,
+               const int   engIndx,
+               const int   specIndx)
 {
   BL_PROFILE("ParticleContainer::moveKickDrift()");
   AMREX_ASSERT(lev >= 0);
@@ -122,7 +132,8 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
     tempSource = true;
   }
   BL_PROFILE_VAR("SprayParticles::updateParticles()", UPD_PART);
-  updateParticles(lev, (*state_ptr), (*tmp_src_ptr), dt, time, tmp_src_width, do_move);
+  updateParticles(lev, (*state_ptr), (*tmp_src_ptr), dt, time, tmp_src_width, do_move,
+                  rhoIndx, momIndx, tempIndx, engIndx, specIndx);
   BL_PROFILE_VAR_STOP(UPD_PART);
 
   // ********************************************************************************
@@ -254,7 +265,12 @@ SprayParticleContainer::updateParticles(const int&  lev,
                                         const Real& flow_dt,
                                         const Real& time,
                                         const int   numGhost,
-                                        const bool  do_move)
+                                        const bool  do_move,
+                                        const int   rhoIndx,
+                                        const int   momIndx,
+                                        const int   tempIndx,
+                                        const int   engIndx,
+                                        const int   specIndx)
 {
   AMREX_ASSERT(OnSameGrids(lev, state));
   AMREX_ASSERT(OnSameGrids(lev, source));
@@ -310,13 +326,17 @@ SprayParticleContainer::updateParticles(const int&  lev,
     get_lambda = false;
   }
 
+  // added this here for now, but that needs to be done somewhere else
+  transport_init();
+
+  Print() << "updateParticles, gonna enter MyParIter loop" << '\n';
   // martin: will need to find solution for PeleLM state space indices
-  // set to 0 for now
+  // set to 0 for now, then: pass indices
   // Component indices for conservative state
-  const int rhoIndx = 0;//PeleLM::Density;
-  const int momIndx = 0;//PeleLM::Xmom;
-  const int engIndx = 0;//PeleLM::Eden;
-  const int specIndx = 0;//PeleLM::FirstSpec;
+  //const int rhoIndx = 0;//PeleLM::Density;
+  //const int momIndx = 0;//PeleLM::Xmom;
+  //const int engIndx = 0;//PeleLM::Eden;
+  //const int specIndx = 0;//PeleLM::FirstSpec;
   // Start the ParIter, which loops over separate sets of particles in different boxes
   for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
     const Box& tile_box = pti.growntilebox(numGhost);
@@ -334,6 +354,8 @@ SprayParticleContainer::updateParticles(const int&  lev,
     {
       ParticleType& p = pstruct[i];
       if (p.id() <= 0) continue;
+      Print() << "updateParticles, working on p.id() " << p.id() << '\n';
+      Print() << "updateParticles, p.id(), pstateVel " << p.id() << " " <<  p.rdata(pstateVel) << '\n';
       Real dt = flow_dt;
       Real sub_source = inv_vol;
       // TODO: I was hoping to not have to instantiate this everytime
@@ -367,6 +389,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
         AMREX_ASSERT(tile_box.contains(cur_indx));
 	Real cur_coef = coef[aindx];
 	Real cur_rho = statearr(cur_indx, rhoIndx);
+  Print() << "updateParticles, p.id(), cur_rho " << p.id() << " " << cur_rho << '\n';
 	rho_fluid += cur_coef*cur_rho;
 	Real inv_rho = 1./cur_rho;
         AMREX_D_TERM(Real velx = statearr(cur_indx, momIndx)*inv_rho;
@@ -386,7 +409,9 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	}
 	Real intEng = statearr(cur_indx, engIndx)*inv_rho - ke;
 	Real T_val = 300.;
-	EOS::EY2T(intEng, mass_frac, T_val);
+  // temporary for pelelm, just use t in state vector
+  T_val = statearr(cur_indx, tempIndx);
+  //EOS::EY2T(intEng, mass_frac, T_val);
         T_fluid += cur_coef*T_val;
       }
       int isub = 1; // Initialize the number of sub-cycles
@@ -396,11 +421,14 @@ SprayParticleContainer::updateParticles(const int&  lev,
 				       p.rdata(pstateVel+1),
 				       p.rdata(pstateVel+2)));
 	Real T_part = p.rdata(pstateT);
-        Real dia_part = p.rdata(pstateDia);
+  Real dia_part = p.rdata(pstateDia);
 	Real rho_part = p.rdata(pstateRho);
 	Real dia2_part = dia_part*dia_part;
 	Real pmass = Pi_six*rho_part*dia_part*dia2_part;
 	Real part_ke = 0.5*vel_part.radSquared();
+  Print() << "updateParticles, p.id(), T_part " << p.id() << " " <<  T_part << '\n';
+  Print() << "updateParticles, p.id(), rho_part " << p.id() << " " << rho_part << '\n';
+  Print() << "updateParticles, p.id(), dia_part " << p.id() << " " << dia_part << '\n';
 	// If multiple sub-cycle iterations are needed, we might need to
 	// re-interpolate values at the particle
 	// However, since we don't allow the particle to move more than
@@ -412,6 +440,9 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	// Calculate the C_p at the skin temperature for each species
         EOS::T2Cpi(T_skin, cp_n);
         EOS::T2Hi(T_part, h_skin);
+  Print() << "updateParticles, p.id(), T_fluid " << p.id() << " " <<  T_fluid << '\n';
+  Print() << "updateParticles, p.id(), T_skin " << p.id() << " " <<  T_skin << '\n';
+  Print() << "updateParticles, p.id(), cp_n " << p.id() << " " <<  *cp_n << '\n';
 	Real mw_mix = 0.;  // Average molar mass of gas mixture
         if (heat_trans || mass_trans) {
           for (int sp = 0; sp != NUM_SPECIES; ++sp) {
@@ -472,9 +503,18 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	Real lambda_skin = 0.;
 	Real mu_skin = 0.;
 	Real xi_skin = 0.;
+  Print() << "updateParticles, p.id(), gonna call transport " << p.id() << '\n';
+  Print() << "updateParticles, p.id(), T_fluid " << p.id() << " " <<  T_fluid << '\n';
+  Print() << "updateParticles, p.id(), rho_fluid " << p.id() << " " <<  rho_fluid << '\n';
+  Print() << "updateParticles, p.id(), Y_skin " << p.id() << " " <<  Y_skin[0] << '\n';
+  Print() << "updateParticles, p.id(), get_xi " << p.id() << " " <<  get_xi << '\n';
+  Print() << "updateParticles, p.id(), get_mu " << p.id() << " " <<  get_mu << '\n';
+  Print() << "updateParticles, p.id(), get_lambda " << p.id() << " " <<  get_lambda << '\n';
+  Print() << "updateParticles, p.id(), get_Ddiag " << p.id() << " " <<  get_Ddiag << '\n';
         transport(get_xi, get_mu, get_lambda, get_Ddiag,
                   T_fluid, rho_fluid, Y_skin, Ddiag,
                   mu_skin, xi_skin, lambda_skin);
+  Print() << "updateParticles, p.id(), called transport " << p.id() << '\n';
 	// Ensure gas is not all fuel to allow evaporation
 	bool evap_fuel = (sumYFuel >= 1.) ? false : true;
 	RealVect diff_vel = vel_fluid - vel_part;
@@ -521,6 +561,8 @@ SprayParticleContainer::updateParticles(const int&  lev,
             (Reyn > 1.) ? 24./Reyn*(1. + std::cbrt(Reyn*Reyn)/6.) : 24./Reyn;
           Real drag_force = 0.125*rho_fluid*drag_coef*M_PI*dia2_part*diff_vel_mag;
 #endif
+    Print() << "updateParticles, p.id(), drag_force " << p.id() << " " <<  drag_force << '\n';
+    Print() << "updateParticles, p.id(), diff_vel " << p.id() << " " <<  diff_vel << '\n';
 	  part_mom_src = drag_force*diff_vel;
 	  fluid_mom_src = part_mom_src + vel_part*m_dot;
 	  // s_d,mu dot u_d
@@ -565,15 +607,23 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	  dt = flow_dt/Real(nsub);
 	}
         const Real part_dt = 0.5*dt;
-	if (mom_trans || mass_trans || heat_trans) {
+
+  Print() << "updateParticles, p.id(), gonna update particle state " << p.id() << '\n';
+  if (mom_trans || mass_trans || heat_trans) {
           bool remove_particle = false;
           if (mom_trans) {
+            Print() << "updateParticles, p.id(), pstateVel before AMREX_D_TERM " << p.id() << " " <<  p.rdata(pstateVel) << '\n';
+            Print() << "updateParticles, p.id(),  part_dt " << p.id() << " " <<  part_dt << '\n';
+            Print() << "updateParticles, p.id(),  part_dt*part_mom_src[0]*inv_pmass " << p.id() << " " <<  part_dt*part_mom_src[0]*inv_pmass << '\n';
+            Print() << "updateParticles, p.id(), part_mom_src " << p.id() << " " <<  part_mom_src << '\n';
+            Print() << "updateParticles, p.id(), inv_pmass " << p.id() << " " <<  inv_pmass << '\n';
 	    // Modify particle velocity by half time step
             AMREX_D_TERM(Gpu::Atomic::Add(&p.rdata(pstateVel), part_dt*part_mom_src[0]*inv_pmass);,
                          Gpu::Atomic::Add(&p.rdata(pstateVel+1), part_dt*part_mom_src[1]*inv_pmass);,
                          Gpu::Atomic::Add(&p.rdata(pstateVel+2), part_dt*part_mom_src[2]*inv_pmass););
             // Modify particle position by whole time step
             if (do_move) {
+              Print() << "updateParticles, p.id(), pstateVel " << p.id() << " " <<  p.rdata(pstateVel) << '\n';
 	      for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
                 Gpu::Atomic::Add(&p.pos(dir), dt*p.rdata(pstateVel+dir));
                 // Check if particle is reflecting off a wall or leaving the domain
