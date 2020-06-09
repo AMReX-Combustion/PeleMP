@@ -54,12 +54,12 @@ SprayParticleContainer::InitParticlesUniform(AmrLevel* pelec, const int& lev, co
       start_part[dir] = (part_n + 1.5)*dx_part[dir];
       part_loc[dir] = start_part[dir];
     }
-    while (part_loc[0] < hi_end[0]) {
+    while (part_loc[0] < hi_end[0] + 1.E-12) {
       part_loc[1] = start_part[1];
-      while (part_loc[1] < hi_end[1]) {
+      while (part_loc[1] < hi_end[1] + 1.E-12) {
 #if AMREX_SPACEDIM == 3
 	part_loc[2] = start_part[2];
-	while (part_loc[2] < hi_end[2]) {
+	while (part_loc[2] < hi_end[2] + 1.E-12) {
 #endif
 	  ParticleType p;
 	  p.id() = ParticleType::NextID();
