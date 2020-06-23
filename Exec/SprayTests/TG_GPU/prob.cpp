@@ -70,7 +70,7 @@ amrex_probinit(
             massfrac, Ddiag, mu, xi, lambda);
   // Compute the density from the Reynolds number
   ProbParm::rho0 = ProbParm::reynolds * mu / (refL * ProbParm::v0);
-  EOS::TRY2P(ProbParm::T0, ProbParm::rho0, massfrac, ProbParm::p0);
+  EOS::RYT2P(ProbParm::T0, ProbParm::rho0, massfrac, ProbParm::p0);
 
   // Output IC
   if (amrex::ParallelDescriptor::IOProcessor()) {
