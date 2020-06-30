@@ -71,6 +71,7 @@ public:
   /// Update the particles but do not move particles
   ///
   void moveKick (amrex::MultiFab& state, amrex::MultiFab& source,
+		 amrex::MultiFab& umac,
 		 const int level, const amrex::Real& dt,
 		 const amrex::Real time, const bool isVirtual,
 		 const bool isGhost, const int tmp_src_width,
@@ -84,6 +85,7 @@ public:
   /// Update and move positions of the particles
   ///
   void moveKickDrift (amrex::MultiFab& state, amrex::MultiFab& source,
+		      amrex::MultiFab& umac,
 		      const int level, const amrex::Real& dt,
 		      const amrex::Real time, const bool isVirtual,
 		      const bool isGhost, const int tmp_src_width,
@@ -100,6 +102,7 @@ public:
   void updateParticles (const int&         lev,
 			amrex::MultiFab&   state,
 			amrex::MultiFab&   source,
+			amrex::MultiFab&   umac,
 			const amrex::Real& flow_dt,
 			const amrex::Real& time,
                         const int          numGhost,

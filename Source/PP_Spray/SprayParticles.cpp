@@ -48,6 +48,7 @@ SprayParticleContainer::init_bcs()
 void
 SprayParticleContainer::moveKick (MultiFab&   state,
 				  MultiFab&   source,
+          MultiFab&   umac,
 				  const int   lev,
 				  const Real& dt,
 				  const Real  time,
@@ -62,13 +63,14 @@ SprayParticleContainer::moveKick (MultiFab&   state,
 {
   bool do_move = false;
   int width = 0;
-  moveKickDrift(state, source, lev, dt, time, isVirtual, isGhost,
+  moveKickDrift(state, source, umac, lev, dt, time, isVirtual, isGhost,
 		tmp_src_width, do_move, width, rhoIndx, momIndx, tempIndx, engIndx, specIndx);
 }
 
 void
 SprayParticleContainer::moveKickDrift (MultiFab&   state,
 				       MultiFab&   source,
+               MultiFab&   umac,
 				       const int   lev,
 				       const Real& dt,
 				       const Real  time,
@@ -94,6 +96,7 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
   const Real strttime = ParallelDescriptor::second();
 
   MultiFab* state_ptr;
+  MultiFab* umac_ptr;
 
   // ********************************************************************************
   // We only make a new state_ptr if the boxArray of the state differs from the
@@ -110,6 +113,18 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
     state_ptr->setVal(0.);
     state_ptr->copy(state,0,0,state.nComp());
     state_ptr->FillBoundary(Geom(lev).periodicity());
+    tempState = true;
+  }
+
+  if (this->OnSameGrids(lev, umac)) {
+    umac_ptr = &umac;
+  } else {
+    umac_ptr = new MultiFab(this->m_gdb->ParticleBoxArray(lev),
+                             this->m_gdb->ParticleDistributionMap(lev),
+                             umac.nComp(), umac.nGrow());
+    umac_ptr->setVal(0.);
+    umac_ptr->copy(umac,0,0,umac.nComp());
+    umac_ptr->FillBoundary(Geom(lev).periodicity());
     tempState = true;
   }
 
@@ -131,9 +146,13 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
     tmp_src_ptr->setVal(0.);
     tempSource = true;
   }
+  amrex::Print() << "tempSource" << tempSource <<"\n";
+  amrex::Print() << "tempSource same grid" << this->OnSameGrids(lev, source) <<"\n";
+  amrex::Print() << "tempSource enough grow" << (source.nGrow() >= tmp_src_width) <<"\n";
   BL_PROFILE_VAR("SprayParticles::updateParticles()", UPD_PART);
-  updateParticles(lev, (*state_ptr), (*tmp_src_ptr), dt, time, tmp_src_width, do_move,
+  updateParticles(lev, (*state_ptr), (*tmp_src_ptr), (*umac_ptr), dt, time, tmp_src_width, do_move,
                   rhoIndx, momIndx, tempIndx, engIndx, specIndx);
+
   BL_PROFILE_VAR_STOP(UPD_PART);
 
   // ********************************************************************************
@@ -261,6 +280,7 @@ SprayParticleContainer::estTimestep (int lev, Real cfl) const
 void
 SprayParticleContainer::updateParticles(const int&  lev,
                                         MultiFab&   state,
+                                        MultiFab&   umac,
                                         MultiFab&   source,
                                         const Real& flow_dt,
                                         const Real& time,
@@ -326,6 +346,10 @@ SprayParticleContainer::updateParticles(const int&  lev,
     get_lambda = false;
   }
 
+  const Real mom_to_cgs = 0.1f;
+  const Real rho_to_cgs = 0.001f;
+  const Real vel_to_cgs = 100.0f;
+
   // added this here for now, but that needs to be done somewhere else
   transport_init();
 
@@ -349,6 +373,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
     auto const fuel_latent = m_fuelData.fuelLatent();
     auto const fuel_indx = m_fuelData.fuelIndx();
     auto const statearr = state.array(pti);
+    auto const umacarr = umac.array(pti);
     auto sourcearr = source.array(pti);
     AMREX_FOR_1D ( Np, i,
     {
@@ -385,28 +410,38 @@ SprayParticleContainer::updateParticles(const int&  lev,
       for (int sp = 0; sp != NUM_SPECIES; ++sp) Y_fluid[sp] = 0.;
       // Extract adjacent values and interpolate fluid at particle location
       for (int aindx = 0; aindx != AMREX_D_PICK(2, 4, 8); ++aindx) {
-	IntVect cur_indx = indx_array[aindx];
-        AMREX_ASSERT(tile_box.contains(cur_indx));
-	Real cur_coef = coef[aindx];
-	Real cur_rho = statearr(cur_indx, rhoIndx);
-  Print() << "updateParticles, p.id(), cur_rho " << p.id() << " " << cur_rho << '\n';
-	rho_fluid += cur_coef*cur_rho;
-	Real inv_rho = 1./cur_rho;
-        AMREX_D_TERM(Real velx = statearr(cur_indx, momIndx)*inv_rho;
-                     Real ke = 0.5*velx*velx;
-                     vel_fluid[0] += cur_coef*velx;,
-                     Real vely = statearr(cur_indx, momIndx+1)*inv_rho;
-                     ke += 0.5*vely*vely;
-                     vel_fluid[1] += cur_coef*vely;,
-                     Real velz = statearr(cur_indx, momIndx+2)*inv_rho;
-                     ke += 0.5*velz*velz;
-                     vel_fluid[2] += cur_coef*velz;);
-	for (int sp = 0; sp != NUM_SPECIES; ++sp) {
-	  int mf_indx = sp + specIndx;
-	  Real cur_mf = statearr(cur_indx, mf_indx)*inv_rho;
-	  Y_fluid[sp] += cur_coef*cur_mf;
-	  mass_frac[sp] = cur_mf;
-	}
+	       IntVect cur_indx = indx_array[aindx];
+         AMREX_ASSERT(tile_box.contains(cur_indx));
+	       Real cur_coef = coef[aindx];
+      	 Real cur_rho = statearr(cur_indx, rhoIndx)*rho_to_cgs;
+         Print() << "updateParticles, p.id(), cur_rho " << p.id() << " " << cur_rho << '\n';
+      	 rho_fluid += cur_coef*cur_rho;
+      	 Real inv_rho = 1./cur_rho;
+         AMREX_D_TERM(Real velx = statearr(cur_indx, momIndx)*vel_to_cgs;
+                      Real ke = 0.5*velx*velx;
+                      vel_fluid[0] += cur_coef*velx;,
+                      Real vely = statearr(cur_indx, momIndx+1)*vel_to_cgs;
+                      ke += 0.5*vely*vely;
+                      vel_fluid[1] += cur_coef*vely;,
+                      Real velz = statearr(cur_indx, momIndx+2)*vel_to_cgs;
+                      ke += 0.5*velz*velz;
+                      vel_fluid[2] += cur_coef*velz;);
+         // AMREX_D_TERM(Real velx = umacarr(cur_indx, 0);
+         //              Real ke = 0.5*velx*velx;
+         //              vel_fluid[0] += cur_coef*velx;,
+         //              Real vely = umacarr(cur_indx, 1);
+         //              ke += 0.5*vely*vely;
+         //              vel_fluid[1] += cur_coef*vely;,
+         //              Real velz = umacarr(cur_indx, 2);
+         //              ke += 0.5*velz*velz;
+         //              vel_fluid[2] += cur_coef*velz;);
+	       for (int sp = 0; sp != NUM_SPECIES; ++sp) {
+	          int mf_indx = sp + specIndx;
+	          Real cur_mf = statearr(cur_indx, mf_indx)*rho_to_cgs*inv_rho;
+	          Y_fluid[sp] += cur_coef*cur_mf;
+	          mass_frac[sp] = cur_mf;
+	       }
+
 	Real intEng = statearr(cur_indx, engIndx)*inv_rho - ke;
 	Real T_val = 300.;
   // temporary for pelelm, just use t in state vector
@@ -522,6 +557,9 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	// Local Reynolds number
 	Real Reyn = rho_fluid*diff_vel_mag*dia_part/mu_skin;
         Real Nu_0 = 1.;
+  Print() << "updateParticles, p.id(), vel_fluid " << p.id() << " " <<  vel_fluid << '\n';
+  Print() << "updateParticles, p.id(), vel_part " << p.id() << " " <<  vel_part << '\n';
+  Print() << "updateParticles, p.id(), diff_vel " << p.id() << " " <<  diff_vel << '\n';
 
 	// Solve mass transfer source terms
 	Real m_dot = 0.;
@@ -565,6 +603,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
     Print() << "updateParticles, p.id(), diff_vel " << p.id() << " " <<  diff_vel << '\n';
 	  part_mom_src = drag_force*diff_vel;
 	  fluid_mom_src = part_mom_src + vel_part*m_dot;
+    Print() << "updateParticles, p.id(), fluid_mom_src " << p.id() << " " <<  fluid_mom_src << '\n';
 	  // s_d,mu dot u_d
 	  Real S_dmu_dot_u = part_mom_src.dotProduct(vel_part);
 	  fluid_eng_src += S_dmu_dot_u + m_dot*part_ke;
@@ -624,7 +663,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
             // Modify particle position by whole time step
             if (do_move) {
               Print() << "updateParticles, p.id(), pstateVel " << p.id() << " " <<  p.rdata(pstateVel) << '\n';
-	      for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
+	            for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
                 Gpu::Atomic::Add(&p.pos(dir), dt*p.rdata(pstateVel+dir));
                 // Check if particle is reflecting off a wall or leaving the domain
                 if (p.pos(dir) > phi[dir] && not_period[dir]) {
@@ -672,7 +711,15 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	    if (mom_trans) {
               for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
                 const int nf = momIndx + dir;
+                Print() << "updateParticles, p.id(), source " << p.id() << " " << nf << " " <<  cur_coef*fluid_mom_src[dir] << '\n';
+                Print() << "updateParticles, p.id(), fluid source before add " << p.id() << " " << nf << " " <<  sourcearr(cur_indx, nf) << '\n';
                 Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*fluid_mom_src[dir]);
+                //const Real test = 0.0;
+                //sourcearr(cur_indx, nf) = test;
+                //Gpu::Atomic::Add(&sourcearr(cur_indx, nf), test);
+                Print() << "updateParticles, p.id(), cur_indx " << p.id() << " " << cur_indx << '\n';
+                //sourcearr(cur_indx, nf) += cur_coef*fluid_mom_src[dir];
+                Print() << "updateParticles, p.id(), fluid source after add " << p.id() << " " << nf << " " <<  sourcearr(cur_indx, nf) << '\n';
               }
 	    }
 	    if (mass_trans) {
