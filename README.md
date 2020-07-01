@@ -12,4 +12,4 @@ To get started, first ensure the AMReX, PelePhysics, PeleC, and PeleLM codes hav
 
 ## Dependencies
 
-PeleC-MP requires the AMReX and PelePhysics. Also, the PeleC and/or PeleLM libraries are necessary, depending on which cases are being run.
+PeleC-MP requires the AMReX and PelePhysics libraries. Also, the PeleC and/or PeleLM libraries are necessary, depending on which cases are being run.
