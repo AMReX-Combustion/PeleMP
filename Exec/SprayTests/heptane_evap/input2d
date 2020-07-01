@@ -56,7 +56,7 @@ pelec.do_spray_particles = 1
 particles.mom_transfer = 0
 particles.mass_transfer = 1
 particles.heat_transfer = 1
-particles.particle_init_uniform = 0 # one particle per cell
+particles.particle_init_function = 0
 particles.particle_init_file = "initsprayfile"
 
 particles.fuel_species = NC7H16

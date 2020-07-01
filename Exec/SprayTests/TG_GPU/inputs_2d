@@ -55,7 +55,7 @@ particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.heat_transfer = 1
 particles.particle_cfl = 0.4
-particles.particle_init_uniform = 1 # Use SprayParticlesInitInsert.cpp for initialization
+particles.particle_init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
 particles.fuel_species = NC10H22
