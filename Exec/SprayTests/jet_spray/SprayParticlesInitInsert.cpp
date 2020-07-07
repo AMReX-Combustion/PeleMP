@@ -15,75 +15,122 @@ SprayParticleContainer::insertParticles (Real time, Real dt, int nstep, int lev)
 bool
 SprayParticleContainer::injectParticles (Real time, Real dt, int nstep, int lev)
 {
-  // Move these to prob_params
-  Real start_time = 0.;
-  if (time < start_time) return false;
-  Real inj_dt = 6.E-7;
-  int num_per_old = int((time - dt)/inj_dt);
-  int num_per_new = int(time/inj_dt);
-  Real next_inj_time = (num_per_old + 1)*inj_dt;
-  const Real eps =
-    std::numeric_limits<Real>::epsilon()*10.*time;
-  if ((num_per_old == num_per_new)
-      && std::abs(time - next_inj_time) <= eps)
-    num_per_new += 1;
-  if ((num_per_old != num_per_new)
-      && std::abs((time - dt) - next_inj_time) <= eps)
-    num_per_old += 1;
-  if (num_per_old == num_per_new) return false; 
+  if (time < ProbParm::jet_start_time
+      || time > ProbParm::jet_end_time) return false;
   const Geometry& geom = this->m_gdb->Geom(lev);
   const auto plo = geom.ProbLoArray();
   const auto phi = geom.ProbHiArray();
-  Real dom_lenx = (phi[0] - plo[0]);
+  const auto dx = geom.CellSize();
+  RealVect dom_len(AMREX_D_DECL(geom.ProbLength(0),
+                                geom.ProbLength(1),
+                                geom.ProbLength(2)));
+  Real mass_flow_rate = ProbParm::mass_flow_rate;
   Real jet_dia = ProbParm::jet_dia;
+  Real jr2 = jet_dia*jet_dia/4.; // Jet radius squared
+#if AMREX_SPACEDIM == 3
+  Real jet_area = M_PI*jr2;
+#else
+  Real jet_area = jet_dia;
+#endif
   Real jet_vel = ProbParm::jet_vel;
   Real part_temp = ProbParm::part_temp;
   Real part_rho = ProbParm::part_rho;
-  Real part_dia = ProbParm::part_dia;
-  Real part_y = 0.;
-  Real jet_lo = dom_lenx/2. - jet_dia/2.;
-  Real jet_hi = dom_lenx/2. + jet_dia/2.;
-  Real part_x_loc[10];
-  Real part_dx = (jet_hi - jet_lo)/10.;
-  for (int np = 0; np != 10; ++np) {
-    part_x_loc[np] = jet_lo + part_dx*(np + 0.5);
-  }
+  Real part_dia = ProbParm::part_mean_dia;
+  Real part_stdev = ProbParm::part_stdev_dia;
+  Real stdsq = part_stdev*part_stdev;
+  Real meansq = part_dia*part_dia;
+  Real log_mean = 2.*std::log(part_dia) - 0.5*std::log(stdsq + meansq);
+  Real log_stdev = std::sqrt(-2.*std::log(part_dia)
+                             + std::log(stdsq + meansq));
+  Real part_y = plo[1];
+  RealVect jet_center(AMREX_D_DECL(dom_len[0]/2., plo[1],
+                                   dom_len[2]/2.));
+  Real Pi_six = M_PI/6.;
+  Real spray_angle = ProbParm::spray_angle;
+  Real lo_angle = -0.5*spray_angle;
   for (MFIter mfi = MakeMFIter(lev); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
     const RealBox& temp = RealBox(bx,geom.CellSize(),geom.ProbLo());
     const Real* xlo = temp.lo();
     const Real* xhi = temp.hi();
+    RealVect box_len(AMREX_D_DECL(temp.length(0), 0., temp.length(2)));
     Gpu::HostVector<ParticleType> host_particles;
     if (xlo[1] == plo[1]) {
-      for (int np = 0; np != 10; ++np) {
-        if (part_x_loc[np] >= xlo[0] && 
-            part_x_loc[np] < xhi[0]) {
+      // Box locations relative to jet center
+      const RealVect xloJ(AMREX_D_DECL(xlo[0] - jet_center[0], plo[1],
+                                       xlo[1] - jet_center[2]));
+      const RealVect xhiJ(AMREX_D_DECL(xhi[0] - jet_center[0], plo[1],
+                                       xhi[2] - jet_center[2]));
+      Real cur_jet_area = 0.;
+      Real testdx = dx[0]/100.;
+      Real testdx2 = testdx*testdx;
+      Real curx = xloJ[0];
+      // Loop over each cell and check how much overlap there is with the jet
+#if AMREX_SPACEDIM == 3
+      while (curx < xhiJ[0]) {
+        Real curz = xloJ[2];
+        while (curz < xhiJ[2]) {
+          Real r2 = curx*curx + curz*curz;
+          if (r2 <= jr2) cur_jet_area += testdx2;
+          curz += testdx;
+        }
+        curx += testdx;
+      }
+#else
+      while (curx < xhiJ[0]) {
+        Real r2 = curx*curx;
+        if (r2 <= jr2) cur_jet_area += testdx;
+        curx += testdx;
+      }
+#endif
+      Real jet_perc = cur_jet_area/jet_area;
+      Real perc_mass = jet_perc*mass_flow_rate*dt;
+      Real total_mass = 0.;
+      int np = 0;
+      while (total_mass < perc_mass) {
+        RealVect part_loc(AMREX_D_DECL(xlo[0] + amrex::Random()*box_len[0],
+                                       plo[1],
+                                       xlo[2] + amrex::Random()*box_len[2]));
+        Real r2 = AMREX_D_TERM(std::pow(part_loc[0] - jet_center[0], 2),,
+                               + std::pow(part_loc[2] - jet_center[2], 2));
+        if (r2 <= jr2) {
           ParticleType p;
           p.id() = ParticleType::NextID();
           p.cpu() = ParallelDescriptor::MyProc();
+          Real theta = lo_angle + spray_angle*amrex::Random();
+#if AMREX_SPACEDIM == 3
+          Real phi = lo_angle + spray_angle*amrex::Random();
+#else
+          Real phi = 0.;
+#endif
+          AMREX_D_TERM(p.rdata(PeleC::pstateVel) = jet_vel*std::sin(theta)*std::cos(phi);,
+                       p.rdata(PeleC::pstateVel+1) = jet_vel*std::cos(theta);,
+                       p.rdata(PeleC::pstateVel+2) = jet_vel*std::sin(theta)*std::sin(phi););
+          Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
+          // Use a log normal distribution
+          cur_dia = std::exp(cur_dia);
           for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-            p.rdata(PeleC::pstateVel+dir) = 0.;
-          p.rdata(PeleC::pstateVel+1) = jet_vel;
-          AMREX_D_TERM(p.pos(0) = part_x_loc[np];
-                       , p.pos(1) = part_y;, p.pos(2) = 0.;);
+            p.pos(dir) = part_loc[dir];
           p.rdata(PeleC::pstateT) = part_temp;
-          p.rdata(PeleC::pstateDia) = part_dia;
+          p.rdata(PeleC::pstateDia) = cur_dia;
           p.rdata(PeleC::pstateRho) = part_rho;
           for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
             p.rdata(PeleC::pstateY + sp) = 0.;
           p.rdata(PeleC::pstateY) = 1.;
           host_particles.push_back(p);
+          Real pmass = Pi_six*part_rho*std::pow(cur_dia, 3);
+          total_mass += pmass;
         }
       }
-      auto& particle_tile = GetParticles(lev)[std::make_pair(mfi.index(),
-                                                         mfi.LocalTileIndex())];
-      auto old_size = particle_tile.GetArrayOfStructs().size();
-      auto new_size = old_size + host_particles.size();
-      particle_tile.resize(new_size);
-
-      Gpu::copy(Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
-                particle_tile.GetArrayOfStructs().begin() + old_size);
     }
+    auto& particle_tile = GetParticles(lev)[std::make_pair(mfi.index(),
+                                                           mfi.LocalTileIndex())];
+    auto old_size = particle_tile.GetArrayOfStructs().size();
+    auto new_size = old_size + host_particles.size();
+    particle_tile.resize(new_size);
+
+    Gpu::copy(Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
+              particle_tile.GetArrayOfStructs().begin() + old_size);
   }
   // Redistribute is done outside of this function
   return true;

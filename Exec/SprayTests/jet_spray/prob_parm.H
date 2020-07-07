@@ -9,14 +9,19 @@ extern AMREX_GPU_DEVICE_MANAGED amrex::Real p0;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real T0;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real rho0;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real v0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real inlet_vel;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real inlet_vel; // Unused
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_vel;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_dia;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_dia;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_mean_dia;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_stdev_dia;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_rho;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_temp;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real mass_flow_rate;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_start_time;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_end_time;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real spray_angle;
 } // namespace ProbParm
 
 #endif

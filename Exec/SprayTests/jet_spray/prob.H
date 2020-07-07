@@ -37,7 +37,7 @@ pc_initdata(
 
   // TG functions
   amrex::Real u[3] = {0.0};
-  u[0] = ProbParm::v0;
+  u[1] = ProbParm::v0;
   const amrex::Real p = ProbParm::p0;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
@@ -71,9 +71,6 @@ bcnormal(
   const amrex::Real time,
   amrex::GeometryData const& geomdata)
 {
-  if (idir == 0 && sgn == -1) {
-    const amrex::Real jet_dia = ProbParm::jet_dia;
-  }
   // This sets the values at the boundary equal to the
   // adjacent interior values
   for (int i = 0; i != NVAR; ++i) {
