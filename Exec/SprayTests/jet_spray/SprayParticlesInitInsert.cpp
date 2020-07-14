@@ -6,15 +6,36 @@
 
 using namespace amrex;
 
+int
+interpolateInjectTime(const Real& time)
+{
+  const int nvals = ProbParm::inject_N;
+  int i = 0;
+  while (i < nvals) {
+    if (ProbParm::d_inject_time[i] > time) return i;
+    ++i;
+  }
+  return -1;
+}
+
 bool
-SprayParticleContainer::insertParticles (Real time, Real dt, int nstep, int lev)
+SprayParticleContainer::insertParticles(Real time,
+                                        Real dt,
+                                        int  nstep,
+                                        int  lev,
+                                        int  finest_level)
 {
   return false;
 }
 
 bool
-SprayParticleContainer::injectParticles (Real time, Real dt, int nstep, int lev)
+SprayParticleContainer::injectParticles(Real time,
+                                        Real dt,
+                                        int  nstep,
+                                        int  lev,
+                                        int  finest_level)
 {
+  if (lev != 0) return false;
   if (time < ProbParm::jet_start_time
       || time > ProbParm::jet_end_time) return false;
   const Geometry& geom = this->m_gdb->Geom(lev);
@@ -25,6 +46,7 @@ SprayParticleContainer::injectParticles (Real time, Real dt, int nstep, int lev)
                                 geom.ProbLength(1),
                                 geom.ProbLength(2)));
   Real mass_flow_rate = ProbParm::mass_flow_rate;
+  Real jet_vel = ProbParm::jet_vel;
   Real jet_dia = ProbParm::jet_dia;
   Real jr2 = jet_dia*jet_dia/4.; // Jet radius squared
 #if AMREX_SPACEDIM == 3
@@ -32,9 +54,30 @@ SprayParticleContainer::injectParticles (Real time, Real dt, int nstep, int lev)
 #else
   Real jet_area = jet_dia;
 #endif
-  Real jet_vel = ProbParm::jet_vel;
+  const Real Cd = 0.89;
   Real part_temp = ProbParm::part_temp;
   Real part_rho = ProbParm::part_rho;
+  int ctime = 0;
+  if (ProbParm::inject_N > 0) {
+    const int time_indx = interpolateInjectTime(time);
+    const Real time1 = ProbParm::d_inject_time[time_indx];
+    const Real time2 = ProbParm::d_inject_time[time_indx - 1];
+    const Real mf1 = ProbParm::d_inject_mass[time_indx];
+    const Real mf2 = ProbParm::d_inject_mass[time_indx - 1];
+    const Real invt = 1./(time2 - time1);
+    mass_flow_rate = (mf1*(time2 - time) + mf1*(time - time1))*invt;
+    const Real jv1 = ProbParm::d_inject_vel[time_indx];
+    const Real jv2 = ProbParm::d_inject_vel[time_indx - 1];
+    jet_vel = (jv1*(time2 - time) + jv1*(time - time1))*invt;
+    ctime = time_indx;
+  }
+  if (jet_vel*dt/dx[0] > 0.5) {
+    Real max_vel = dx[0]*0.5/dt;
+    std::string warn_msg = "Injection velocity of " + std::to_string(jet_vel) 
+      + " is reduced to maximum " + std::to_string(max_vel);
+    jet_vel = max_vel;
+    amrex::Warning(warn_msg);
+  }
   Real part_dia = ProbParm::part_mean_dia;
   Real part_stdev = ProbParm::part_stdev_dia;
   Real stdsq = part_stdev*part_stdev;

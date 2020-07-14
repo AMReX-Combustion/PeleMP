@@ -3,7 +3,7 @@ max_step = 5000
 stop_time = 1.E-4
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0 0 1
+geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0. 0. 0.
 geometry.prob_hi     = 0.4 2.8 0.4
@@ -11,8 +11,8 @@ amr.n_cell           = 32 224 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-pelec.lo_bc        = "Hard" "NoSlipWall" "Interior"
-pelec.hi_bc        = "Hard" "NoSlipWall" "Interior"
+pelec.lo_bc        = "Hard" "NoSlipWall" "Hard"
+pelec.hi_bc        = "Hard" "NoSlipWall" "Hard"
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -36,7 +36,7 @@ pelec.sum_interval   = -1   # timesteps between computing mass
 pelec.v              = 0   # verbosity in Castro.cpp
 amr.v                = 1    # verbosity in Amr.cpp
 #amr.data_log         = datlog
-#amr.grid_log        = grdlog  # name of grid logging file
+#amr.grid_log         = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING 
 amr.max_level       = 2       # maximum level number allowed
@@ -46,8 +46,10 @@ amr.max_level       = 2       # maximum level number allowed
 #amr.regrid_int      = -1 -1 -1 # how often to regrid
 
 # Use adaptive refinement based on temperature gradients
+#tagging.tempgrad = 1.3
+# Use adaptive refinement based on velocity gradients
+tagging.velgrad = 40.
 amr.regrid_int = 8 8 8
-tagging.tempgrad = 1.3
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.blocking_factor = 16       # block factor in grid generation
@@ -85,20 +87,33 @@ amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6
 
+# PROBLEM
+# Initial fluid properties
 prob.ref_T = 440.
 prob.ref_p = 6.E7
 prob.init_v = 0.
 prob.init_N2 = 1.
 prob.init_O2 = 0.
 
-prob.jet_start_time = 0.
-prob.jet_end_time = 1.54E-3
-prob.jet_vel = 6.E4
+# Jet properties
 prob.jet_dia = 9.E-3
 prob.spray_angle_deg = 21.
 
-prob.mass_flow_rate = 2.3
-prob.part_mean_dia = 9.E-4
-prob.part_stdev_dia = 5.E-5
+# Properties of injected particles
 prob.part_rho = 0.693
 prob.part_temp = 363.
+# Log-normal distribution of particle diameters
+# Mean particle diameter
+prob.part_mean_dia = 9.E-4
+# Standard deviation of the particle diameter
+prob.part_stdev_dia = 5.E-5
+
+# Mass flow rate and velocity can be interpolated
+# from data table
+prob.inject_file = references/roi.dat
+
+# Or specified as constant
+# prob.jet_start_time = 0.
+# prob.jet_end_time = 1.54E-3
+# prob.jet_vel = 6.E4
+# prob.mass_flow_rate = 2.3
