@@ -54,10 +54,8 @@ SprayParticleContainer::injectParticles(Real time,
 #else
   Real jet_area = jet_dia;
 #endif
-  const Real Cd = 0.89;
   Real part_temp = ProbParm::part_temp;
   Real part_rho = ProbParm::part_rho;
-  int ctime = 0;
   if (ProbParm::inject_N > 0) {
     const int time_indx = interpolateInjectTime(time);
     const Real time1 = ProbParm::d_inject_time[time_indx];
@@ -69,7 +67,6 @@ SprayParticleContainer::injectParticles(Real time,
     const Real jv1 = ProbParm::d_inject_vel[time_indx];
     const Real jv2 = ProbParm::d_inject_vel[time_indx - 1];
     jet_vel = (jv1*(time2 - time) + jv1*(time - time1))*invt;
-    ctime = time_indx;
   }
   if (jet_vel*dt/dx[0] > 0.5) {
     Real max_vel = dx[0]*0.5/dt;
@@ -142,13 +139,13 @@ SprayParticleContainer::injectParticles(Real time,
           p.cpu() = ParallelDescriptor::MyProc();
           Real theta = lo_angle + spray_angle*amrex::Random();
 #if AMREX_SPACEDIM == 3
-          Real phi = lo_angle + spray_angle*amrex::Random();
+          Real theta2 = 0. + 2.*M_PI*amrex::Random();
 #else
-          Real phi = 0.;
+          Real theta2 = 0.;
 #endif
-          AMREX_D_TERM(p.rdata(PeleC::pstateVel) = jet_vel*std::sin(theta)*std::cos(phi);,
+          AMREX_D_TERM(p.rdata(PeleC::pstateVel) = jet_vel*std::sin(theta)*std::cos(theta2);,
                        p.rdata(PeleC::pstateVel+1) = jet_vel*std::cos(theta);,
-                       p.rdata(PeleC::pstateVel+2) = jet_vel*std::sin(theta)*std::sin(phi););
+                       p.rdata(PeleC::pstateVel+2) = jet_vel*std::sin(theta)*std::sin(theta2););
           Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
           // Use a log normal distribution
           cur_dia = std::exp(cur_dia);
