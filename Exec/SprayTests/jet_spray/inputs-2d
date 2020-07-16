@@ -67,7 +67,7 @@ particles.particle_init_function = 1
 particles.write_spray_ascii_files = 0
 
 # Number of particles per parcel
-particle.parcel_size = 40.
+particles.parcel_size = 40.
 
 particles.fuel_species = NC10H22
 # properties for decane
@@ -85,7 +85,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 # PLOTFILES
 #amr.plot_files_output = 0
 amr.plot_file       = plt # root name of plotfile
-amr.plot_per        = 1.E-7 # number of timesteps between plotfiles
+amr.plot_per        = 2.E-6 # number of timesteps between plotfiles
 amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6
