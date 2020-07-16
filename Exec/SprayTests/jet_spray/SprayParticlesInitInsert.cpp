@@ -38,6 +38,8 @@ SprayParticleContainer::injectParticles(Real time,
   if (lev != 0) return false;
   if (time < ProbParm::jet_start_time
       || time > ProbParm::jet_end_time) return false;
+  // Number of particles per parcel
+  const Real num_ppp = m_parcelSize;
   const Geometry& geom = this->m_gdb->Geom(lev);
   const auto plo = geom.ProbLoArray();
   const auto phi = geom.ProbHiArray();
@@ -72,6 +74,7 @@ SprayParticleContainer::injectParticles(Real time,
     Real max_vel = dx[0]*0.5/dt;
     std::string warn_msg = "Injection velocity of " + std::to_string(jet_vel) 
       + " is reduced to maximum " + std::to_string(max_vel);
+    m_injectVel = jet_vel;
     jet_vel = max_vel;
     amrex::Warning(warn_msg);
   }
@@ -80,8 +83,8 @@ SprayParticleContainer::injectParticles(Real time,
   Real stdsq = part_stdev*part_stdev;
   Real meansq = part_dia*part_dia;
   Real log_mean = 2.*std::log(part_dia) - 0.5*std::log(stdsq + meansq);
-  Real log_stdev = std::sqrt(-2.*std::log(part_dia)
-                             + std::log(stdsq + meansq));
+  Real log_stdev = std::sqrt(amrex::max(-2.*std::log(part_dia)
+                                        + std::log(stdsq + meansq), 0.));
   Real part_y = plo[1];
   RealVect jet_center(AMREX_D_DECL(dom_len[0]/2., plo[1],
                                    dom_len[2]/2.));
@@ -159,7 +162,7 @@ SprayParticleContainer::injectParticles(Real time,
           p.rdata(PeleC::pstateY) = 1.;
           host_particles.push_back(p);
           Real pmass = Pi_six*part_rho*std::pow(cur_dia, 3);
-          total_mass += pmass;
+          total_mass += num_ppp*pmass;
         }
       }
     }
