@@ -67,7 +67,7 @@ particles.particle_init_function = 1
 particles.write_spray_ascii_files = 0
 
 # Number of particles per parcel
-particle.parcel_size = 1000.
+particle.parcel_size = 40.
 
 particles.fuel_species = NC10H22
 # properties for decane
@@ -107,9 +107,9 @@ prob.part_rho = 0.693
 prob.part_temp = 363.
 # Log-normal distribution of particle diameters
 # Mean particle diameter
-prob.part_mean_dia = 9.E-4
+prob.part_mean_dia = 1.E-4
 # Standard deviation of the particle diameter
-prob.part_stdev_dia = 5.E-5
+prob.part_stdev_dia = 1.E-5
 
 # Mass flow rate and velocity can be interpolated
 # from data table

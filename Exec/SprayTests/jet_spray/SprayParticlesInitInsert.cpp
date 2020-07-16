@@ -129,7 +129,6 @@ SprayParticleContainer::injectParticles(Real time,
       Real jet_perc = cur_jet_area/jet_area;
       Real perc_mass = jet_perc*mass_flow_rate*dt;
       Real total_mass = 0.;
-      int np = 0;
       while (total_mass < perc_mass) {
         RealVect part_loc(AMREX_D_DECL(xlo[0] + amrex::Random()*box_len[0],
                                        plo[1],
@@ -142,7 +141,7 @@ SprayParticleContainer::injectParticles(Real time,
           p.cpu() = ParallelDescriptor::MyProc();
           Real theta = lo_angle + spray_angle*amrex::Random();
 #if AMREX_SPACEDIM == 3
-          Real theta2 = 0. + 2.*M_PI*amrex::Random();
+          Real theta2 = 2.*M_PI*amrex::Random();
 #else
           Real theta2 = 0.;
 #endif
