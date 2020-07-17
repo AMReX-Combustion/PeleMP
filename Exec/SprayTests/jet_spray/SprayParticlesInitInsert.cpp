@@ -11,11 +11,11 @@ interpolateInjectTime(const Real& time)
 {
   const int nvals = ProbParm::inject_N;
   int i = 0;
-  while (i < nvals) {
-    if (ProbParm::d_inject_time[i] > time) return i;
-    ++i;
+  Real ctime = ProbParm::d_inject_time[i];
+  while (ctime < time) {
+    ctime = ProbParm::d_inject_time[++i];
   }
-  return -1;
+  return i;
 }
 
 bool
@@ -60,15 +60,15 @@ SprayParticleContainer::injectParticles(Real time,
   Real part_rho = ProbParm::part_rho;
   if (ProbParm::inject_N > 0) {
     const int time_indx = interpolateInjectTime(time);
-    const Real time1 = ProbParm::d_inject_time[time_indx];
-    const Real time2 = ProbParm::d_inject_time[time_indx - 1];
-    const Real mf1 = ProbParm::d_inject_mass[time_indx];
-    const Real mf2 = ProbParm::d_inject_mass[time_indx - 1];
-    const Real invt = 1./(time2 - time1);
-    mass_flow_rate = (mf1*(time2 - time) + mf1*(time - time1))*invt;
-    const Real jv1 = ProbParm::d_inject_vel[time_indx];
-    const Real jv2 = ProbParm::d_inject_vel[time_indx - 1];
-    jet_vel = (jv1*(time2 - time) + jv1*(time - time1))*invt;
+    const Real time1 = ProbParm::d_inject_time[time_indx - 1];
+    const Real time2 = ProbParm::d_inject_time[time_indx];
+    const Real mf1 = ProbParm::d_inject_mass[time_indx - 1];
+    const Real mf2 = ProbParm::d_inject_mass[time_indx];
+    const Real invt = (time - time1)/(time2 - time1);
+    mass_flow_rate = mf1 + (mf2 - mf1)*invt;
+    const Real jv1 = ProbParm::d_inject_vel[time_indx - 1];
+    const Real jv2 = ProbParm::d_inject_vel[time_indx];
+    jet_vel = jv1 + (jv2 - jv1)*invt;
   }
   if (jet_vel*dt/dx[0] > 0.5) {
     Real max_vel = dx[0]*0.5/dt;
