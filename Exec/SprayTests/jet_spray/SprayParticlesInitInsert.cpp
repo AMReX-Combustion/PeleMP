@@ -85,9 +85,6 @@ SprayParticleContainer::injectParticles(Real time,
   Real log_mean = 2.*std::log(part_dia) - 0.5*std::log(stdsq + meansq);
   Real log_stdev = std::sqrt(amrex::max(-2.*std::log(part_dia)
                                         + std::log(stdsq + meansq), 0.));
-  Real part_y = plo[1];
-  RealVect jet_center(AMREX_D_DECL(dom_len[0]/2., plo[1],
-                                   dom_len[2]/2.));
   Real Pi_six = M_PI/6.;
   Real spray_angle = ProbParm::spray_angle;
   Real lo_angle = -0.5*spray_angle;
@@ -100,10 +97,10 @@ SprayParticleContainer::injectParticles(Real time,
     Gpu::HostVector<ParticleType> host_particles;
     if (xlo[1] == plo[1]) {
       // Box locations relative to jet center
-      const RealVect xloJ(AMREX_D_DECL(xlo[0] - jet_center[0], plo[1],
-                                       xlo[1] - jet_center[2]));
-      const RealVect xhiJ(AMREX_D_DECL(xhi[0] - jet_center[0], plo[1],
-                                       xhi[2] - jet_center[2]));
+      const RealVect xloJ(AMREX_D_DECL(xlo[0] - ProbParm::jet_cent[0], plo[1],
+                                       xlo[1] - ProbParm::jet_cent[2]));
+      const RealVect xhiJ(AMREX_D_DECL(xhi[0] - ProbParm::jet_cent[0], plo[1],
+                                       xhi[2] - ProbParm::jet_cent[2]));
       Real cur_jet_area = 0.;
       Real testdx = dx[0]/100.;
       Real testdx2 = testdx*testdx;
@@ -131,10 +128,9 @@ SprayParticleContainer::injectParticles(Real time,
       Real total_mass = 0.;
       while (total_mass < perc_mass) {
         RealVect part_loc(AMREX_D_DECL(xlo[0] + amrex::Random()*box_len[0],
-                                       plo[1],
-                                       xlo[2] + amrex::Random()*box_len[2]));
-        Real r2 = AMREX_D_TERM(std::pow(part_loc[0] - jet_center[0], 2),,
-                               + std::pow(part_loc[2] - jet_center[2], 2));
+                                       plo[1], xlo[2] + amrex::Random()*box_len[2]));
+        Real r2 = AMREX_D_TERM(std::pow(part_loc[0] - ProbParm::jet_cent[0], 2),,
+                               + std::pow(part_loc[2] - ProbParm::jet_cent[2], 2));
         if (r2 <= jr2) {
           ParticleType p;
           p.id() = ParticleType::NextID();
@@ -145,14 +141,17 @@ SprayParticleContainer::injectParticles(Real time,
 #else
           Real theta2 = 0.;
 #endif
+          Real y_vel = jet_vel*std::cos(theta);
           AMREX_D_TERM(p.rdata(PeleC::pstateVel) = jet_vel*std::sin(theta)*std::cos(theta2);,
-                       p.rdata(PeleC::pstateVel+1) = jet_vel*std::cos(theta);,
+                       p.rdata(PeleC::pstateVel+1) = y_vel;,
                        p.rdata(PeleC::pstateVel+2) = jet_vel*std::sin(theta)*std::sin(theta2););
           Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
           // Use a log normal distribution
           cur_dia = std::exp(cur_dia);
-          for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-            p.pos(dir) = part_loc[dir];
+          Real part_y = plo[1] + amrex::Random()*dt*y_vel;
+          AMREX_D_TERM(p.pos(0) = part_loc[0];,
+                       p.pos(1) = part_y;,
+                       p.pos(2) = part_loc[2];);
           p.rdata(PeleC::pstateT) = part_temp;
           p.rdata(PeleC::pstateDia) = cur_dia;
           p.rdata(PeleC::pstateRho) = part_rho;

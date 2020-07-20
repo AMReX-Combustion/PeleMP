@@ -12,7 +12,6 @@
 #include "Constants.H"
 #include "EOS.H"
 #include "Tagging.H"
-//#include "Transport.H"
 #include "ProblemDerive.H"
 #include "prob_parm.H"
 
@@ -76,6 +75,13 @@ bcnormal(
   for (int i = 0; i != NVAR; ++i) {
     s_ext[i] = s_int[i];
   }
+//   if (idir == 1 && sgn == -1) {
+//     amrex::Real rad =
+//       AMREX_D_TERM(std::pow(x[0] - ProbParm::jet_cent[0], 2),,
+//                    + std::pow(x[2] - ProbParm::jet_cent[2], 2))
+//       - ProbParm::jet_dia*ProbParm::jet_dia/4.;
+//     if (rad <= 0.) s_ext[UMY] = vel*s_ext[URHO];
+//   }
 }
 
 struct MyProbTagStruct

@@ -46,9 +46,9 @@ amr.max_level       = 2       # maximum level number allowed
 #amr.regrid_int      = -1 -1 -1 # how often to regrid
 
 # Use adaptive refinement based on temperature gradients
-#tagging.tempgrad = 1.3
+tagging.tempgrad = 1.3
 # Use adaptive refinement based on velocity gradients
-tagging.velgrad = 40.
+#tagging.velgrad = 40.
 amr.regrid_int = 8 8 8
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
@@ -67,7 +67,7 @@ particles.particle_init_function = 1
 particles.write_spray_ascii_files = 0
 
 # Number of particles per parcel
-particles.parcel_size = 2000.
+particles.parcel_size = 10.
 
 particles.fuel_species = NC10H22
 # properties for decane
@@ -86,8 +86,8 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 #amr.plot_files_output = 0
 amr.plot_file       = plt # root name of plotfile
 amr.plot_per        = 2.E-6 # number of timesteps between plotfiles
-amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC10H22
-amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
+amr.plot_vars = density Temp rho_E xmom ymom zmom eden rho_O2 rho_N2 rho_NC10H22
+amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6
 
 # PROBLEM
@@ -107,9 +107,9 @@ prob.part_rho = 0.693
 prob.part_temp = 363.
 # Log-normal distribution of particle diameters
 # Mean particle diameter
-prob.part_mean_dia = 1.E-4
+prob.part_mean_dia = 4.5E-4
 # Standard deviation of the particle diameter
-prob.part_stdev_dia = 1.E-5
+prob.part_stdev_dia = 0.
 
 # Mass flow rate and velocity can be interpolated
 # from data table

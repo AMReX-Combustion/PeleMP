@@ -8,7 +8,7 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real v0 = 0.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_vel = 5000.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_dia = 1.E-2;
 AMREX_GPU_DEVICE_MANAGED amrex::Real part_mean_dia = 1.E-3;
-AMREX_GPU_DEVICE_MANAGED amrex::Real part_stdev_dia = 1.E-4;
+AMREX_GPU_DEVICE_MANAGED amrex::Real part_stdev_dia = 0.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real mass_flow_rate = 2.3;
 AMREX_GPU_DEVICE_MANAGED unsigned int inject_N = 0;
 amrex::Gpu::ManagedVector<amrex::Real>* inject_time = nullptr;
@@ -24,6 +24,7 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2 = 0.767;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_start_time = 0.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_end_time = 10000.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real spray_angle = 20.;
+AMREX_GPU_DEVICE_MANAGED amrex::Real jet_cent[AMREX_SPACEDIM] = {0.0};
 
 std::string input_file = "";
 } // namespace ProbParm
@@ -92,20 +93,24 @@ amrex_probinit(
   amrex::ParmParse pp("prob");
   pp.query("inject_file", ProbParm::input_file);
   pp.query("init_v", ProbParm::v0);
-  pp.query("ref_p", ProbParm::p0);
-  pp.query("ref_T", ProbParm::T0);
+  pp.get("ref_p", ProbParm::p0);
+  pp.get("ref_T", ProbParm::T0);
   pp.query("init_N2", ProbParm::Y_N2);
   pp.query("init_O2", ProbParm::Y_O2);
   pp.query("jet_vel", ProbParm::jet_vel);
-  pp.query("jet_dia", ProbParm::jet_dia);
-  pp.query("part_mean_dia", ProbParm::part_mean_dia);
+  pp.get("jet_dia", ProbParm::jet_dia);
+  pp.get("part_mean_dia", ProbParm::part_mean_dia);
   pp.query("part_stdev_dia", ProbParm::part_stdev_dia);
-  pp.query("part_rho", ProbParm::part_rho);
-  pp.query("part_temp", ProbParm::part_temp);
+  pp.get("part_rho", ProbParm::part_rho);
+  pp.get("part_temp", ProbParm::part_temp);
   pp.query("mass_flow_rate", ProbParm::mass_flow_rate);
-  pp.query("spray_angle_deg", ProbParm::spray_angle);
+  pp.get("spray_angle_deg", ProbParm::spray_angle);
   // Convert to radians
   ProbParm::spray_angle *= M_PI/180.;
+
+  AMREX_D_TERM(ProbParm::jet_cent[0] = 0.5*(probhi[0] + problo[0]);,
+               ProbParm::jet_cent[1] = problo[1];,
+               ProbParm::jet_cent[2] = 0.5*(probhi[2] + problo[2]););
 
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;
