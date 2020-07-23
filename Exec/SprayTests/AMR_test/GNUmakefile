@@ -34,7 +34,7 @@ Transport_dir := Simple
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
 # If comparing results with MPI or regression data
-#DEFINES += -DCONVERGENCE
+DEFINES += -DCONVERGENCE
 #USE_SPRAY_SOA = TRUE
 
 # GNU Make
