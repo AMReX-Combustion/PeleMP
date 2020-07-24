@@ -33,6 +33,7 @@ Transport_dir := Simple
 # PeleC-MP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
+USE_SPRAY_SOA = TRUE
 
 # GNU Make
 Bpack := ./Make.package

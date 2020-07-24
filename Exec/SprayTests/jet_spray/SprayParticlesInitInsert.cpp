@@ -95,6 +95,9 @@ SprayParticleContainer::injectParticles(Real time,
     const Real* xhi = temp.hi();
     RealVect box_len(AMREX_D_DECL(temp.length(0), 0., temp.length(2)));
     Gpu::HostVector<ParticleType> host_particles;
+#ifdef USE_SPRAY_SOA
+    std::array<Gpu::HostVector<Real>, NAR_SPR > host_real_attribs;
+#endif
     if (xlo[1] == plo[1]) {
       // Box locations relative to jet center
       const RealVect xloJ(AMREX_D_DECL(xlo[0] - ProbParm::jet_cent[0], plo[1],
@@ -141,10 +144,18 @@ SprayParticleContainer::injectParticles(Real time,
 #else
           Real theta2 = 0.;
 #endif
+          Real x_vel = jet_vel*std::sin(theta)*std::cos(theta2);
           Real y_vel = jet_vel*std::cos(theta);
-          AMREX_D_TERM(p.rdata(PeleC::pstateVel) = jet_vel*std::sin(theta)*std::cos(theta2);,
+          Real z_vel = jet_vel*std::sin(theta)*std::sin(theta2);
+#ifdef USE_SPRAY_SOA
+          AMREX_D_TERM(host_real_attribs[PeleC::pstateVel].push_back(x_vel);,
+                       host_real_attribs[PeleC::pstateVel+1].push_back(y_vel);,
+                       host_real_attribs[PeleC::pstateVel+2].push_back(z_vel););
+#else
+          AMREX_D_TERM(p.rdata(PeleC::pstateVel) = x_vel;,
                        p.rdata(PeleC::pstateVel+1) = y_vel;,
-                       p.rdata(PeleC::pstateVel+2) = jet_vel*std::sin(theta)*std::sin(theta2););
+                       p.rdata(PeleC::pstateVel+2) = z_vel;);
+#endif
           Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
           // Use a log normal distribution
           cur_dia = std::exp(cur_dia);
@@ -152,12 +163,21 @@ SprayParticleContainer::injectParticles(Real time,
           AMREX_D_TERM(p.pos(0) = part_loc[0];,
                        p.pos(1) = part_y;,
                        p.pos(2) = part_loc[2];);
+#ifdef USE_SPRAY_SOA
+          host_real_attribs[PeleC::pstateT].push_back(part_temp);
+          host_real_attribs[PeleC::pstateDia].push_back(cur_dia);
+          host_real_attribs[PeleC::pstateRho].push_back(part_rho);
+          host_real_attribs[PeleC::pstateY].push_back(1.);
+          for (int sp = 1; sp != SPRAY_FUEL_NUM; ++sp)
+            host_real_attribs[PeleC::pstateY + sp].push_back(0.);
+#else
           p.rdata(PeleC::pstateT) = part_temp;
           p.rdata(PeleC::pstateDia) = cur_dia;
           p.rdata(PeleC::pstateRho) = part_rho;
           for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
             p.rdata(PeleC::pstateY + sp) = 0.;
           p.rdata(PeleC::pstateY) = 1.;
+#endif
           host_particles.push_back(p);
           Real pmass = Pi_six*part_rho*std::pow(cur_dia, 3);
           total_mass += num_ppp*pmass;
@@ -172,6 +192,12 @@ SprayParticleContainer::injectParticles(Real time,
 
     Gpu::copy(Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
               particle_tile.GetArrayOfStructs().begin() + old_size);
+#ifdef USE_SPRAY_SOA
+    for (int i = 0; i != NAR_SPR; ++i) {
+      Gpu::copy(Gpu::hostToDevice, host_real_attribs[i].begin(), host_real_attribs[i].end(),
+                particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+    }
+#endif
   }
   // Redistribute is done outside of this function
   return true;
