@@ -15,6 +15,7 @@
 #include "Transport.H"
 #include "ProblemDerive.H"
 #include "prob_parm.H"
+#include "Constants_Soot.H"
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
@@ -57,10 +58,10 @@ pc_initdata(
   state(i, j, k, UTEMP) = Tval;
   for (int n = 0; n < NUM_SPECIES; n++)
     state(i, j, k, UFS + n) = rho * massfrac[n];
-//   amrex::Real sootvars[NUM_SOOT_VARS] = {0.0};
-//   SootModel::initialSmallMomVals(sootvars);
-//   for (int is = 0; is < NUM_SOOT_VARS; ++is)
-//     state(i, j, k, UFSOOT + is) = sootvars[is];
+  amrex::Real sootvars[NUM_SOOT_VARS] = {0.0};
+  SootConst::initialSmallMomVals(sootvars);
+  for (int is = 0; is < NUM_SOOT_VARS; ++is)
+    state(i, j, k, UFSOOT + is) = sootvars[is];
 }
 
 AMREX_GPU_DEVICE
