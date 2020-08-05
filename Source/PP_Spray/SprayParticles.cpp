@@ -470,9 +470,10 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	      Real dia2_part = dia_part*dia_part;
 	      Real pmass = Pi_six*rho_part*dia_part*dia2_part;
 	      Real part_ke = 0.5*vel_part.radSquared();
-        //Print() << "updateParticles, p.id(), T_part " << p.id() << " " <<  T_part << '\n';
-        //Print() << "updateParticles, p.id(), rho_part " << p.id() << " " << rho_part << '\n';
-        //Print() << "updateParticles, p.id(), dia_part " << p.id() << " " << dia_part << '\n';
+        Print() << "updateParticles, p.id(), T_part " << p.id() << " " <<  T_part << '\n';
+        Print() << "updateParticles, p.id(), rho_part " << p.id() << " " << rho_part << '\n';
+        Print() << "updateParticles, p.id(), dia_part " << p.id() << " " << dia_part << '\n';
+        Print() << "updateParticles, p.id(), amrex_spacedim " << p.id() << " " << AMREX_SPACEDIM << '\n';
       	// If multiple sub-cycle iterations are needed, we might need to
       	// re-interpolate values at the particle
       	// However, since we don't allow the particle to move more than
@@ -481,6 +482,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
       	// Model the fuel vapor using the one-third rule
       	Real delT = amrex::max(T_fluid - T_part, 0.);
       	Real T_skin = T_part + rule*delT;
+        Print() << "updateParticles, p.id(), T_skin " << p.id() << " " << T_skin << '\n';
 	      // Calculate the C_p at the skin temperature for each species
         EOS::T2Cpi(T_skin, cp_n);
         EOS::T2Hi(T_part, h_skin);
@@ -510,6 +512,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
       	if (heat_trans || mass_trans) {
       	  for (int spf = 0; spf != SPRAY_FUEL_NUM; ++spf) {
       	    const int fspec = fuel_indx[spf];
+            Print() << "updateParticles, fspec " <<  fspec << '\n';
             const Real mw_fuel = mw_fluid[fspec];
 	    // Compute latent heat
 #ifdef LEGACY_SPRAY
@@ -521,6 +524,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
                     - fuel_cp[spf]*(T_part - ref_T);
 #endif
       	    L_fuel[spf] = part_latent;
+
       	    // Compute the mass fraction of the fuel vapor at droplet surface
             Real pres_sat = EOS::PATM*std::exp(part_latent*inv_Ru*mw_fuel*
                                                (invBoilT[spf] - 1./T_part)) + C_eps;
@@ -547,6 +551,8 @@ SprayParticleContainer::updateParticles(const int&  lev,
       	Real lambda_skin = 0.;
       	Real mu_skin = 0.;
       	Real xi_skin = 0.;
+
+        Print() << "updateParticles, p.id(), mass_trans " << p.id() << " " <<  mass_trans << '\n';
         //Print() << "updateParticles, p.id(), gonna call transport " << p.id() << '\n';
         //Print() << "updateParticles, p.id(), T_fluid " << p.id() << " " <<  T_fluid << '\n';
         //Print() << "updateParticles, p.id(), rho_fluid " << p.id() << " " <<  rho_fluid << '\n';
@@ -556,12 +562,15 @@ SprayParticleContainer::updateParticles(const int&  lev,
         //Print() << "updateParticles, p.id(), get_lambda " << p.id() << " " <<  get_lambda << '\n';
         //Print() << "updateParticles, p.id(), get_Ddiag " << p.id() << " " <<  get_Ddiag << '\n';
         transport(get_xi, get_mu, get_lambda, get_Ddiag,
-                  T_fluid, rho_fluid, Y_skin, Ddiag,
+                  T_skin, rho_fluid, Y_skin, Ddiag,
                   mu_skin, xi_skin, lambda_skin);
 
         //mu_skin = 0.00510725;
-        if (i == 1){Print() << "updateParticles, p.id(), mu_skin " << p.id() << " " <<  mu_skin << '\n';}
-        //Print() << "updateParticles, p.id(), called transport " << p.id() << '\n';
+        //Print() << "updateParticles, p.id(), mu_skin " << p.id() << " " <<  mu_skin << '\n';
+        //Print() << "updateParticles, p.id(), T_fluid " << p.id() << " " <<  T_fluid << '\n';
+        //Print() << "updateParticles, p.id(), rho_fluid " << p.id() << " " <<  rho_fluid << '\n';
+        //Print() << "updateParticles, p.id(), Y_skin " << p.id() << " " <<  Y_skin[0] << ' ' <<Y_skin[1] << ' ' << Y_skin[2] << '\n';
+          //Print() << "updateParticles, p.id(), called transport " << p.id() << '\n';
         //Print() << "updateParticles, p.id(), mu_skin " << p.id() << ' ' << mu_skin << '\n';
       	// Ensure gas is not all fuel to allow evaporation
       	bool evap_fuel = (sumYFuel >= 1.) ? false : true;
@@ -605,6 +614,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
 	      RealVect fluid_mom_src(RealVect::TheZeroVector());
         RealVect part_mom_src(RealVect::TheZeroVector());
 	      Real fluid_eng_src = 0.;
+
 	      if (mom_trans) {
 #ifdef LEGACY_SPRAY
           Real drag_force = 3.*M_PI*mu_skin*dia_part*(1. + 0.15*std::pow(Reyn, 0.687));
@@ -625,7 +635,8 @@ SprayParticleContainer::updateParticles(const int&  lev,
           }
       	  // s_d,mu dot u_d
       	  Real S_dmu_dot_u = part_mom_src.dotProduct(vel_part);
-      	  fluid_eng_src += S_dmu_dot_u + m_dot*part_ke;
+          // dont do this in PeleLM
+          //fluid_eng_src += S_dmu_dot_u + m_dot*part_ke;
       	  Real inv_tau_var = drag_force*inv_pmass;
       	  if (isub == 1)
       	    nsub = amrex::min(int(flow_dt*inv_tau_var) + 1, nSubMax);
@@ -723,6 +734,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
             isub = nsub + 1;
             continue;
           }
+
           // Add the spray source terms to the Eulerian fluid
 	        for (int aindx = 0; aindx != AMREX_D_PICK(2, 4, 8); ++aindx) {
       	    Real cur_coef = -coef[aindx]*sub_source;
@@ -742,14 +754,17 @@ SprayParticleContainer::updateParticles(const int&  lev,
                 }
 	            }
 	            if (mass_trans) {
-        	      Gpu::Atomic::Add(&sourcearr(cur_indx, rhoIndx), cur_coef*m_dot);
+        	      Gpu::Atomic::Add(&sourcearr(cur_indx, rhoIndx), cur_coef*m_dot*1e-1);
 	              for (int spf = 0; spf != SPRAY_FUEL_NUM; ++spf) {
 		              const int nf = specIndx + fuel_indx[spf];
-		              Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*Y_dot[spf]);
+                  Print() << "updateParticles, p.id(), nf " << p.id() << " " <<  nf << '\n';
+                  Print() << "updateParticles, p.id(), specIndx " << p.id() << " " <<  specIndx << '\n';
+                  Print() << "updateParticles, p.id(), fuel_indx " << p.id() << " " <<  fuel_indx[spf] << '\n';
+		              Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*Y_dot[spf]*1e-1);
 	              }
 	            }
 	            if (mass_trans || heat_trans)
-	              Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src);
+	              Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*10.);
 	             }
 	           }
 	           // Increment sub-iteration
