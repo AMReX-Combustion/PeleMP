@@ -660,6 +660,7 @@ SprayParticleContainer::updateParticles(const int&  lev,
 #else
     	    fluid_eng_src += Y_dot[spf]*h_skin[fspec];
     	    part_temp_src += Y_dot[spf]*L_fuel[spf];
+          Print() << "updateParticles, p.id(), rho_fluid " << p.id() << " " <<  rho_fluid << '\n';
 #endif
 	      }
 	      Real conv_src = M_PI*lambda_skin*dia_part*delT*coeff_heat;
@@ -763,8 +764,14 @@ SprayParticleContainer::updateParticles(const int&  lev,
 		              Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*Y_dot[spf]*1e-1);
 	              }
 	            }
-	            if (mass_trans || heat_trans)
-	              Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*10.);
+	            //if (mass_trans || heat_trans)
+		    //Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*1e-11); // what's the factor we need to apply (should be 1e-11)?
+
+              //Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*rho_fluid*1e-1); // should be density of evaporated fluid
+		          Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*1e-5);
+              Print() << "updateParticles, p.id(), eng source " << p.id() << " " << cur_coef*fluid_eng_src << '\n';
+              Print() << "updateParticles, p.id(), mdot " << p.id() << " " << m_dot << '\n';
+              Print() << "updateParticles, p.id(), fluid_eng_src " << p.id() << " " << fluid_eng_src << '\n';
 	             }
 	           }
 	           // Increment sub-iteration
