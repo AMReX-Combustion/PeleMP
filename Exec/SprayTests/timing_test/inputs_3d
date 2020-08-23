@@ -82,11 +82,11 @@ amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure MachNumber magv
 amr.file_name_digits = 6
 
 # PROBLEM PARAMETERS
-prob.mach = 0.2
-prob.ref_T = 300.
+prob.mach = 0.
+prob.ref_T = 350.
 prob.part_temp = 300.
 prob.part_dia = 0.001
 prob.part_rho = 0.640
-prob.part_vel = 100. 100. 100.
+prob.part_vel = 7000. 0. 0.
 amrex.abort_on_out_of_gpu_memory = 1
 fabarray.mfiter_tile_size = 1024 1024 1024
