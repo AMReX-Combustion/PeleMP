@@ -75,11 +75,12 @@ public:
 		 const int level, const amrex::Real& dt,
 		 const amrex::Real time, const bool isVirtual,
 		 const bool isGhost, const int tmp_src_width,
-     const int          rhoIndx,
-     const int          momIndx,
-     const int          tempIndx,
-     const int          engIndx,
-     const int          specIndx);
+		 const int          rhoIndx,
+		 const int          momIndx,
+		 const int          tempIndx,
+		 const int          engIndx,
+		 const int          specIndx,
+		 const bool         updPart);
 
   ///
   /// Update and move positions of the particles
@@ -90,11 +91,12 @@ public:
 		      const amrex::Real time, const bool isVirtual,
 		      const bool isGhost, const int tmp_src_width,
 		      const bool do_move, const int where_width,
-          const int          rhoIndx,
-          const int          momIndx,
-          const int          tempIndx,
-          const int          engIndx,
-          const int          specIndx);
+		      const int          rhoIndx,
+		      const int          momIndx,
+		      const int          tempIndx,
+		      const int          engIndx,
+		      const int          specIndx,
+		      const bool         updPart);
 
   ///
   /// Update particles
@@ -107,11 +109,12 @@ public:
 			const amrex::Real& time,
                         const int          numGhost,
 			const bool         do_move,
-      const int          rhoIndx,
-      const int          momIndx,
-      const int          tempIndx,
-      const int          engIndx,
-      const int          specIndx);
+			const int          rhoIndx,
+			const int          momIndx,
+			const int          tempIndx,
+			const int          engIndx,
+			const int          specIndx,
+			const bool         updPart);
 
   ///
   /// Insert particles according to some criterion
