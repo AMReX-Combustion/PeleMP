@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 300
-stop_time = 8.E-5
+stop_time = 8.E-3
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1 1 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0. 0. 0.
-geometry.prob_hi     = 0.2 0.2 0.2
+geometry.prob_hi     = 100. 100. 100.
 
 # use with single level
 amr.n_cell = 256 256 256
@@ -43,10 +43,11 @@ amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.max_grid_size     = 32
 amr.initial_grid_file = three_d_gridfiles/gridfile_32
+amr.blocking_factor   = 32
 # amr.max_grid_size     = 64
 # amr.initial_grid_file = three_d_gridfiles/gridfile_64
+# amr.blocking_factor   = 64
 amr.regrid_int        = -1 -1 -1 -1
-amr.blocking_factor = 16      # block factor in grid generation
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # PARTICLES / SPRAY
@@ -55,7 +56,7 @@ particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.heat_transfer = 1
-particles.particle_cfl = 0.4
+particles.particle_cfl = 0.5
 particles.particle_init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
@@ -83,10 +84,10 @@ amr.file_name_digits = 6
 
 # PROBLEM PARAMETERS
 prob.mach = 0.
-prob.ref_T = 350.
+prob.ref_T = 500.
 prob.part_temp = 300.
 prob.part_dia = 0.001
 prob.part_rho = 0.640
-prob.part_vel = 7000. 0. 0.
+prob.part_vel = 1400000. 0. 0.
 amrex.abort_on_out_of_gpu_memory = 1
 fabarray.mfiter_tile_size = 1024 1024 1024

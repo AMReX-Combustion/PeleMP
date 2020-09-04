@@ -4,6 +4,7 @@ COMP = gnu
 PRECISION = DOUBLE
 
 BL_NO_FORT = TRUE
+DEFINES+=-DCONVERGENCE
 
 # Profiling
 PROFILE = FALSE
@@ -36,7 +37,7 @@ Transport_dir := Simple
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
 # If you want to use StructOfArrays instead of ArrayOfStructs
-USE_SPRAY_SOA = TRUE
+#USE_SPRAY_SOA = TRUE
 
 # GNU Make
 Bpack := ./Make.package
