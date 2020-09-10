@@ -150,7 +150,7 @@ SprayParticleContainer::moveKickDrift (MultiFab&   state,
   }
 
   amrex::Print() << "tempSource" << tempSource <<"\n";
-  
+
   //amrex::Print() << "tempSource" << tempSource <<"\n";
   //amrex::Print() << "tempSource same grid" << this->OnSameGrids(lev, source) <<"\n";
   //amrex::Print() << "tempSource enough grow" << (source.nGrow() >= tmp_src_width) <<"\n";
@@ -754,33 +754,64 @@ SprayParticleContainer::updateParticles(const int&  lev,
       	    IntVect cur_indx = indx_array[aindx];
             AMREX_ASSERT(tile_box.contains(cur_indx));
 	            if (mom_trans) {
+
+                Real fac = 0.;
+                if (AMREX_SPACEDIM == 2)
+                {
+                  fac = 1e-3;
+                }
+                else if (AMREX_SPACEDIM == 3)
+                {
+                  fac = 1e-5;
+                }
+
+
                 for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
                   const int nf = momIndx + dir;
                     //Print() << "updateParticles, p.id(), source " << p.id() << " " << nf << " " <<  cur_coef*fluid_mom_src[dir] << '\n';
                     //Print() << "updateParticles, p.id(), fluid source before add " << p.id() << " " << nf << " " <<  sourcearr(cur_indx, nf) << '\n';
 
                     //Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*fluid_mom_src[dir]*mom_to_mks);
-                    Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*fluid_mom_src[dir]*1e-3); //factor should be 1e-5?
+                    Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*fluid_mom_src[dir]*fac); //factor should be 1e-5?
 
                     //Print() << "updateParticles, p.id(), cur_indx " << p.id() << " " << cur_indx << '\n';
                     //Print() << "updateParticles, p.id(), fluid source after add " << p.id() << " " << nf << " " <<  sourcearr(cur_indx, nf) << '\n';
                 }
 	            }
 	            if (mass_trans) {
-        	      Gpu::Atomic::Add(&sourcearr(cur_indx, rhoIndx), cur_coef*m_dot*1e-1);
+                Real fac = 0.;
+                if (AMREX_SPACEDIM == 2)
+                {
+                  fac = 1e-1;
+                }
+                else if (AMREX_SPACEDIM == 3)
+                {
+                  fac = 1e-3;
+                }
+        	      Gpu::Atomic::Add(&sourcearr(cur_indx, rhoIndx), cur_coef*m_dot*fac);
 	              for (int spf = 0; spf != SPRAY_FUEL_NUM; ++spf) {
 		              const int nf = specIndx + fuel_indx[spf];
                   // Print() << "updateParticles, p.id(), nf " << p.id() << " " <<  nf << '\n';
                   // Print() << "updateParticles, p.id(), specIndx " << p.id() << " " <<  specIndx << '\n';
                   // Print() << "updateParticles, p.id(), fuel_indx " << p.id() << " " <<  fuel_indx[spf] << '\n';
-		              Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*Y_dot[spf]*1e-1);
+		              Gpu::Atomic::Add(&sourcearr(cur_indx, nf), cur_coef*Y_dot[spf]*fac);
 	              }
 	            }
 	            //if (mass_trans || heat_trans)
 		    //Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*1e-11); // what's the factor we need to apply (should be 1e-11)?
 
+              Real fac = 0.;
+              if (AMREX_SPACEDIM == 2)
+              {
+                fac = 1e-5;
+              }
+              else if (AMREX_SPACEDIM == 3)
+              {
+                fac = 1e-7;
+              }
+
               //Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*rho_fluid*1e-1); // should be density of evaporated fluid
-		          Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*1e-5);
+		          Gpu::Atomic::Add(&sourcearr(cur_indx, engIndx), cur_coef*fluid_eng_src*fac);
               // Print() << "updateParticles, p.id(), eng source " << p.id() << " " << cur_coef*fluid_eng_src << '\n';
               // Print() << "updateParticles, p.id(), mdot " << p.id() << " " << m_dot << '\n';
               // Print() << "updateParticles, p.id(), fluid_eng_src " << p.id() << " " << fluid_eng_src << '\n';

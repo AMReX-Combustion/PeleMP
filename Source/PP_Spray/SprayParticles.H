@@ -119,11 +119,13 @@ public:
   ///
   /// Insert particles according to some criterion
   ///
-  bool insertParticles (amrex::Real time, int nstep, int lev);
+  bool insertParticles(amrex::Real time, amrex::Real dt, int nstep, int lev, int finest_level);
 
-  bool injectParticles (amrex::Real time, int nstep, int lev);
+  bool injectParticles(amrex::Real time, amrex::Real dt, int nstep, int lev, int finest_level);
 
   void InitParticlesUniform (amrex::AmrLevel* pelec, const int& lev, const int& num_ppc);
+
+  void InitSprayParticles(amrex::AmrLevel* pelec, const int& lev, const int& num_ppc);
 
 private:
   int nstate;
