@@ -1,18 +1,19 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 5000
-stop_time = 1.E-4
+stop_time = 0.0038
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0. 0. 0.
-geometry.prob_hi     = 0.4 2.8 0.4
+#geometry.prob_hi     = 0.4 2.8 0.4
+geometry.prob_hi     = 1.2 8.4 1.2
 amr.n_cell           = 32 224 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 pelec.lo_bc        = "Hard" "NoSlipWall" "Hard"
-pelec.hi_bc        = "Hard" "NoSlipWall" "Hard"
+pelec.hi_bc        = "Hard" "Hard" "Hard"
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -38,7 +39,7 @@ amr.v                = 1    # verbosity in Amr.cpp
 #amr.data_log         = datlog
 #amr.grid_log         = grdlog  # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 2       # maximum level number allowed
 
 # Use fixed refinement base on an initial grid file
@@ -49,7 +50,7 @@ amr.max_level       = 2       # maximum level number allowed
 tagging.tempgrad = 1.3
 # Use adaptive refinement based on velocity gradients
 #tagging.velgrad = 40.
-amr.regrid_int = 8 8 8
+amr.regrid_int = 4 8 8
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.blocking_factor = 16       # block factor in grid generation
@@ -67,7 +68,7 @@ particles.particle_init_function = 1
 particles.write_spray_ascii_files = 0
 
 # Number of particles per parcel
-particles.parcel_size = 10.
+particles.parcel_size = 100.
 
 particles.fuel_species = NC10H22
 # properties for decane
@@ -85,7 +86,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 # PLOTFILES
 #amr.plot_files_output = 0
 amr.plot_file       = plt # root name of plotfile
-amr.plot_per        = 2.E-6 # number of timesteps between plotfiles
+amr.plot_per        = 1.E-4 # number of timesteps between plotfiles
 amr.plot_vars = density Temp rho_E xmom ymom zmom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6

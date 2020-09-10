@@ -72,11 +72,13 @@ SprayParticleContainer::injectParticles(Real time,
   }
   if (jet_vel*dt/dx[0] > 0.5) {
     Real max_vel = dx[0]*0.5/dt;
-    std::string warn_msg = "Injection velocity of " + std::to_string(jet_vel) 
-      + " is reduced to maximum " + std::to_string(max_vel);
+    if (ParallelDescriptor::IOProcessor()) {
+      std::string warn_msg = "Injection velocity of " + std::to_string(jet_vel)
+        + " is reduced to maximum " + std::to_string(max_vel);
+      amrex::Warning(warn_msg);
+    }
     m_injectVel = jet_vel;
     jet_vel = max_vel;
-    amrex::Warning(warn_msg);
   }
   Real part_dia = ProbParm::part_mean_dia;
   Real part_stdev = ProbParm::part_stdev_dia;
@@ -108,30 +110,48 @@ SprayParticleContainer::injectParticles(Real time,
       Real testdx = dx[0]/100.;
       Real testdx2 = testdx*testdx;
       Real curx = xloJ[0];
+      Real hix = xloJ[0];
+      Real lox = xhiJ[0];
       // Loop over each cell and check how much overlap there is with the jet
 #if AMREX_SPACEDIM == 3
+      Real hiz = xloJ[2];
+      Real loz = xhiJ[2];
       while (curx < xhiJ[0]) {
         Real curz = xloJ[2];
         while (curz < xhiJ[2]) {
           Real r2 = curx*curx + curz*curz;
-          if (r2 <= jr2) cur_jet_area += testdx2;
+          if (r2 <= jr2) {
+            cur_jet_area += testdx2;
+            lox = amrex::min(curx, lox);
+            hix = amrex::max(curx, hix);
+            loz = amrex::min(curz, loz);
+            hiz = amrex::max(curz, hiz);
+          }
           curz += testdx;
         }
         curx += testdx;
       }
+      Real zlen = hiz - loz;
+      loz += ProbParm::jet_cent[2];
 #else
       while (curx < xhiJ[0]) {
         Real r2 = curx*curx;
-        if (r2 <= jr2) cur_jet_area += testdx;
+        if (r2 <= jr2) {
+          cur_jet_area += testdx;
+          lox = amrex::min(curx, lox);
+          hix = amrex::max(curx, hix);
+        }
         curx += testdx;
       }
 #endif
+      Real xlen = hix - lox;
+      lox += ProbParm::jet_cent[0];
       Real jet_perc = cur_jet_area/jet_area;
       Real perc_mass = jet_perc*mass_flow_rate*dt;
       Real total_mass = 0.;
       while (total_mass < perc_mass) {
-        RealVect part_loc(AMREX_D_DECL(xlo[0] + amrex::Random()*box_len[0],
-                                       plo[1], xlo[2] + amrex::Random()*box_len[2]));
+        RealVect part_loc(AMREX_D_DECL(lox + amrex::Random()*xlen,
+                                       plo[1], loz + amrex::Random()*zlen));
         Real r2 = AMREX_D_TERM(std::pow(part_loc[0] - ProbParm::jet_cent[0], 2),,
                                + std::pow(part_loc[2] - ProbParm::jet_cent[2], 2));
         if (r2 <= jr2) {
