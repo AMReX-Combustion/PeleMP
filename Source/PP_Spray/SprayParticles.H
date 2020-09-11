@@ -10,31 +10,65 @@
 #include "SprayFuelData.H"
 #include "EOS.H"
 
-// Define the number of fuel species used in the droplets, if not defined in GNUmakefile
-#ifndef SPRAY_FUEL_NUM
-#define SPRAY_FUEL_NUM 1
+#ifdef USE_SPRAY_SOA
+#define NSR_SPR 0
+#define NSI_SPR 0
+#define NAR_SPR AMREX_SPACEDIM+3+SPRAY_FUEL_NUM
+#define NAI_SPR 0
+#else
+#define NSR_SPR AMREX_SPACEDIM+3+SPRAY_FUEL_NUM
+#define NSI_SPR 0
+#define NAR_SPR 0
+#define NAI_SPR 0
 #endif
 
-#define NSR_SPR AMREX_SPACEDIM+3+SPRAY_FUEL_NUM
-#define NAR_SPR 0
-#define NSI_SPR 0
-#define NAI_SPR 0
+
+class MyParIter
+  : public amrex::ParIter<NSR_SPR,NSI_SPR,NAR_SPR,NAI_SPR>
+{
+public:
+  using amrex::ParIter<NSR_SPR,NSI_SPR,NAR_SPR,NAI_SPR>::ParIter;
+
+  std::array<RealVector, NAR_SPR>& GetAttribs() {
+    return GetStructOfArrays().GetRealData();
+  }
+
+  RealVector& GetAttribs(int comp) {
+    return GetStructOfArrays().GetRealData(comp);
+  }
+};
+
+class MyParConstIter
+  : public amrex::ParConstIter<NSR_SPR,NSI_SPR,NAR_SPR,NSI_SPR>
+{
+public:
+  using amrex::ParConstIter<NSR_SPR,NSI_SPR,NAR_SPR,NSI_SPR>::ParConstIter;
+
+  const std::array<RealVector, NAR_SPR>& GetAttribs() const {
+    return GetStructOfArrays().GetRealData();
+  }
+
+  const RealVector& GetAttribs(int comp) const {
+    return GetStructOfArrays().GetRealData(comp);
+  }
+};
 
 class SprayParticleContainer
   : public amrex::AmrParticleContainer<NSR_SPR,NSI_SPR,NAR_SPR,NAI_SPR>
 {
 public:
 
-  using MyParIter = amrex::ParIter<NSR_SPR,0>;
-  using MyParConstIter = amrex::ParConstIter<NSR_SPR,0>;
   using PairIndex = std::pair<int, int>;
   using HostVectReal = amrex::Gpu::HostVector<amrex::Real>;
   using HostVectInt = amrex::Gpu::HostVector<int>;
 
-  SprayParticleContainer(amrex::Amr* amr, amrex::BCRec* _phys_bc)
-    : amrex::AmrParticleContainer<NSR_SPR,0>(amr),
-    sub_cycle(amr->subCycle()),
-    phys_bc(_phys_bc)
+  SprayParticleContainer(amrex::Amr* amr, amrex::BCRec* _phys_bc, const amrex::Real parcelSize)
+    : amrex::AmrParticleContainer<NSR_SPR,NSI_SPR,NAR_SPR,NAI_SPR>(amr),
+      m_setFuelData(false),
+      sub_cycle(amr->subCycle()),
+      phys_bc(_phys_bc),
+      m_injectVel(0.),
+      m_parcelSize(parcelSize)
   {
     nstate = NSR_SPR;
     init_bcs();
@@ -44,18 +78,19 @@ public:
   /// Set fuel data
   ///
   void buildFuelData(const HostVectReal& critT,
-		     const HostVectReal& boilT,
-		     const HostVectReal& fuelCp,
-		     const HostVectReal& fuelLatent,
-		     const HostVectInt&  fuelIndx,
-		     amrex::Real         ref_T)
+                     const HostVectReal& boilT,
+                     const HostVectReal& fuelCp,
+                     const HostVectReal& fuelLatent,
+                     const HostVectInt&  fuelIndx,
+                     amrex::Real         ref_T)
   {
     HostVectReal fuelEnth(NUM_SPECIES);
     EOS::T2Hi(ref_T, fuelEnth.dataPtr());
     m_fuelData.build(critT, boilT, fuelCp, fuelEnth, fuelLatent, fuelIndx);
+    m_setFuelData = true;
   }
 
-  ~SprayParticleContainer () {}
+  ~SprayParticleContainer() {}
 
   ///
   /// Set the value of particle state for all partilces on a level
@@ -65,69 +100,75 @@ public:
   ///
   /// Compute a maximum time step based on the particle velocities and a particle CFL number
   ///
-  amrex::Real estTimestep (int level, amrex::Real cfl) const;
+  amrex::Real estTimestep(int level, amrex::Real cfl) const;
+
+  ///
+  /// Set the number of particles per parcel
+  ///
+  inline void setParcelSize(const amrex::Real parcelSize)
+  {
+    m_parcelSize = parcelSize;
+  }
 
   ///
   /// Update the particles but do not move particles
   ///
-  void moveKick (amrex::MultiFab& state, amrex::MultiFab& source,
-		 amrex::MultiFab& umac,
-		 const int level, const amrex::Real& dt,
-		 const amrex::Real time, const bool isVirtual,
-		 const bool isGhost, const int tmp_src_width,
-		 const int          rhoIndx,
-		 const int          momIndx,
-		 const int          tempIndx,
-		 const int          engIndx,
-		 const int          specIndx,
-		 const bool         updPart);
+  void moveKick(amrex::MultiFab& state, amrex::MultiFab& source,
+                const int level, const amrex::Real& dt,
+                const amrex::Real time, const bool isVirtual,
+                const bool isGhost, const int tmp_src_width,
+                amrex::MultiFab* u_mac = nullptr);
 
   ///
   /// Update and move positions of the particles
   ///
-  void moveKickDrift (amrex::MultiFab& state, amrex::MultiFab& source,
-		      amrex::MultiFab& umac,
-		      const int level, const amrex::Real& dt,
-		      const amrex::Real time, const bool isVirtual,
-		      const bool isGhost, const int tmp_src_width,
-		      const bool do_move, const int where_width,
-		      const int          rhoIndx,
-		      const int          momIndx,
-		      const int          tempIndx,
-		      const int          engIndx,
-		      const int          specIndx,
-		      const bool         updPart);
+  void moveKickDrift(amrex::MultiFab& state, amrex::MultiFab& source,
+                     const int level, const amrex::Real& dt,
+                     const amrex::Real time, const bool isVirtual,
+                     const bool isGhost, const int tmp_src_width,
+                     const bool do_move, const int where_width,
+                     amrex::MultiFab* u_mac = nullptr);
 
   ///
   /// Update particles
   ///
-  void updateParticles (const int&         lev,
-			amrex::MultiFab&   state,
-			amrex::MultiFab&   source,
-			amrex::MultiFab&   umac,
-			const amrex::Real& flow_dt,
-			const amrex::Real& time,
-                        const int          numGhost,
-			const bool         do_move,
-			const int          rhoIndx,
-			const int          momIndx,
-			const int          tempIndx,
-			const int          engIndx,
-			const int          specIndx,
-			const bool         updPart);
+  void updateParticles(const int&         level,
+                       amrex::MultiFab&   state,
+                       amrex::MultiFab&   source,
+                       const amrex::Real& flow_dt,
+                       const amrex::Real& time,
+                       const int          numGhost,
+                       const bool         do_move,
+                       amrex::MultiFab*   u_mac);
+
+  ///
+  /// Sum boundary and copy temporary source term
+  ///
+  inline void transferSource(const int&       tmp_src_width,
+                             const int&       level,
+                             amrex::MultiFab& tmp_source,
+                             amrex::MultiFab& source)
+  {
+    const int nghost = amrex::min(source.nGrow(), tmp_src_width);
+    tmp_source.SumBoundary(Geom(level).periodicity());
+    amrex::MultiFab::Add(source, tmp_source, 0, 0, source.nComp(), nghost);
+    tmp_source.setVal(0.);
+  }
 
   ///
   /// Insert particles according to some criterion
   ///
-  bool insertParticles(amrex::Real time, amrex::Real dt, int nstep, int lev, int finest_level);
+  bool insertParticles(amrex::Real time, amrex::Real dt, int nstep, int level, int finest_level);
 
-  bool injectParticles(amrex::Real time, amrex::Real dt, int nstep, int lev, int finest_level);
+  bool injectParticles(amrex::Real time, amrex::Real dt, int nstep, int level, int finest_level);
 
-  void InitParticlesUniform (amrex::AmrLevel* pelec, const int& lev, const int& num_ppc);
-
-  void InitSprayParticles(amrex::AmrLevel* pelec, const int& lev, const int& num_ppc);
+  void InitSprayParticles(amrex::AmrLevel* pelec, const int& level, const int& num_ppc);
 
 private:
+  bool m_setFuelData;
+  amrex::Real m_injectVel;
+  // The number of spray droplets per computational particle
+  amrex::Real m_parcelSize;
   int nstate;
   ///
   /// This defines reflect_lo and reflect_hi from phys_bc
@@ -138,7 +179,8 @@ private:
   amrex::BCRec* phys_bc;
   bool reflect_lo[AMREX_SPACEDIM];
   bool reflect_hi[AMREX_SPACEDIM];
-  SprayFuelData m_fuelData;
+  SprayDataContainer m_fuelData;
 };
 
 #endif
+
