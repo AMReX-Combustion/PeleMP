@@ -31,6 +31,7 @@ for gsi in "${!gridsizes[@]}"; do
 done
 cd ${TPD}
 FCOMP_EXEC=/Users/ldowen/Codes/amrex/Tools/Plotfile/fcompare.gnu.ex
+set +e
 ${FCOMP_EXEC} -a ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>out1.log
 ${FCOMP_EXEC} -a ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[2]}_BOX/plt${NUM_ITER}>out2.log
 ${FCOMP_EXEC} -a ${gridsizes[2]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>out3.log

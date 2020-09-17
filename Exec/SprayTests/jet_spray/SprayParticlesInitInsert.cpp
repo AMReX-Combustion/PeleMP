@@ -70,6 +70,8 @@ SprayParticleContainer::injectParticles(Real time,
     const Real jv2 = ProbParm::d_inject_vel[time_indx];
     jet_vel = jv1 + (jv2 - jv1)*invt;
   }
+  // This absolutely must be included with any injection or insertion
+  // function or significant issues will arise
   if (jet_vel*dt/dx[0] > 0.5) {
     Real max_vel = dx[0]*0.5/dt;
     if (ParallelDescriptor::IOProcessor()) {

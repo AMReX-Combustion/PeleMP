@@ -67,6 +67,8 @@ bcnormal(
   const amrex::Real time,
   amrex::GeometryData const& geomdata)
 {
+  for (int i = 0; i != NVAR; ++i)
+    s_ext[i] = s_int[i];
 }
 
 struct MyProbTagStruct
