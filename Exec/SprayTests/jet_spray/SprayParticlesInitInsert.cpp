@@ -105,7 +105,7 @@ SprayParticleContainer::injectParticles(Real time,
     if (xlo[1] == plo[1]) {
       // Box locations relative to jet center
       const RealVect xloJ(AMREX_D_DECL(xlo[0] - ProbParm::jet_cent[0], plo[1],
-                                       xlo[1] - ProbParm::jet_cent[2]));
+                                       xlo[2] - ProbParm::jet_cent[2]));
       const RealVect xhiJ(AMREX_D_DECL(xhi[0] - ProbParm::jet_cent[0], plo[1],
                                        xhi[2] - ProbParm::jet_cent[2]));
       Real cur_jet_area = 0.;
