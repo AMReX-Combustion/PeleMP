@@ -8,14 +8,15 @@ using namespace amrex;
 
 IntVect unflatten_particles(const int idx, const IntVect& max_parts) {
   IntVect indx;
+  int cidx = idx;
 #if AMREX_SPACEDIM > 1
 #if AMREX_SPACEDIM > 2
-  indx[2] = idx/(max_parts[0]*max_parts[1]);
-  idx -= indx[2]*max_parts[0]*max_parts[1];
+  indx[2] = cidx/(max_parts[0]*max_parts[1]);
+  cidx -= indx[2]*max_parts[0]*max_parts[1];
 #endif
-  indx[1] = idx/max_parts[0];
+  indx[1] = cidx/max_parts[0];
 #endif
-  indx[0] = idx % max_parts[0];
+  indx[0] = cidx % max_parts[0];
   return indx;
 }
 
