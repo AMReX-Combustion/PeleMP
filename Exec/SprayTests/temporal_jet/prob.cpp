@@ -13,6 +13,7 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real partRho = 0.64;
 AMREX_GPU_DEVICE_MANAGED amrex::Real partDia = 0.002;
 AMREX_GPU_DEVICE_MANAGED amrex::Real partVel = 0.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real velFluct = 1.E-2;
+AMREX_GPU_DEVICE_MANAGED amrex::Real velSmooth = 7.5E-4;
 } // namespace ProbParm
 
 void
@@ -42,12 +43,14 @@ amrex_probinit(
   pp.get("part_rho", ProbParm::partRho);
   pp.get("part_dia", ProbParm::partDia);
   pp.get("part_temp", ProbParm::partTemp);
+  // Determine how smooth the velocity profile for the gas phase
+  pp.query("vel_smoothing", ProbParm::velSmooth);
 
   // Initial density, velocity, and material properties
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[O2_ID] = ProbParm::Y_O2;
   massfrac[N2_ID] = ProbParm::Y_N2;
-
+  ProbParm::v0 = ProbParm::partVel;
 }
 }
 

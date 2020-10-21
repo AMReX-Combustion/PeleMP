@@ -6,11 +6,11 @@ stop_time = 8.E-2
 geometry.is_periodic = 0 1 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0. 0. 0.
-geometry.prob_hi     = 0.24 0.48 0.05
+geometry.prob_hi     = 0.24 0.48 0.24
 
 # use with single level
 #amr.n_cell = 128 256 32
-amr.n_cell = 64 128
+amr.n_cell = 64 128 64
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -44,12 +44,15 @@ pelec.v              = 0   # verbosity in Castro.cpp
 amr.v                = 1   # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 0
+amr.max_level       = 2
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.max_grid_size     = 64
 amr.blocking_factor   = 8
-amr.regrid_int        = -1 -1 -1 -1
 amr.n_error_buf       = 2 2 2 2 # number of buffer cells in error est
+
+# TAGGING
+tagging.velgrad = 120.
+amr.regrid_int = 4 8 8
 
 # PARTICLES / SPRAY
 pelec.do_spray_particles = 1
@@ -63,11 +66,11 @@ particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
 particles.fuel_species = NC12H26
 # properties for decane
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
+particles.fuel_crit_temp = 658.2 # K
+particles.fuel_boil_temp = 489. # K
 particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E9
-particles.fuel_cp = 2.1921E7 # Cp at 298 K
+particles.fuel_cp = 2.1902E7 # Cp at 298 K
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
@@ -99,5 +102,6 @@ prob.part_rho = 0.640
 prob.part_num = 1000
 prob.part_vel = 1.E3
 prob.vel_fluct = 10.
+prob.vel_smoothing = 7.5E-4
 amrex.abort_on_out_of_gpu_memory = 1
 fabarray.mfiter_tile_size = 1024 1024 1024

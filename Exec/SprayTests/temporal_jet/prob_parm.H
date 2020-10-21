@@ -18,6 +18,7 @@ extern AMREX_GPU_DEVICE_MANAGED amrex::Real partRho;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real partDia;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real partVel;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real velFluct;
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real velSmooth;
 } // namespace ProbParm
 
 #endif

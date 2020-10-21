@@ -43,8 +43,10 @@ pc_initdata(
 
   amrex::Real u[3] = {0.0};
   amrex::Real xn = x - xshift;
-  amrex::Real func = 0.5*(tanh((xn/100. + 5.E-5)/5.E-6) - tanh((xn/100. - 5.E-5)/5.E-6));
-  u[1] = func*1000.;
+  amrex::Real invSmooth = 1./ProbParm::velSmooth;
+  amrex::Real jetLen = ProbParm::L_jet/2.;
+  amrex::Real func = 0.5*(tanh((xn + jetLen)*invSmooth) - tanh((xn - jetLen)*invSmooth));
+  u[1] = func*ProbParm::v0;
 
   const amrex::Real p = ProbParm::p0;
   amrex::Real rho, eint;
