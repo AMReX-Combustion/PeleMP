@@ -15,7 +15,7 @@ MEM_PROFILE = FALSE
 USE_GPROF = FALSE
 
 # Performance
-USE_MPI = FALSE
+USE_MPI = TRUE
 USE_OMP = FALSE
 USE_CUDA = FALSE
 USE_HIP = FALSE
@@ -33,7 +33,7 @@ USE_CVODE_PP = TRUE
 USE_EB = FALSE
 Eos_dir := Fuego
 Reactions_dir := Fuego
-Chemistry_Model := dodecane_wang
+Chemistry_Model := dodecane_lu
 Transport_dir := Simple
 
 # PeleC-MP
