@@ -24,9 +24,10 @@ pelec.diffuse_spec = 1
 pelec.do_react = 0
 pelec.do_grav = 0
 pelec.allow_negative_energy = 1
+pelec.do_mol = 1
 
 # TIME STEP CONTROL
-pelec.cfl            = 0.8    # cfl number for hyperbolic system
+pelec.cfl            = 0.3    # cfl number for hyperbolic system
 pelec.init_shrink    = 0.3     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
