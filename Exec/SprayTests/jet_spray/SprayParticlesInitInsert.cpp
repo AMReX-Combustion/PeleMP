@@ -226,7 +226,7 @@ SprayParticleContainer::injectParticles(Real time,
 }
 
 void
-SprayParticleContainer::InitSprayParticles(AmrLevel* pelec, const int& lev, const int& num_ppc)
+SprayParticleContainer::InitSprayParticles()
 {
   // Start without any particles
   return;

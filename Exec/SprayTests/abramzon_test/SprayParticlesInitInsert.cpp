@@ -24,9 +24,9 @@ SprayParticleContainer::injectParticles(Real time,
                                         int  finest_level)
 {
   return false;
-} 
+}
 
 void
-SprayParticleContainer::InitSprayParticles(AmrLevel* pelec, const int& lev, const int& num_ppc)
+SprayParticleContainer::InitSprayParticles()
 {
 }
