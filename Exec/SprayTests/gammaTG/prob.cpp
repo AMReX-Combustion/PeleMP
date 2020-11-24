@@ -113,3 +113,17 @@ amrex_probinit(
 }
 }
 
+void
+PeleC::problem_post_timestep()
+{
+}
+
+void
+PeleC::problem_post_init()
+{
+}
+
+void
+PeleC::problem_post_restart()
+{
+}

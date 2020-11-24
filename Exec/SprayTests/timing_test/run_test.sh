@@ -6,9 +6,9 @@ EXEC="./PeleC2d.gnu.TPROF.MPI.ex"
 TPD="output_files"
 # For name of grid input file
 # Determines box sizes on refined levels
-gridsizes=(32 64 128)
+gridsizes=(32 128)
 # Box sizes for coarse level
-bsize=(32 64 256)
+bsize=(32 256)
 mkdir -p ${TPD}
 
 GRIDLOCS="two_d_gridfiles"
@@ -33,8 +33,8 @@ cd ${TPD}
 FCOMP_EXEC=/Users/ldowen/Codes/amrex/Tools/Plotfile/fcompare.gnu.ex
 set +e
 ${FCOMP_EXEC} -a ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>out1.log
-${FCOMP_EXEC} -a ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[2]}_BOX/plt${NUM_ITER}>out2.log
-${FCOMP_EXEC} -a ${gridsizes[2]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>out3.log
+# ${FCOMP_EXEC} -a ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[2]}_BOX/plt${NUM_ITER}>out2.log
+# ${FCOMP_EXEC} -a ${gridsizes[2]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>out3.log
 cat out1.log
-cat out2.log
-cat out3.log
+# cat out2.log
+# cat out3.log

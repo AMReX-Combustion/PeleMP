@@ -139,3 +139,18 @@ void pc_prob_close()
   ProbParm::inject_mass = nullptr;
   ProbParm::inject_vel = nullptr;
 }
+
+void
+PeleC::problem_post_timestep()
+{
+}
+
+void
+PeleC::problem_post_init()
+{
+}
+
+void
+PeleC::problem_post_restart()
+{
+}

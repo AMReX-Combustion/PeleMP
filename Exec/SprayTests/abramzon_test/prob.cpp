@@ -39,3 +39,19 @@ amrex_probinit(
 
 void pc_prob_close()
 {}
+
+
+void
+PeleC::problem_post_timestep()
+{
+}
+
+void
+PeleC::problem_post_init()
+{
+}
+
+void
+PeleC::problem_post_restart()
+{
+}

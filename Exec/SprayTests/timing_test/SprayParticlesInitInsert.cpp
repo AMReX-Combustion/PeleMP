@@ -6,8 +6,8 @@
 
 using namespace amrex;
 
-
-IntVect unflatten_particles(const Long idx, const IntVect& max_parts) {
+IntVect unflatten_particles (const Long idx, const IntVect& max_parts)
+{
   IntVect indx;
   Long cidx = idx;
 #if AMREX_SPACEDIM > 1
@@ -19,6 +19,20 @@ IntVect unflatten_particles(const Long idx, const IntVect& max_parts) {
 #endif
   indx[0] = cidx % max_parts[0];
   return indx;
+}
+
+IntVect unflatten_boxes (const Long     idx,
+                         const IntVect& box_strides,
+                         const IntVect& cell_strides)
+{
+  int cpb = AMREX_D_TERM(cell_strides[0],*cell_strides[1],*cell_strides[2]);
+  Long cidx = idx;
+  Long cblock = cidx/cpb;
+  cidx -= cblock*cpb;
+  IntVect curblocks = unflatten_particles(cblock, box_strides);
+  IntVect local = unflatten_particles(cidx, cell_strides);
+  local += curblocks*cell_strides;
+  return local;
 }
 
 bool
@@ -55,15 +69,19 @@ SprayParticleContainer::InitSprayParticles()
   const auto dx = Geom(lev).CellSizeArray();
   const auto plo = Geom(lev).ProbLoArray();
   const auto phi = Geom(lev).ProbHiArray();
+  IntVect box_stride(AMREX_D_DECL(32,32,32));
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    while ((num_part[dir] % box_stride[dir]) != 0) {
+      box_stride[dir] -= 2;
+    }
+  }
   const Long total_part_num = AMREX_D_TERM(num_part[0],*num_part[1],*num_part[2]);
+  const IntVect cell_stride = num_part/box_stride;
   const Box& boxDom = Geom(lev).Domain();
   const Real len = phi[0] - plo[0];
   const RealVect dx_part(AMREX_D_DECL(len/Real(num_part[0]),
 				      len/Real(num_part[1]),
 				      len/Real(num_part[2])));
-  RealVect part_start(AMREX_D_DECL(0.5*dx_part[0],
-                                   0.5*dx_part[1],
-                                   0.5*dx_part[2]));
   Long parts_pp = total_part_num / NProcs;
   Long cur_parts_pp = parts_pp;
   if (MyProc == 0) cur_parts_pp += (total_part_num % NProcs);
@@ -74,7 +92,7 @@ SprayParticleContainer::InitSprayParticles()
   std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR > > host_real_attribs;
 #endif
   for (int prc = first_part; prc != first_part + cur_parts_pp; ++prc) {
-    IntVect indx = unflatten_particles(prc, num_part);
+    IntVect indx = unflatten_boxes(prc, box_stride, cell_stride);
     ParticleType p;
     p.id() = ParticleType::NextID();
     p.cpu() = ParallelDescriptor::MyProc();
