@@ -28,7 +28,7 @@ THREAD_SANITIZER = FALSE
 USE_REACT = FALSE
 USE_EB = FALSE
 Eos_dir := GammaLaw
-Reactions_dir := Null
+Chemistry_Model := Null
 Transport_dir := Constant
 
 # PeleC-MP

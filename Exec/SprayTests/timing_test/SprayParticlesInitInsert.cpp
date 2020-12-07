@@ -1,9 +1,12 @@
 
-#include <SprayParticles.H>
+#include "SprayParticles.H"
 #include <AMReX_Particles.H>
+#ifdef SPRAY_PELE_LM
+#include <pelelm_prob.H>
+#else
 #include <PeleC.H>
 #include "prob.H"
-
+#endif
 using namespace amrex;
 
 IntVect unflatten_particles (const Long idx, const IntVect& max_parts)
@@ -100,22 +103,22 @@ SprayParticleContainer::InitSprayParticles()
     std::pair<int, int> ind(pld.m_grid, pld.m_tile);
 #ifdef USE_SPRAY_SOA
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      host_real_attribs[ind][PeleC::pstateVel+dir].push_back(ProbParm::partVel[dir]);
-    host_real_attribs[ind][PeleC::pstateT].push_back(T_ref);
-    host_real_attribs[ind][PeleC::pstateDia].push_back(part_dia);
-    host_real_attribs[ind][PeleC::pstateRho].push_back(part_rho);
-    host_real_attribs[ind][PeleC::pstateY].push_back(1.);
+      host_real_attribs[ind][m_sprayIndx[SprayComps::pstateVel+dir]].push_back(ProbParm::partVel[dir]);
+    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateT]].push_back(T_ref);
+    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateDia]].push_back(part_dia);
+    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateRho]].push_back(part_rho);
+    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateY]].push_back(1.);
     for (int spf = 1; spf != SPRAY_FUEL_NUM; ++spf)
-      host_real_attribs[ind][PeleC::pstateY+spf].push_back(0.);
+      host_real_attribs[ind][m_sprayIndx[SprayComps::pstateY+spf]].push_back(0.);
 #else
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      p.rdata(PeleC::pstateVel+dir) = ProbParm::partVel[dir];
-    p.rdata(PeleC::pstateT) = T_ref; // temperature
-    p.rdata(PeleC::pstateDia) = part_dia; // diameter
-    p.rdata(PeleC::pstateRho) = part_rho; // liquid fuel density
+      p.rdata(m_sprayIndx[SprayComps::pstateVel+dir]) = ProbParm::partVel[dir];
+    p.rdata(m_sprayIndx[SprayComps::pstateT]) = T_ref; // temperature
+    p.rdata(m_sprayIndx[SprayComps::pstateDia]) = part_dia; // diameter
+    p.rdata(m_sprayIndx[SprayComps::pstateRho]) = part_rho; // liquid fuel density
     for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
-      p.rdata(PeleC::pstateY + sp) = 0.;
-    p.rdata(PeleC::pstateY) = 1.; // Only use the first fuel species
+      p.rdata(m_sprayIndx[SprayComps::pstateY + sp]) = 0.;
+    p.rdata(m_sprayIndx[SprayComps::pstateY]) = 1.; // Only use the first fuel species
 #endif
     host_particles[ind].push_back(p);
   }
@@ -142,7 +145,4 @@ SprayParticleContainer::InitSprayParticles()
   }
   Redistribute();
   Gpu::streamSynchronize();
-  if (m_verbose > 1)
-    amrex::Print() << "Number of initial particles "
-                   << this->TotalNumberOfParticles(false, false) << std::endl;
 }

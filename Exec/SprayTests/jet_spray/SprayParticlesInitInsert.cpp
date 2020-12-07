@@ -38,6 +38,11 @@ SprayParticleContainer::injectParticles(Real time,
   if (lev != 0) return false;
   if (time < ProbParm::jet_start_time
       || time > ProbParm::jet_end_time) return false;
+  const int pstateVel = m_sprayIndx[SprayComps::pstateVel];
+  const int pstateT = m_sprayIndx[SprayComps::pstateT];
+  const int pstateRho = m_sprayIndx[SprayComps::pstateRho];
+  const int pstateDia = m_sprayIndx[SprayComps::pstateDia];
+  const int pstateY = m_sprayIndx[SprayComps::pstateY];
   // Number of particles per parcel
   const Real num_ppp = m_parcelSize;
   const Geometry& geom = this->m_gdb->Geom(lev);
@@ -170,13 +175,13 @@ SprayParticleContainer::injectParticles(Real time,
           Real y_vel = jet_vel*std::cos(theta);
           Real z_vel = jet_vel*std::sin(theta)*std::sin(theta2);
 #ifdef USE_SPRAY_SOA
-          AMREX_D_TERM(host_real_attribs[PeleC::pstateVel].push_back(x_vel);,
-                       host_real_attribs[PeleC::pstateVel+1].push_back(y_vel);,
-                       host_real_attribs[PeleC::pstateVel+2].push_back(z_vel););
+          AMREX_D_TERM(host_real_attribs[pstateVel].push_back(x_vel);,
+                       host_real_attribs[pstateVel+1].push_back(y_vel);,
+                       host_real_attribs[pstateVel+2].push_back(z_vel););
 #else
-          AMREX_D_TERM(p.rdata(PeleC::pstateVel) = x_vel;,
-                       p.rdata(PeleC::pstateVel+1) = y_vel;,
-                       p.rdata(PeleC::pstateVel+2) = z_vel;);
+          AMREX_D_TERM(p.rdata(pstateVel) = x_vel;,
+                       p.rdata(pstateVel+1) = y_vel;,
+                       p.rdata(pstateVel+2) = z_vel;);
 #endif
           Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
           // Use a log normal distribution
@@ -186,19 +191,19 @@ SprayParticleContainer::injectParticles(Real time,
                        p.pos(1) = part_y;,
                        p.pos(2) = part_loc[2];);
 #ifdef USE_SPRAY_SOA
-          host_real_attribs[PeleC::pstateT].push_back(part_temp);
-          host_real_attribs[PeleC::pstateDia].push_back(cur_dia);
-          host_real_attribs[PeleC::pstateRho].push_back(part_rho);
-          host_real_attribs[PeleC::pstateY].push_back(1.);
+          host_real_attribs[pstateT].push_back(part_temp);
+          host_real_attribs[pstateDia].push_back(cur_dia);
+          host_real_attribs[pstateRho].push_back(part_rho);
+          host_real_attribs[pstateY].push_back(1.);
           for (int sp = 1; sp != SPRAY_FUEL_NUM; ++sp)
-            host_real_attribs[PeleC::pstateY + sp].push_back(0.);
+            host_real_attribs[pstateY + sp].push_back(0.);
 #else
-          p.rdata(PeleC::pstateT) = part_temp;
-          p.rdata(PeleC::pstateDia) = cur_dia;
-          p.rdata(PeleC::pstateRho) = part_rho;
+          p.rdata(pstateT) = part_temp;
+          p.rdata(pstateDia) = cur_dia;
+          p.rdata(pstateRho) = part_rho;
           for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
-            p.rdata(PeleC::pstateY + sp) = 0.;
-          p.rdata(PeleC::pstateY) = 1.;
+            p.rdata(pstateY + sp) = 0.;
+          p.rdata(pstateY) = 1.;
 #endif
           host_particles.push_back(p);
           Real pmass = Pi_six*part_rho*std::pow(cur_dia, 3);
