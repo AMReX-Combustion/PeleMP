@@ -50,6 +50,11 @@ SprayParticleContainer::InitSprayParticles()
   Real part_rho = ProbParm::partRho;
   Real part_dia = ProbParm::partDia;
   Real T_ref = ProbParm::T0;
+  const int pstateVel = m_sprayIndx[SprayComps::pstateVel];
+  const int pstateDia = m_sprayIndx[SprayComps::pstateDia];
+  const int pstateT = m_sprayIndx[SprayComps::pstateT];
+  const int pstateRho = m_sprayIndx[SprayComps::pstateRho];
+  const int pstateY = m_sprayIndx[SprayComps::pstateY];
   const IntVect num_part = ProbParm::partNum;
   const auto dx = Geom(lev).CellSizeArray();
   const auto plo = Geom(lev).ProbLoArray();
@@ -81,22 +86,22 @@ SprayParticleContainer::InitSprayParticles()
     std::pair<int, int> ind(pld.m_grid, pld.m_tile);
 #ifdef USE_SPRAY_SOA
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      host_real_attribs[ind][m_sprayIndx[SprayComps::pstateVel+dir]].push_back(0.);
-    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateT]].push_back(T_ref);
-    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateDia]].push_back(part_dia);
-    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateRho]].push_back(part_rho);
-    host_real_attribs[ind][m_sprayIndx[SprayComps::pstateY]].push_back(1.);
+      host_real_attribs[ind][pstateVel+dir].push_back(0.);
+    host_real_attribs[ind][pstateT].push_back(T_ref);
+    host_real_attribs[ind][pstateDia].push_back(part_dia);
+    host_real_attribs[ind][pstateRho].push_back(part_rho);
+    host_real_attribs[ind][pstateY].push_back(1.);
     for (int spf = 1; spf != SPRAY_FUEL_NUM; ++spf)
-      host_real_attribs[ind][m_sprayIndx[SprayComps::pstateY+spf]].push_back(0.);
+      host_real_attribs[ind][pstateY+spf].push_back(0.);
 #else
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      p.rdata(m_sprayIndx[SprayComps::pstateVel+dir]) = 0.;
-    p.rdata(m_sprayIndx[SprayComps::pstateT]) = T_ref; // temperature
-    p.rdata(m_sprayIndx[SprayComps::pstateDia]) = part_dia; // diameter
-    p.rdata(m_sprayIndx[SprayComps::pstateRho]) = part_rho; // liquid fuel density
+      p.rdata(pstateVel+dir) = 0.;
+    p.rdata(pstateT) = T_ref; // temperature
+    p.rdata(pstateDia) = part_dia; // diameter
+    p.rdata(pstateRho) = part_rho; // liquid fuel density
     for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
-      p.rdata(m_sprayIndx[SprayComps::pstateY + sp]) = 0.;
-    p.rdata(m_sprayIndx[SprayComps::pstateY]) = 1.; // Only use the first fuel species
+      p.rdata(pstateY+sp) = 0.;
+    p.rdata(pstateY) = 1.; // Only use the first fuel species
 #endif
     host_particles[ind].push_back(p);
   }

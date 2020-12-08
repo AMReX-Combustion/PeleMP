@@ -92,6 +92,6 @@ prob.ref_T = 500.
 prob.part_temp = 300.
 prob.part_dia = 0.001
 prob.part_rho = 0.640
-prob.part_vel = 1400000. 0. 0.
+prob.part_vel = 1400000. 1400000. 0.
 amrex.abort_on_out_of_gpu_memory = 1
 fabarray.mfiter_tile_size = 1024 1024 1024
