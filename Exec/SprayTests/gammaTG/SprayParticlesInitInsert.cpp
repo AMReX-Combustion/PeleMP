@@ -50,11 +50,11 @@ SprayParticleContainer::InitSprayParticles()
   Real part_rho = ProbParm::partRho;
   Real part_dia = ProbParm::partDia;
   Real T_ref = ProbParm::T0;
-  const int pstateVel = m_sprayIndx[SprayComps::pstateVel];
-  const int pstateDia = m_sprayIndx[SprayComps::pstateDia];
-  const int pstateT = m_sprayIndx[SprayComps::pstateT];
-  const int pstateRho = m_sprayIndx[SprayComps::pstateRho];
-  const int pstateY = m_sprayIndx[SprayComps::pstateY];
+  const int pstateVel = m_sprayIndx.pstateVel;
+  const int pstateDia = m_sprayIndx.pstateDia;
+  const int pstateT = m_sprayIndx.pstateT;
+  const int pstateRho = m_sprayIndx.pstateRho;
+  const int pstateY = m_sprayIndx.pstateY;
   const IntVect num_part = ProbParm::partNum;
   const auto dx = Geom(lev).CellSizeArray();
   const auto plo = Geom(lev).ProbLoArray();

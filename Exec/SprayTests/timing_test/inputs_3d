@@ -9,8 +9,8 @@ geometry.prob_lo     = 0. 0. 0.
 geometry.prob_hi     = 100. 100. 100.
 
 # use with single level
-amr.n_cell = 256 256 256
-prob.num_particles = (100, 100, 100)
+amr.n_cell = 128 128 128
+prob.num_particles = (300, 300, 300)
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<

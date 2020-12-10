@@ -38,11 +38,11 @@ SprayParticleContainer::injectParticles(Real time,
   if (lev != 0) return false;
   if (time < ProbParm::jet_start_time
       || time > ProbParm::jet_end_time) return false;
-  const int pstateVel = m_sprayIndx[SprayComps::pstateVel];
-  const int pstateT = m_sprayIndx[SprayComps::pstateT];
-  const int pstateRho = m_sprayIndx[SprayComps::pstateRho];
-  const int pstateDia = m_sprayIndx[SprayComps::pstateDia];
-  const int pstateY = m_sprayIndx[SprayComps::pstateY];
+  const int pstateVel = m_sprayIndx.pstateVel;
+  const int pstateT = m_sprayIndx.pstateT;
+  const int pstateRho = m_sprayIndx.pstateRho;
+  const int pstateDia = m_sprayIndx.pstateDia;
+  const int pstateY = m_sprayIndx.pstateY;
   // Number of particles per parcel
   const Real num_ppp = m_parcelSize;
   const Geometry& geom = this->m_gdb->Geom(lev);

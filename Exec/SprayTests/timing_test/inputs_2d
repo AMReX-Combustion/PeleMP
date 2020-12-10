@@ -9,7 +9,7 @@ geometry.prob_lo     = 0. 0. 0.
 geometry.prob_hi     = 100. 100. 100.
 
 # use with single level
-amr.n_cell = 256 256 256
+amr.n_cell = 128 128 128
 prob.num_particles = (300, 300, 300)
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -44,9 +44,9 @@ amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.max_grid_size     = 32
 amr.initial_grid_file = two_d_gridfiles/gridfile_32
 amr.blocking_factor   = 32
-# amr.max_grid_size     = 64
-# amr.initial_grid_file = two_d_gridfiles/gridfile_64
-# amr.blocking_factor   = 64
+# amr.max_grid_size     = 128
+# amr.initial_grid_file = two_d_gridfiles/gridfile_128
+# amr.blocking_factor   = 128
 amr.regrid_int        = -1 -1 -1 -1
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
@@ -77,11 +77,10 @@ amr.check_int       = 10000   # number of timesteps between checkpoints
 
 # PLOTFILES
 #amr.plot_files_output = 0
-amr.plot_file       = plt # root name of plotfile
-amr.plot_per        = 1.E-6
+amr.plot_file = plt
 amr.plot_vars = density Temp rho_E xmom ymom rho_N2 rho_O2 rho_NC10H22
 amr.derive_plot_vars = x_velocity y_velocity pressure MachNumber magvel
-amr.file_name_digits = 6
+amr.file_name_digits = 4
 
 # PROBLEM PARAMETERS
 prob.mach = 0.
