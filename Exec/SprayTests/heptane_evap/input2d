@@ -70,16 +70,17 @@ particles.fuel_boil_temp = 371.6 # K
 # particles.fuel_cp = 2.558E7
 particles.fuel_ref_temp = 300.
 particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
-particles.fuel_cp = 2.2483e7 # @ 298 K
+particles.fuel_cp = 2.2483E7 # @ 298 K
 
 # CHECKPOINT FILES
+amr.checkpoint_files_output = 0
 amr.check_file      = chk        # root name of checkpoint file
 amr.check_int       = 5000   # number of timesteps between checkpoints
 #amr.restart         = chk0000100
 
 # PLOTFILES
 amr.plot_file       = plt # root name of plotfile
-amr.plot_int        = 2500 # number of timesteps between plotfiles
+amr.plot_per        = 0.1
 amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC7H16
 amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 7
