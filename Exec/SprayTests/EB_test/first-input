@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 40
+max_step = 10
 stop_time = 0.008
 
 # PROBLEM SIZE & GEOMETRY
@@ -67,7 +67,7 @@ particles.mass_transfer = 1
 particles.heat_transfer = 1
 particles.particle_init_function = 0
 particles.particle_init_file = "initspraydata_3d"
-particles.write_spray_ascii_files = 1
+particles.write_spray_ascii_files = 0
 
 particles.fuel_species = NC10H22
 # properties for decane
@@ -86,7 +86,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt
-amr.plot_int        = 5
+amr.plot_int        = 1
 #amr.plot_per = 1.6E-4
 amr.plot_vars = density Temp rho_E xmom ymom zmom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = Mach x_velocity y_velocity pressure vfrac z_velocity

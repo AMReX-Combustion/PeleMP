@@ -12,7 +12,7 @@ prob.init_vel = 1.
 prob.part_temp = 300.
 prob.part_dia = 0.001
 prob.part_rho = 0.640
-prob.part_vel = 15000. 15000. 0.
+prob.part_vel = 15000. 0. 0.
 
 ns.use_wbar = 0
 
@@ -22,9 +22,9 @@ amr.regrid_int = -1 -1 -1
 amr.initial_grid_file = two_d_gridfiles/gridfile_32
 amr.max_grid_size = 32
 amr.blocking_factor = 32
-#amr.initial_grid_file = two_d_gridfiles/gridfile_128
-# amr.max_grid_size = 256
-# amr.blocking_factor = 256
+# amr.initial_grid_file = two_d_gridfiles/gridfile_128
+# amr.max_grid_size = 128
+# amr.blocking_factor = 128
 
 amrex.fpe_trap_overflow = 1
 amrex.fpe_trap_invalid = 1

@@ -15,8 +15,8 @@ GRIDLOCS="two_d_gridfiles"
 # Number of iterations, should have 6 digits
 NUM_ITER_1=00005
 NUM_ITER=00010
-INPUT_FILE=closed-input
-#INPUT_FILE=open-input
+#INPUT_FILE=closed-input
+INPUT_FILE=open-input
 
 for gsi in "${!gridsizes[@]}"; do
     gs=${gridsizes[$gsi]}

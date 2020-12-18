@@ -12,7 +12,7 @@ prob.init_vel = 1.
 prob.part_temp = 300.
 prob.part_dia = 0.001
 prob.part_rho = 0.640
-prob.part_vel = 15000. 0. 0.
+prob.part_vel = 15000. 15000. 0.
 
 ns.use_wbar = 0
 
@@ -23,8 +23,8 @@ amr.initial_grid_file = two_d_gridfiles/gridfile_32
 amr.max_grid_size = 32
 amr.blocking_factor = 32
 #amr.initial_grid_file = two_d_gridfiles/gridfile_128
-# amr.max_grid_size = 256
-# amr.blocking_factor = 256
+# amr.max_grid_size = 128
+# amr.blocking_factor = 128
 
 amrex.fpe_trap_overflow = 1
 amrex.fpe_trap_invalid = 1
@@ -65,7 +65,7 @@ ns.visc_abs_tol    = 1.0e-12  # tolerence for viscous solves
 ns.cfl            = 0.7       # cfl number for hyperbolic system
 ns.init_shrink    = 0.5       # scale back initial timestep
 ns.change_max     = 1.1       # scale back initial timestep
-ns.init_iter      = 1        # number of init iters to def pressure
+ns.init_iter      = 5        # number of init iters to def pressure
 ns.gravity        = 0        # body force  (gravity in MKS units)
 ns.sum_interval   = 1        # timesteps between computing mass
 ns.do_reflux      = 1        # 1 => do refluxing
