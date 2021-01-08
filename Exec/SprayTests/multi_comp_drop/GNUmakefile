@@ -29,12 +29,12 @@ USE_REACT = FALSE
 USE_EB = FALSE
 Eos_dir := Fuego
 Reactions_dir := Fuego
-Chemistry_Model := heptane_3sp
+Chemistry_Model := multi_dechep
 Transport_dir := Simple
 
 # PeleC-MP
 USE_PARTICLES = TRUE
-SPRAY_FUEL_NUM = 1
+SPRAY_FUEL_NUM = 2
 
 # GNU Make
 Bpack := ./Make.package

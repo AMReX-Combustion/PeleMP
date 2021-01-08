@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10
+max_step = 100
 stop_time = 0.008
 
 # PROBLEM SIZE & GEOMETRY
@@ -69,14 +69,17 @@ particles.particle_init_function = 0
 particles.particle_init_file = "initspraydata_3d"
 particles.write_spray_ascii_files = 0
 
-particles.fuel_species = NC10H22
-# properties for decane
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
-# If we want the reference point to be same as the boiling temperature
-particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E9
-particles.fuel_cp = 2.1921E7 # Cp at 298 K
+particles.parcel_size = 1.
+
+particles.fuel_species = NC7H16
+# properties for heptane
+particles.fuel_crit_temp = 540. # K
+particles.fuel_boil_temp = 371.6 # K
+particles.fuel_ref_temp = 300.
+particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
+particles.fuel_cp = 2.2483E7 # @ 298 K
+particles.fuel_rho = 0.693
+particles.fuel_mu = 0.00233
 particles.fuel_sigma = 22.
 
 # CHECKPOINT FILES
@@ -87,7 +90,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt
-amr.plot_int        = 1
+amr.plot_int        = 10
 #amr.plot_per = 1.6E-4
 amr.plot_vars = density Temp rho_E xmom ymom zmom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = Mach x_velocity y_velocity pressure vfrac z_velocity
@@ -97,3 +100,13 @@ amr.file_name_digits = 6
 prob.ref_T = 1500.
 prob.ref_p = 1.01325E7
 prob.init_v = 0.
+
+prob.part_temp = 363.
+prob.jet_dia = 9.E-3
+prob.spray_angle_deg = 20.
+prob.part_mean_dia = 4.5E-4
+prob.part_stdev_dia = 0.
+prob.jet_vel = 60000.
+prob.jet_start_time = 10000.
+prob.jet_end_time = -100.
+prob.mass_flow_rate = 1.55

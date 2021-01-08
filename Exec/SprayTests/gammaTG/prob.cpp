@@ -13,7 +13,6 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real rho0 = 0.0;
 AMREX_GPU_DEVICE_MANAGED amrex::Real v0 = 0.0;
 AMREX_GPU_DEVICE_MANAGED amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
 AMREX_GPU_DEVICE_MANAGED amrex::Real rhoRatio = 1000.;
-AMREX_GPU_DEVICE_MANAGED amrex::Real partRho = 1.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real partDia = 1.E-3;
 } // namespace ProbParm
 
@@ -63,12 +62,16 @@ amrex_probinit(
 
   const amrex::Real St_num = ProbParm::Stmod/(8.*M_PI);
   amrex::Real refU = ProbParm::v0;
-  ProbParm::partRho = ProbParm::rho0*ProbParm::rhoRatio;
+  amrex::Real partRho;
+  amrex::ParmParse ppp("particles");
+  pp.get("fuel_rho", partRho);
   amrex::Real refRho = ProbParm::rho0;
+  if (std::abs(ProbParm::rhoRatio - partRho/refRho) > 10.)
+    amrex::Abort("Droplet density does not match rho ratio");
   // Time scale for Eulerian phase
   amrex::Real tau_g = refL/refU;
   amrex::Real tau_d = St_num*tau_g;
-  amrex::Real dia = std::sqrt(18.*mu*tau_d/ProbParm::partRho);
+  amrex::Real dia = std::sqrt(18.*mu*tau_d/partRho);
   amrex::Real Re_d = dia*refU*ProbParm::rho0/mu;
   amrex::Real error = 1000.;
   const amrex::Real tol = 1.E-6;
@@ -80,7 +83,7 @@ amrex_probinit(
     Re_d = dia*refU*ProbParm::rho0/mu;
     amrex::Real C_D = 24./Re_d;
     if (Re_d > 1.) C_D *= (1. + std::pow(Re_d, 2./3.)/6.);
-    dia = 0.75*refRho*C_D*refU*tau_d/ProbParm::partRho;
+    dia = 0.75*refRho*C_D*refU*tau_d/partRho;
     error = std::abs(oldDia - dia)/dia;
     k++;
     if (k > maxIter) {
@@ -95,8 +98,6 @@ amrex_probinit(
     for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
       amrex::Print(ofs) << ", " << ProbParm::partNum[dir];
     amrex::Print(ofs) << std::endl;
-    amrex::Print(ofs) << "particle mass: " << 6./M_PI*ProbParm::partRho*std::pow(ProbParm::partDia, 3) << std::endl;
-    amrex::Print(ofs) << "rho_d/rho_f: " << ProbParm::rhoRatio << std::endl;
     amrex::Print(ofs) << "rho0: " << ProbParm::rho0 << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;
     amrex::Print(ofs) << "U: " << ProbParm::v0 << std::endl;
@@ -104,7 +105,6 @@ amrex_probinit(
     amrex::Print(ofs) << "Re: " << ProbParm::reynolds << std::endl;
     amrex::Print(ofs) << "Stokes number: " << ProbParm::Stmod << "*Stc " << std::endl;
     amrex::Print(ofs) << "particle diameter: " << ProbParm::partDia << std::endl;
-    amrex::Print(ofs) << "particle density: " << ProbParm::partRho << std::endl;
     amrex::Print(ofs) << "tau_d: " << tau_d << std::endl;
     amrex::Print(ofs) << "Re_d: " << Re_d << std::endl;
     amrex::Print(ofs) << "final time (72 tau_g): " << 72.*tau_g << std::endl;

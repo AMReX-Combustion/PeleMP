@@ -29,7 +29,7 @@ USE_REACT = FALSE
 USE_EB = TRUE
 Eos_dir := Fuego
 Reactions_dir := Fuego
-Chemistry_Model := decane_3sp
+Chemistry_Model := heptane_3sp
 Transport_dir := Simple
 
 # PeleC-MP

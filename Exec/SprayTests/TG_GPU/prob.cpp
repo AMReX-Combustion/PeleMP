@@ -13,7 +13,6 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2 = 0.233;
 AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2 = 0.767;
 AMREX_GPU_DEVICE_MANAGED amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
 AMREX_GPU_DEVICE_MANAGED amrex::Real partTemp = 300.;
-AMREX_GPU_DEVICE_MANAGED amrex::Real partRho = 1.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real partDia = 1.E-3;
 } // namespace ProbParm
 
@@ -40,7 +39,6 @@ amrex_probinit(
   pp.query("init_O2", ProbParm::Y_O2);
   pp.query("init_N2", ProbParm::Y_N2);
   pp.query("num_particles", ProbParm::partNum);
-  pp.get("part_rho", ProbParm::partRho);
   pp.get("part_dia", ProbParm::partDia);
   pp.get("part_temp", ProbParm::partTemp);
 
@@ -85,7 +83,6 @@ amrex_probinit(
     amrex::Print(ofs) << "U: " << ProbParm::v0 << std::endl;
     amrex::Print(ofs) << "Re: " << ProbParm::reynolds << std::endl;
     amrex::Print(ofs) << "particle diameter: " << ProbParm::partDia << std::endl;
-    amrex::Print(ofs) << "particle density: " << ProbParm::partRho << std::endl;
     ofs.close();
   }
 }

@@ -18,7 +18,6 @@ extern AMREX_GPU_DEVICE_MANAGED amrex::Real rho0;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real v0;
 extern AMREX_GPU_DEVICE_MANAGED amrex::IntVect partNum;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real rhoRatio;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partRho;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real partDia;
 } // namespace ProbParm
 

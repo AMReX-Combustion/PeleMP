@@ -20,7 +20,6 @@ extern amrex::Gpu::ManagedVector<amrex::Real>* inject_vel;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_time;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_mass;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_vel;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_rho;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_temp;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real mass_flow_rate;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2;

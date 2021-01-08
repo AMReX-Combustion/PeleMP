@@ -65,13 +65,11 @@ SprayParticleContainer::InitSprayParticles()
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
   const int IOProc = ParallelDescriptor::IOProcessorNumber();
-  Real part_rho = ProbParm::partRho;
   Real part_dia = ProbParm::partDia;
   Real T_ref = ProbParm::partTemp;
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateT = m_sprayIndx.pstateT;
-  const int pstateRho = m_sprayIndx.pstateRho;
   const int pstateY = m_sprayIndx.pstateY;
   const IntVect num_part = ProbParm::partNum;
   const auto dx = Geom(lev).CellSizeArray();
@@ -111,7 +109,6 @@ SprayParticleContainer::InitSprayParticles()
       host_real_attribs[ind][pstateVel+dir].push_back(ProbParm::partVel[dir]);
     host_real_attribs[ind][pstateT].push_back(T_ref);
     host_real_attribs[ind][pstateDia].push_back(part_dia);
-    host_real_attribs[ind][pstateRho].push_back(part_rho);
     host_real_attribs[ind][pstateY].push_back(1.);
     for (int spf = 1; spf != SPRAY_FUEL_NUM; ++spf)
       host_real_attribs[ind][pstateY+spf].push_back(0.);
@@ -120,7 +117,6 @@ SprayParticleContainer::InitSprayParticles()
       p.rdata(pstateVel+dir) = ProbParm::partVel[dir];
     p.rdata(pstateT) = T_ref; // temperature
     p.rdata(pstateDia) = part_dia; // diameter
-    p.rdata(pstateRho) = part_rho; // liquid fuel density
     for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
       p.rdata(pstateY+sp) = 0.;
     p.rdata(pstateY) = 1.; // Only use the first fuel species

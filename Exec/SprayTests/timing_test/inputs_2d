@@ -68,6 +68,7 @@ particles.fuel_boil_temp = 447.27 # K
 particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E9
 particles.fuel_cp = 2.1921E7 # Cp at 298 K
+particles.fuel_rho = 0.640
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
@@ -90,7 +91,6 @@ prob.ref_T = 500.
 # and not a file
 prob.part_temp = 300.
 prob.part_dia = 0.001
-prob.part_rho = 0.640
 prob.part_vel = 1400000. 1400000. 0.
 amrex.abort_on_out_of_gpu_memory = 1
 fabarray.mfiter_tile_size = 1024 1024 1024

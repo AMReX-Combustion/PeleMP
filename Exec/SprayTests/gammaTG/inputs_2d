@@ -68,6 +68,7 @@ particles.fuel_boil_temp = 371.6 # K
 particles.fuel_ref_temp = 300.
 particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
 particles.fuel_cp = 2.2483e7 # @ 298 K
+particles.fuel_rho = 0.640
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0

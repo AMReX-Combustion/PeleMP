@@ -11,7 +11,6 @@ prob.ref_T = 500.
 prob.init_vel = 1.
 prob.part_temp = 300.
 prob.part_dia = 0.001
-prob.part_rho = 0.640
 prob.part_vel = 15000. 0. 0.
 
 ns.use_wbar = 0
@@ -185,3 +184,4 @@ particles.fuel_boil_temp = 447.27 # K
 particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E9
 particles.fuel_cp = 2.1921E7 # Cp at 298 K
+particles.fuel_rho = 0.640

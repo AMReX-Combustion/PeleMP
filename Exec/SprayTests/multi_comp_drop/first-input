@@ -1,14 +1,15 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 5000000
-stop_time = 700
+max_step = 10000000
+stop_time = 524.
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0. 0.
-geometry.prob_hi     =  50. 50.
+geometry.prob_hi     =  100. 100.
 # use with single level
-amr.n_cell           = 32 32
+amr.n_cell = 16 16
+#amr.n_cell           = 32 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -33,8 +34,7 @@ pelec.cfl            = 0.8     # cfl number for hyperbolic system
 pelec.init_shrink    = 0.3     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-#pelec.fixed_dt       = 1.e-5  
-
+#pelec.fixed_dt       = 1.e-5
 
 # DIAGNOSTICS & VERBOSITY
 pelec.sum_interval   = -1      # timesteps between computing mass
@@ -43,7 +43,7 @@ amr.v                = 1       # verbosity in Amr.cpp
 #amr.data_log         = datlog
 #amr.grid_log        = grdlog  # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -59,18 +59,18 @@ particles.heat_transfer = 1
 particles.particle_init_function = 0
 particles.particle_init_file = "initsprayfile"
 
-particles.fuel_species = NC7H16
+particles.fuel_species = NC7H16 NC10H22
 # properties for decane
-particles.fuel_crit_temp = 540. # K
-particles.fuel_boil_temp = 371.6 # K
+particles.fuel_crit_temp = 540. 617.8
+particles.fuel_boil_temp = 371.6 447.27
 # If we want the reference point to be same as the boiling temperature
 # particles.fuel_ref_temp = 371.6
 # particles.fuel_latent = 3.27336E9
 # particles.fuel_cp = 2.558E7
-particles.fuel_ref_temp = 300.
-particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
-particles.fuel_cp = 2.2483E7 # @ 298 K
-particles.fuel_rho = 0.6814
+particles.fuel_ref_temp = 298.15
+particles.fuel_latent = 3.63E9 3.5899E9
+particles.fuel_cp = 2.2483E7 2.1921E7
+particles.fuel_rho = 0.6814 0.640
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
@@ -80,7 +80,7 @@ amr.check_int       = 5000   # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt # root name of plotfile
-amr.plot_per        = 0.1
+amr.plot_per        = 5.
 amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC7H16
 amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 7

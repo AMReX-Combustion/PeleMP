@@ -17,7 +17,6 @@ amrex::Gpu::ManagedVector<amrex::Real>* inject_vel = nullptr;
 AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_time = nullptr;
 AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_mass = nullptr;
 AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_vel = nullptr;
-AMREX_GPU_DEVICE_MANAGED amrex::Real part_rho = 0.693;
 AMREX_GPU_DEVICE_MANAGED amrex::Real part_temp = 300.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2 = 0.233;
 AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2 = 0.767;
@@ -101,7 +100,6 @@ amrex_probinit(
   pp.get("jet_dia", ProbParm::jet_dia);
   pp.get("part_mean_dia", ProbParm::part_mean_dia);
   pp.query("part_stdev_dia", ProbParm::part_stdev_dia);
-  pp.get("part_rho", ProbParm::part_rho);
   pp.get("part_temp", ProbParm::part_temp);
   pp.query("mass_flow_rate", ProbParm::mass_flow_rate);
   pp.get("spray_angle_deg", ProbParm::spray_angle);

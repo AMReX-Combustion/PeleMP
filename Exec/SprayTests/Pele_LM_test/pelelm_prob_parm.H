@@ -16,7 +16,6 @@ struct ProbParm
   amrex::Real vel = 0.;
   amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
   amrex::Real partTemp = 300.;
-  amrex::Real partRho = 1.;
   amrex::Real partDia = 1.E-3;
   amrex::RealVect partVel = amrex::RealVect(AMREX_D_DECL(0., 0., 0.));
 };

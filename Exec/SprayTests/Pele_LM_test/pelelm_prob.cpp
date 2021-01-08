@@ -21,7 +21,6 @@ extern "C" {
         pp.query<amrex::Real>("part_vel", pvel);
         for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
           PeleLM::prob_parm->partVel[dir] = pvel[dir];
-        pp.get("part_rho", PeleLM::prob_parm->partRho);
         pp.get("part_dia", PeleLM::prob_parm->partDia);
         pp.get("part_temp", PeleLM::prob_parm->partTemp);
     }
