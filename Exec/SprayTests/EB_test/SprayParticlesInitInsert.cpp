@@ -49,7 +49,8 @@ SprayParticleContainer::injectParticles(Real time,
   Real jet_area = jet_dia;
 #endif
   Real part_temp = ProbParm::part_temp;
-  Real part_rho = ProbParm::part_rho;
+  SprayData fdat = m_fuelData.getSprayData();
+  const Real part_rho = fdat.rho(0);
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
   if (jet_vel*dt/dx[0] > 0.5) {
