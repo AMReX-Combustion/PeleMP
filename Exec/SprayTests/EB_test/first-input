@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 100
+max_step = 25
 stop_time = 0.008
 
 # PROBLEM SIZE & GEOMETRY
@@ -81,6 +81,7 @@ particles.fuel_cp = 2.2483E7 # @ 298 K
 particles.fuel_rho = 0.693
 particles.fuel_mu = 0.00233
 particles.fuel_sigma = 22.
+particles.fuel_theta = 140.
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0

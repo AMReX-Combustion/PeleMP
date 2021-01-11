@@ -69,6 +69,7 @@ particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E9
 particles.fuel_cp = 2.1921E7 # Cp at 298 K
 particles.fuel_rho = 0.640
+particles.use_splash_model = false
 
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
