@@ -6,7 +6,7 @@ stop_time = 524.
 geometry.is_periodic = 0 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0. 0.
-geometry.prob_hi     =  100. 100.
+geometry.prob_hi     =  200. 200.
 # use with single level
 amr.n_cell = 16 16
 #amr.n_cell           = 32 32
@@ -30,7 +30,7 @@ pelec.do_grav = 0
 pelec.allow_negative_energy = 1
 
 # TIME STEP CONTROL
-pelec.cfl            = 0.8     # cfl number for hyperbolic system
+pelec.cfl            = 1.     # cfl number for hyperbolic system
 pelec.init_shrink    = 0.3     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
@@ -59,18 +59,15 @@ particles.heat_transfer = 1
 particles.particle_init_function = 0
 particles.particle_init_file = "initsprayfile"
 
+# Heptane and decane
 particles.fuel_species = NC7H16 NC10H22
 # properties for decane
 particles.fuel_crit_temp = 540. 617.8
 particles.fuel_boil_temp = 371.6 447.27
-# If we want the reference point to be same as the boiling temperature
-# particles.fuel_ref_temp = 371.6
-# particles.fuel_latent = 3.27336E9
-# particles.fuel_cp = 2.558E7
-particles.fuel_ref_temp = 298.15
+particles.fuel_ref_temp = 300.
 particles.fuel_latent = 3.63E9 3.5899E9
 particles.fuel_cp = 2.2483E7 2.1921E7
-particles.fuel_rho = 0.6814 0.640
+particles.fuel_rho = 0.678 0.725
 particles.use_splash_model = false
 
 # CHECKPOINT FILES
