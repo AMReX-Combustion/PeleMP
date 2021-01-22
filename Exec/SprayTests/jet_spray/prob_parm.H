@@ -28,6 +28,7 @@ extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_start_time;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_end_time;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real spray_angle;
 extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_cent[AMREX_SPACEDIM];
+extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_jet[SPRAY_FUEL_NUM];
 
 extern std::string input_file;
 } // namespace ProbParm

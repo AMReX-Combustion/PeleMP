@@ -17,6 +17,7 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real jet_start_time = 0.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_end_time = 10000.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real spray_angle = 20.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_cent[AMREX_SPACEDIM] = {0.0};
+AMREX_GPU_DEVICE_MANAGED amrex::Real Y_jet[SPRAY_FUEL_NUM] = {0.0};
 } // namespace ProbParm
 
 extern "C" {

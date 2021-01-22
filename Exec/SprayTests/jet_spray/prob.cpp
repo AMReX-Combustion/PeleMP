@@ -24,6 +24,7 @@ AMREX_GPU_DEVICE_MANAGED amrex::Real jet_start_time = 0.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_end_time = 10000.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real spray_angle = 20.;
 AMREX_GPU_DEVICE_MANAGED amrex::Real jet_cent[AMREX_SPACEDIM] = {0.0};
+AMREX_GPU_DEVICE_MANAGED amrex::Real Y_jet[SPRAY_FUEL_NUM] = {0.0};
 
 std::string input_file = "";
 } // namespace ProbParm
@@ -103,6 +104,16 @@ amrex_probinit(
   pp.get("part_temp", ProbParm::part_temp);
   pp.query("mass_flow_rate", ProbParm::mass_flow_rate);
   pp.get("spray_angle_deg", ProbParm::spray_angle);
+  std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
+  in_Y_jet[0] = 1.;
+  pp.queryarr("jet_mass_fracs", in_Y_jet);
+  amrex::Real sumY = 0.;
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    Y_jet[spf] = in_Y_jet[spf];
+    sumY += Y_jet[spf];
+  }
+  if (std::abs(sumY - 1.) > 1.E-8)
+    amrex::Abort("'jet_mass_fracs' must sum to 1");
   // Convert to radians
   ProbParm::spray_angle *= M_PI/180.;
 
