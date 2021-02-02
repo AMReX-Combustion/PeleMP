@@ -3,34 +3,36 @@
 
 #include <AMReX_REAL.H>
 #include <AMReX_GpuQualifiers.H>
+#include <AMReX_GpuMemory.H>
 
-namespace ProbParm {
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real p0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real T0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real rho0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real v0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_vel;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_dia;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_mean_dia;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_stdev_dia;
-extern AMREX_GPU_DEVICE_MANAGED unsigned int inject_N;
-extern amrex::Gpu::ManagedVector<amrex::Real>* inject_time;
-extern amrex::Gpu::ManagedVector<amrex::Real>* inject_mass;
-extern amrex::Gpu::ManagedVector<amrex::Real>* inject_vel;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_time;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_mass;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real* d_inject_vel;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real part_temp;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real mass_flow_rate;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_start_time;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_end_time;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real spray_angle;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real jet_cent[AMREX_SPACEDIM];
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_jet[SPRAY_FUEL_NUM];
+struct ProbParmDevice : amrex::Gpu::Managed
+{
+  amrex::Real p0 = 1.013e6; // [erg cm^-3]
+  amrex::Real T0 = 300.0;
+  amrex::Real rho0 = 0.0;
+  amrex::Real v0 = 0.;
+  amrex::Real Y_O2 = 0.233;
+  amrex::Real Y_N2 = 0.767;
+};
 
-extern std::string input_file;
-} // namespace ProbParm
+struct ProbParmHost : amrex::Gpu::Managed
+{
+  amrex::Real jet_vel = 5000.;
+  amrex::Real jet_dia = 1.E-2;
+  amrex::Real part_mean_dia = 1.E-3;
+  amrex::Real part_stdev_dia = 0.;
+  amrex::Real mass_flow_rate = 2.3;
+  amrex::Real part_temp = 300.;
+  amrex::Real jet_start_time = 0.;
+  amrex::Real jet_end_time = 10000.;
+  amrex::Real spray_angle = 20.;
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> jet_cent = {{0.0}};
+  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};
+  unsigned int inject_N = 0;
+  amrex::Vector<amrex::Real> inject_time;
+  amrex::Vector<amrex::Real> inject_mass;
+  amrex::Vector<amrex::Real> inject_vel;
+  std::string input_file = "";
+};
 
 #endif

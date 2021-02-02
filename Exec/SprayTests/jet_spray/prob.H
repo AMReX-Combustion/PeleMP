@@ -23,7 +23,8 @@ pc_initdata(
   int j,
   int k,
   amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
 
   // Geometry
@@ -36,13 +37,13 @@ pc_initdata(
 
   // TG functions
   amrex::Real u[3] = {0.0};
-  u[1] = ProbParm::v0;
-  const amrex::Real p = ProbParm::p0;
+  u[1] = prob_parm.v0;
+  const amrex::Real p = prob_parm.p0;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  massfrac[O2_ID] = ProbParm::Y_O2;
-  massfrac[N2_ID] = ProbParm::Y_N2;
-  amrex::Real Tval = ProbParm::T0;
+  massfrac[O2_ID] = prob_parm.Y_O2;
+  massfrac[N2_ID] = prob_parm.Y_N2;
+  amrex::Real Tval = prob_parm.T0;
   EOS::PYT2RE(p, massfrac, Tval, rho, eint);
 
   // Set the state
@@ -68,7 +69,8 @@ bcnormal(
   const int idir,
   const int sgn,
   const amrex::Real time,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
   // This sets the values at the boundary equal to the
   // adjacent interior values
@@ -77,9 +79,9 @@ bcnormal(
   }
 //   if (idir == 1 && sgn == -1) {
 //     amrex::Real rad =
-//       AMREX_D_TERM(std::pow(x[0] - ProbParm::jet_cent[0], 2),,
-//                    + std::pow(x[2] - ProbParm::jet_cent[2], 2))
-//       - ProbParm::jet_dia*ProbParm::jet_dia/4.;
+//       AMREX_D_TERM(std::pow(x[0] - prob_parm.jet_cent[0], 2),,
+//                    + std::pow(x[2] - prob_parm.jet_cent[2], 2))
+//       - prob_parm.jet_dia*prob_parm.jet_dia/4.;
 //     if (rad <= 0.) s_ext[UMY] = vel*s_ext[URHO];
 //   }
 }
@@ -119,21 +121,21 @@ struct MyProbDeriveStruct
   }
 
   static void pc_varname(
-    const amrex::Box& bx,
-    amrex::FArrayBox& derfab,
-    int dcomp,
+    const amrex::Box& /*bx*/,
+    amrex::FArrayBox& /*derfab*/,
+    int /*dcomp*/,
     int /*ncomp*/,
-    const amrex::FArrayBox& datfab,
-    const amrex::Geometry& geomdata,
+    const amrex::FArrayBox& /*datfab*/,
+    const amrex::Geometry& /*geomdata*/,
     amrex::Real /*time*/,
     const int* /*bcrec*/,
-    int level)
+    int /*level*/)
   {
-    auto const dat = datfab.array();
-    auto arr = derfab.array();
-    amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-      // do something with arr
-    });
+//     auto const dat = datfab.array();
+//     auto arr = derfab.array();
+//     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+//       // do something with arr
+//     });
   }
 };
 

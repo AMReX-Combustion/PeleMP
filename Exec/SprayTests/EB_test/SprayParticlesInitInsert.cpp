@@ -11,7 +11,8 @@ SprayParticleContainer::insertParticles(Real time,
                                         Real dt,
                                         int  nstep,
                                         int  lev,
-                                        int  finest_level)
+                                        int  finest_level,
+                                        ProbParmHost const& prob_parm)
 {
   return false;
 }
@@ -21,11 +22,12 @@ SprayParticleContainer::injectParticles(Real time,
                                         Real dt,
                                         int  nstep,
                                         int  lev,
-                                        int  finest_level)
+                                        int  finest_level,
+                                        ProbParmHost const& prob_parm)
 {
   if (lev != 0) return false;
-  if (time < ProbParm::jet_start_time
-      || time > ProbParm::jet_end_time) return false;
+  if (time < prob_parm.jet_start_time
+      || time > prob_parm.jet_end_time) return false;
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateDia = m_sprayIndx.pstateDia;
@@ -39,20 +41,20 @@ SprayParticleContainer::injectParticles(Real time,
   RealVect dom_len(AMREX_D_DECL(geom.ProbLength(0),
                                 geom.ProbLength(1),
                                 geom.ProbLength(2)));
-  Real mass_flow_rate = ProbParm::mass_flow_rate;
-  Real jet_vel = ProbParm::jet_vel;
-  Real jet_dia = ProbParm::jet_dia;
+  Real mass_flow_rate = prob_parm.mass_flow_rate;
+  Real jet_vel = prob_parm.jet_vel;
+  Real jet_dia = prob_parm.jet_dia;
   Real jr2 = jet_dia*jet_dia/4.; // Jet radius squared
 #if AMREX_SPACEDIM == 3
   Real jet_area = M_PI*jr2;
 #else
   Real jet_area = jet_dia;
 #endif
-  Real part_temp = ProbParm::part_temp;
+  Real part_temp = prob_parm.part_temp;
   SprayData fdat = m_fuelData.getSprayData();
   Real part_rho = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
-    part_rho += ProbParm::Y_jet[spf]*fdat.rho[spf];
+    part_rho += prob_parm.Y_jet[spf]*fdat.rho[spf];
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
   if (jet_vel*dt/dx[0] > 0.5) {
@@ -65,15 +67,15 @@ SprayParticleContainer::injectParticles(Real time,
     m_injectVel = jet_vel;
     jet_vel = max_vel;
   }
-  Real part_dia = ProbParm::part_mean_dia;
-  Real part_stdev = ProbParm::part_stdev_dia;
+  Real part_dia = prob_parm.part_mean_dia;
+  Real part_stdev = prob_parm.part_stdev_dia;
   Real stdsq = part_stdev*part_stdev;
   Real meansq = part_dia*part_dia;
   Real log_mean = 2.*std::log(part_dia) - 0.5*std::log(stdsq + meansq);
   Real log_stdev = std::sqrt(amrex::max(-2.*std::log(part_dia)
                                         + std::log(stdsq + meansq), 0.));
   Real Pi_six = M_PI/6.;
-  Real spray_angle = ProbParm::spray_angle;
+  Real spray_angle = prob_parm.spray_angle;
   Real lo_angle = -0.5*spray_angle;
   for (MFIter mfi = MakeMFIter(lev); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
@@ -87,10 +89,10 @@ SprayParticleContainer::injectParticles(Real time,
 #endif
     if (xlo[1] == plo[1]) {
       // Box locations relative to jet center
-      const RealVect xloJ(AMREX_D_DECL(xlo[0] - ProbParm::jet_cent[0], plo[1],
-                                       xlo[2] - ProbParm::jet_cent[2]));
-      const RealVect xhiJ(AMREX_D_DECL(xhi[0] - ProbParm::jet_cent[0], plo[1],
-                                       xhi[2] - ProbParm::jet_cent[2]));
+      const RealVect xloJ(AMREX_D_DECL(xlo[0] - prob_parm.jet_cent[0], plo[1],
+                                       xlo[2] - prob_parm.jet_cent[2]));
+      const RealVect xhiJ(AMREX_D_DECL(xhi[0] - prob_parm.jet_cent[0], plo[1],
+                                       xhi[2] - prob_parm.jet_cent[2]));
       Real cur_jet_area = 0.;
       Real testdx = dx[0]/100.;
       Real testdx2 = testdx*testdx;
@@ -117,7 +119,7 @@ SprayParticleContainer::injectParticles(Real time,
         curx += testdx;
       }
       Real zlen = hiz - loz;
-      loz += ProbParm::jet_cent[2];
+      loz += prob_parm.jet_cent[2];
 #else
       while (curx < xhiJ[0]) {
         Real r2 = curx*curx;
@@ -130,15 +132,15 @@ SprayParticleContainer::injectParticles(Real time,
       }
 #endif
       Real xlen = hix - lox;
-      lox += ProbParm::jet_cent[0];
+      lox += prob_parm.jet_cent[0];
       Real jet_perc = cur_jet_area/jet_area;
       Real perc_mass = jet_perc*mass_flow_rate*dt;
       Real total_mass = 0.;
       while (total_mass < perc_mass) {
         RealVect part_loc(AMREX_D_DECL(lox + amrex::Random()*xlen,
                                        plo[1], loz + amrex::Random()*zlen));
-        Real r2 = AMREX_D_TERM(std::pow(part_loc[0] - ProbParm::jet_cent[0], 2),,
-                               + std::pow(part_loc[2] - ProbParm::jet_cent[2], 2));
+        Real r2 = AMREX_D_TERM(std::pow(part_loc[0] - prob_parm.jet_cent[0], 2),,
+                               + std::pow(part_loc[2] - prob_parm.jet_cent[2], 2));
         if (r2 <= jr2) {
           ParticleType p;
           p.id() = ParticleType::NextID();
@@ -172,12 +174,12 @@ SprayParticleContainer::injectParticles(Real time,
           host_real_attribs[pstateT].push_back(part_temp);
           host_real_attribs[pstateDia].push_back(cur_dia);
           for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
-            host_real_attribs[pstateY + sp].push_back(ProbParm::Y_jet[sp]);
+            host_real_attribs[pstateY + sp].push_back(prob_parm.Y_jet[sp]);
 #else
           p.rdata(pstateT) = part_temp;
           p.rdata(pstateDia) = cur_dia;
           for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
-            p.rdata(pstateY + sp) = ProbParm::Y_jet[sp];
+            p.rdata(pstateY + sp) = prob_parm.Y_jet[sp];
 #endif
           host_particles.push_back(p);
           Real pmass = Pi_six*part_rho*std::pow(cur_dia, 3);
@@ -205,7 +207,7 @@ SprayParticleContainer::injectParticles(Real time,
 }
 
 void
-SprayParticleContainer::InitSprayParticles()
+SprayParticleContainer::InitSprayParticles(ProbParmHost const& prob_parm)
 {
   // Start without any particles
   return;

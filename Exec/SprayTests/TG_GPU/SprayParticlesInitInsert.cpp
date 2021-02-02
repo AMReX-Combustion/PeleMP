@@ -25,7 +25,8 @@ SprayParticleContainer::insertParticles(Real time,
                                         Real dt,
                                         int  nstep,
                                         int  lev,
-                                        int  finest_level)
+                                        int  finest_level,
+                                        ProbParmHost const& prob_parm)
 {
   return false;
 }
@@ -35,21 +36,22 @@ SprayParticleContainer::injectParticles(Real time,
                                         Real dt,
                                         int  nstep,
                                         int  lev,
-                                        int  finest_level)
+                                        int  finest_level,
+                                        ProbParmHost const& prob_parm)
 {
   return false;
 }
 
 void
-SprayParticleContainer::InitSprayParticles()
+SprayParticleContainer::InitSprayParticles(ProbParmHost const& prob_parm)
 {
   const int lev = 0;
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
   const int IOProc = ParallelDescriptor::IOProcessorNumber();
-  Real part_dia = ProbParm::partDia;
-  Real T_ref = ProbParm::partTemp;
-  const IntVect num_part = ProbParm::partNum;
+  Real part_dia = prob_parm.partDia;
+  Real T_ref = prob_parm.partTemp;
+  const IntVect num_part = prob_parm.partNum;
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateT = m_sprayIndx.pstateT;

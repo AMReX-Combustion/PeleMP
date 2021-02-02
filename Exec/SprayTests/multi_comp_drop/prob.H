@@ -24,7 +24,8 @@ pc_initdata(
   int j,
   int k,
   amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
 
   // Geometry
@@ -37,13 +38,13 @@ pc_initdata(
 
   // TG functions
   amrex::Real u[3] = {0.0};
-  u[0] = ProbParm::v0;
-  const amrex::Real p = ProbParm::p0;
+  u[0] = prob_parm.v0;
+  const amrex::Real p = prob_parm.p0;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  massfrac[O2_ID] = ProbParm::Y_O2;
-  massfrac[N2_ID] = ProbParm::Y_N2;
-  amrex::Real Tval = ProbParm::T0;
+  massfrac[O2_ID] = prob_parm.Y_O2;
+  massfrac[N2_ID] = prob_parm.Y_N2;
+  amrex::Real Tval = prob_parm.T0;
   EOS::PYT2RE(p, massfrac, Tval, rho, eint);
 
   // Set the state
@@ -63,46 +64,76 @@ AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
 bcnormal(
-  const amrex::Real x[AMREX_SPACEDIM],
-  const amrex::Real s_int[NVAR],
-  amrex::Real s_ext[NVAR],
+  const amrex::Real* x[AMREX_SPACEDIM],
+  const amrex::Real* s_int[NVAR],
+  amrex::Real* s_ext[NVAR],
   const int idir,
   const int sgn,
   const amrex::Real time,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmHost const& prob_parm)
 {
-  // Extrapolate from interior
+  // This sets the values at the boundary equal to the
+  // adjacent interior values
   for (int i = 0; i != NVAR; ++i) {
     s_ext[i] = s_int[i];
   }
-  // Unless we are at the inlet on the right-side
-  if (idir == 0 && sgn == -1) {
-    Real u[3] = {0.0};
-    u[0] = ProbParm::v0;
-    Real rho, eint;
-    Real T = ProbParm::T0;
-    // Extrapolate pressure
-    Real p = ProbParm::p0;
-    Real massfrac[NUM_SPECIES] = {0.0};
-    massfrac[N2_ID] = ProbParm::Y_N2;
-    massfrac[O2_ID] = ProbParm::Y_O2;
-    EOS::PYT2RE(p, massfrac, T, rho, eint);
-    s_ext[URHO] = rho;
-    s_ext[UMX] = rho*u[0];
-    s_ext[UMY] = rho*u[1];
-    s_ext[UMZ] = rho*u[2];
-    s_ext[UEINT] = rho*eint;
-    s_ext[UEDEN] =
-      rho*(eint + 0.5*(u[0]*u[0] + u[1]*u[1] + u[2]*u[2]));
-    s_ext[UTEMP] = T;
-    for (int n = 0; n != NUM_SPECIES; ++n)
-      s_ext[UFS + n] = rho * massfrac[n];
-  }
 }
 
+struct MyProbTagStruct
+{
+  AMREX_GPU_DEVICE
+  AMREX_FORCE_INLINE
+  static void set_problem_tags(
+    const int i,
+    const int j,
+    const int k,
+    amrex::Array4<char> const& tag,
+    amrex::Array4<amrex::Real const> const& field,
+    char tagval,
+    const amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx,
+    const amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> prob_lo,
+    const amrex::Real time,
+    const int level) noexcept
+  {
+    // could do problem specific tagging here
+  }
+};
+
+using ProblemTags = MyProbTagStruct;
+
+struct MyProbDeriveStruct
+{
+  static void
+  add(amrex::DeriveList& derive_lst, amrex::DescriptorList& desc_lst)
+  {
+    // Add derives as follows and define the derive function below:
+    // derive_lst.add(
+    //  "varname", amrex::IndexType::TheCellType(), 1, pc_varname,
+    //  the_same_box);
+    // derive_lst.addComponent("varname", desc_lst, State_Type, 0, NVAR);
+  }
+
+  static void pc_varname(
+    const amrex::Box& bx,
+    amrex::FArrayBox& derfab,
+    int dcomp,
+    int /*ncomp*/,
+    const amrex::FArrayBox& datfab,
+    const amrex::Geometry& geomdata,
+    amrex::Real /*time*/,
+    const int* /*bcrec*/,
+    int level)
+  {
+    auto const dat = datfab.array();
+    auto arr = derfab.array();
+    amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
+      // do something with arr
+    });
+  }
+};
+
+using ProblemDerives = MyProbDeriveStruct;
+
 void pc_prob_close();
-
-using ProblemTags = EmptyProbTagStruct;
-using ProblemDerives = EmptyProbDeriveStruct;
-
 #endif
