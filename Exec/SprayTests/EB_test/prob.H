@@ -45,7 +45,7 @@ pc_initdata(
   massfrac[O2_ID] = prob_parm.Y_O2;
   massfrac[N2_ID] = prob_parm.Y_N2;
   amrex::Real Tval = prob_parm.T0;
-  EOS::PYT2RE(p, massfrac, Tval, rho, eint);
+  EOS::PYT2RE(p, massfrac.data(), Tval, rho, eint);
 
   // Set the state
   state(i, j, k, URHO) = rho;
