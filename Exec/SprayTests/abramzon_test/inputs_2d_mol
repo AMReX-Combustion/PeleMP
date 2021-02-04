@@ -82,6 +82,6 @@ amr.plot_vars = density Temp rho_E xmom ymom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = x_velocity y_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6
 
-prob.ref_T = 1500.
-prob.ref_p = 1.01325E7
+prob.init_T = 1500.
+prob.init_p = 1.01325E7
 prob.init_v = 0.

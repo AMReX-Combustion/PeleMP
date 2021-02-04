@@ -80,6 +80,7 @@ particles.fuel_latent = 3.63E9 3.5899E9
 particles.fuel_cp = 2.2483E7 2.1921E7
 particles.fuel_rho = 0.693 0.640
 particles.fuel_mu = 0.00236 0.004428 # Estimated viscosity at 350 K and 10 atm
+particles.fuel_lambda = 1.291E4 1.3078E4
 # TODO: Make separate sigmas for each fuel
 particles.fuel_sigma = 19.
 particles.wall_temp = 430.
@@ -100,8 +101,8 @@ amr.derive_plot_vars = Mach x_velocity y_velocity pressure vfrac z_velocity
 #amr.derive_plot_vars = ALL
 amr.file_name_digits = 6
 
-prob.ref_T = 1500.
-prob.ref_p = 1.01325E7
+prob.init_T = 1500.
+prob.init_p = 1.01325E7
 prob.init_v = 0.
 
 prob.part_temp = 363.

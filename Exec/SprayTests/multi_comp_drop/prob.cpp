@@ -12,8 +12,8 @@ amrex_probinit(
   // Parse params
   amrex::ParmParse pp("prob");
   pp.query("init_v", PeleC::prob_parm_device->v0);
-  pp.query("ref_p", PeleC::prob_parm_device->p0);
-  pp.query("ref_T", PeleC::prob_parm_device->T0);
+  pp.query("init_p", PeleC::prob_parm_device->p0);
+  pp.query("init_T", PeleC::prob_parm_device->T0);
   pp.query("init_N2", PeleC::prob_parm_device->Y_N2);
   pp.query("init_O2", PeleC::prob_parm_device->Y_O2);
 
