@@ -46,9 +46,10 @@ SprayParticleContainer::injectParticles(Real time,
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateY = m_sprayIndx.pstateY;
   SprayData const* fdat = m_fuelData.get();
-  Real part_rho = 0.;
+  Real rho_part = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
-    part_rho += prob_parm.Y_jet[spf]*fdat->rho[spf];
+    rho_part += prob_parm.Y_jet[spf]/fdat->rho[spf];
+  rho_part = 1./rho_part;
   // Number of particles per parcel
   const Real num_ppp = m_parcelSize;
   const Geometry& geom = this->m_gdb->Geom(lev);
@@ -208,7 +209,7 @@ SprayParticleContainer::injectParticles(Real time,
             p.rdata(pstateY + sp) = prob_parm.Y_jet[sp];
 #endif
           host_particles.push_back(p);
-          Real pmass = Pi_six*part_rho*std::pow(cur_dia, 3);
+          Real pmass = Pi_six*rho_part*std::pow(cur_dia, 3);
           total_mass += num_ppp*pmass;
         }
       }

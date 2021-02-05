@@ -14,6 +14,9 @@ amr.n_cell           = 64 64 8
 pelec.lo_bc = "FOExtrap" "NoSlipWall" "Interior"
 pelec.hi_bc = "FOExtrap" "FOExtrap" "Interior"
 
+amrex.fpe_trap_invalid = 1
+amrex.fpe_trap_zero = 1
+
 # WHICH PHYSICS
 pelec.do_hydro = 1
 pelec.diffuse_vel = 1
