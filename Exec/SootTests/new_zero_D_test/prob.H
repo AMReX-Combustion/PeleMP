@@ -25,7 +25,8 @@ pc_initdata(
   int j,
   int k,
   amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
 
   // Geometry
@@ -38,13 +39,13 @@ pc_initdata(
 
   // TG functions
   amrex::Real u[3] = {0.0};
-  const amrex::Real p = ProbParm::p0;
+  const amrex::Real p = prob_parm.p0;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  massfrac[O2_ID] = ProbParm::Y_O2;
-  massfrac[N2_ID] = ProbParm::Y_N2;
-  massfrac[ProbParm::fuelIndx] = ProbParm::Y_Fuel;
-  amrex::Real Tval = ProbParm::T0;
+  massfrac[O2_ID] = prob_parm.Y_O2;
+  massfrac[N2_ID] = prob_parm.Y_N2;
+  massfrac[prob_parm.fuelIndx] = prob_parm.Y_Fuel;
+  amrex::Real Tval = prob_parm.T0;
   EOS::PYT2RE(p, massfrac, Tval, rho, eint);
 
   // Set the state
@@ -74,7 +75,8 @@ bcnormal(
   const int idir,
   const int sgn,
   const amrex::Real time,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
   // This sets the values at the boundary equal to the
   // adjacent interior values

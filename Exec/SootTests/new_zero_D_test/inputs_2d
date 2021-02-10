@@ -12,6 +12,8 @@ amr.n_cell           = 2 2 2
 pelec.lo_bc =  "Interior" "Interior" "Interior"
 pelec.hi_bc =  "Interior" "Interior" "Interior"
 
+cvode.solve_type = dense
+
 # WHICH PHYSICS
 pelec.do_hydro = 0
 pelec.diffuse_vel = 0
@@ -19,7 +21,7 @@ pelec.diffuse_temp = 0
 pelec.diffuse_enth = 0
 pelec.diffuse_spec = 0
 pelec.do_react = 1
-pelec.chem_integrator = 1
+pelec.chem_integrator = 2
 pelec.do_mol = 0
 pelec.do_grav = 0
 pelec.allow_negative_energy = 1
@@ -52,7 +54,7 @@ amr.check_int       = 1000
 
 # PLOTFILES
 amr.plot_file       = plt # root name of plotfile
-amr.plot_per        = 5.E-6
+amr.plot_per        = 2.5E-5
 
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species

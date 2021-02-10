@@ -5,17 +5,22 @@
 #include <AMReX_GpuQualifiers.H>
 #include <AMReX_IntVect.H>
 
-namespace ProbParm {
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real mach;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real p0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real T0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real v0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2;
-extern AMREX_GPU_DEVICE_MANAGED amrex::IntVect partNum;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partTemp;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partDia;
-extern AMREX_GPU_DEVICE_MANAGED amrex::RealVect partVel;
-} // namespace ProbParm
+struct ProbParmDevice : amrex::Gpu::Managed
+{
+  amrex::Real mach = 0.1;
+  amrex::Real p0 = 1.013e6; // [erg cm^-3]
+  amrex::Real T0 = 1000.0;
+  amrex::Real v0 = 0.0;
+  amrex::Real Y_O2 = 0.233;
+  amrex::Real Y_N2 = 0.767;
+};
+
+struct ProbParmHost : amrex::Gpu::Managed
+{
+  amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
+  amrex::Real partTemp = 300.;
+  amrex::Real partDia = 1.E-3;
+  amrex::RealVect partVel = amrex::RealVect(AMREX_D_DECL(0., 0., 0.));
+};
 
 #endif

@@ -25,7 +25,8 @@ pc_initdata(
   int j,
   int k,
   amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
 
   // Geometry
@@ -33,14 +34,14 @@ pc_initdata(
   const amrex::Real* dx = geomdata.CellSize();
 
   amrex::Real u[3] = {0.0};
-  u[0] = ProbParm::v0;
+  u[0] = prob_parm.v0;
 
-  const amrex::Real p = ProbParm::p0;
+  const amrex::Real p = prob_parm.p0;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  massfrac[O2_ID] = ProbParm::Y_O2;
-  massfrac[N2_ID] = ProbParm::Y_N2;
-  EOS::PYT2RE(p, massfrac, ProbParm::T0, rho, eint);
+  massfrac[O2_ID] = prob_parm.Y_O2;
+  massfrac[N2_ID] = prob_parm.Y_N2;
+  EOS::PYT2RE(p, massfrac, prob_parm.T0, rho, eint);
 
   // Set the state
   state(i, j, k, URHO) = rho;
@@ -50,7 +51,7 @@ pc_initdata(
   state(i, j, k, UEINT) = rho * eint;
   state(i, j, k, UEDEN) =
     rho * (eint + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
-  state(i, j, k, UTEMP) = ProbParm::T0;
+  state(i, j, k, UTEMP) = prob_parm.T0;
   for (int n = 0; n < NUM_SPECIES; n++)
     state(i, j, k, UFS + n) = rho * massfrac[n];
 }
@@ -65,7 +66,8 @@ bcnormal(
   const int idir,
   const int sgn,
   const amrex::Real time,
-  amrex::GeometryData const& geomdata)
+  amrex::GeometryData const& geomdata,
+  ProbParmDevice const& prob_parm)
 {
   for (int i = 0; i != NVAR; ++i)
     s_ext[i] = s_int[i];

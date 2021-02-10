@@ -59,19 +59,19 @@ SprayParticleContainer::injectParticles(Real time,
 }
 
 void
-SprayParticleContainer::InitSprayParticles()
+SprayParticleContainer::InitSprayParticles(ProbParmHost const& prob_parm)
 {
   const int lev = 0;
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
   const int IOProc = ParallelDescriptor::IOProcessorNumber();
-  Real part_dia = ProbParm::partDia;
-  Real T_ref = ProbParm::partTemp;
+  Real part_dia = prob_parm.partDia;
+  Real T_ref = prob_parm.partTemp;
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateY = m_sprayIndx.pstateY;
-  const IntVect num_part = ProbParm::partNum;
+  const IntVect num_part = prob_parm.partNum;
   const auto dx = Geom(lev).CellSizeArray();
   const auto plo = Geom(lev).ProbLoArray();
   const auto phi = Geom(lev).ProbHiArray();
@@ -106,7 +106,7 @@ SprayParticleContainer::InitSprayParticles()
     std::pair<int, int> ind(pld.m_grid, pld.m_tile);
 #ifdef USE_SPRAY_SOA
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      host_real_attribs[ind][pstateVel+dir].push_back(ProbParm::partVel[dir]);
+      host_real_attribs[ind][pstateVel+dir].push_back(prob_parm.partVel[dir]);
     host_real_attribs[ind][pstateT].push_back(T_ref);
     host_real_attribs[ind][pstateDia].push_back(part_dia);
     host_real_attribs[ind][pstateY].push_back(1.);
@@ -114,7 +114,7 @@ SprayParticleContainer::InitSprayParticles()
       host_real_attribs[ind][pstateY+spf].push_back(0.);
 #else
     for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      p.rdata(pstateVel+dir) = ProbParm::partVel[dir];
+      p.rdata(pstateVel+dir) = prob_parm.partVel[dir];
     p.rdata(pstateT) = T_ref; // temperature
     p.rdata(pstateDia) = part_dia; // diameter
     for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
