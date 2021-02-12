@@ -12,7 +12,7 @@ SprayParticleContainer::injectParticles(
   int lev,
   int finest_level,
   ProbParmHost const& prob_parm,
-  ProbParmHost const& prob_parm_d)
+  ProbParmDevice const& prob_parm_d)
 {
   if (lev != 0)
     return false;
