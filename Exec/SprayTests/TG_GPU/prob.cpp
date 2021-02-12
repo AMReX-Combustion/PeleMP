@@ -48,17 +48,22 @@ amrex_probinit(
   TransParm const* ltransparm = trans_parm_g;
   amrex::Real rho, mu, xi, lambda;
   amrex::Real Ddiag[NUM_SPECIES]; // Should be unused
-  transport(get_xi, get_mu, get_lambda, get_Ddiag,
-            PeleC::prob_parm_device->T0, rho, // Should be unused
-            massfrac, Ddiag, mu, xi, lambda, trans_parm_g);
+  transport(
+    get_xi, get_mu, get_lambda, get_Ddiag, PeleC::prob_parm_device->T0,
+    rho, // Should be unused
+    massfrac, Ddiag, mu, xi, lambda, trans_parm_g);
   // Compute the density from the Reynolds number
-  PeleC::prob_parm_device->rho0 = PeleC::prob_parm_device->reynolds * mu / (refL * PeleC::prob_parm_device->v0);
-  EOS::RTY2P(PeleC::prob_parm_device->T0, PeleC::prob_parm_device->rho0, massfrac, PeleC::prob_parm_device->p0);
+  PeleC::prob_parm_device->rho0 = PeleC::prob_parm_device->reynolds * mu /
+                                  (refL * PeleC::prob_parm_device->v0);
+  EOS::RTY2P(
+    PeleC::prob_parm_device->T0, PeleC::prob_parm_device->rho0, massfrac,
+    PeleC::prob_parm_device->p0);
 
   // Output IC
   if (amrex::ParallelDescriptor::IOProcessor()) {
     std::ofstream ofs("ic.txt", std::ofstream::out);
-    amrex::Print(ofs) << "number of particles: " << PeleC::prob_parm_host->partNum[0];
+    amrex::Print(ofs) << "number of particles: "
+                      << PeleC::prob_parm_host->partNum[0];
     for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
       amrex::Print(ofs) << ", " << PeleC::prob_parm_host->partNum[dir];
     amrex::Print(ofs) << std::endl;
@@ -66,8 +71,10 @@ amrex_probinit(
     amrex::Print(ofs) << "p0: " << PeleC::prob_parm_device->p0 << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;
     amrex::Print(ofs) << "U: " << PeleC::prob_parm_device->v0 << std::endl;
-    amrex::Print(ofs) << "Re: " << PeleC::prob_parm_device->reynolds << std::endl;
-    amrex::Print(ofs) << "particle diameter: " << PeleC::prob_parm_host->partDia << std::endl;
+    amrex::Print(ofs) << "Re: " << PeleC::prob_parm_device->reynolds
+                      << std::endl;
+    amrex::Print(ofs) << "particle diameter: " << PeleC::prob_parm_host->partDia
+                      << std::endl;
     ofs.close();
   }
 }

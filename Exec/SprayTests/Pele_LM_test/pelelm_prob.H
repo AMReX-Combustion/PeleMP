@@ -14,47 +14,46 @@
 #include <EOS.H>
 
 AMREX_GPU_DEVICE
-inline
-void
-pelelm_initdata (int i, int j, int k, 
-                 amrex::Array4<amrex::Real> const& state,
-                 amrex::GeometryData const& geomdata,
-                 ProbParm const& prob_parm,
-                 PmfData const *pmf_data)
+inline void
+pelelm_initdata(
+  int i,
+  int j,
+  int k,
+  amrex::Array4<amrex::Real> const& state,
+  amrex::GeometryData const& geomdata,
+  ProbParm const& prob_parm,
+  PmfData const* pmf_data)
 {
 
-    const amrex::Real* prob_lo = geomdata.ProbLo();
-    const amrex::Real* prob_hi = geomdata.ProbHi();
-    const amrex::Real* dx      = geomdata.CellSize();
+  const amrex::Real* prob_lo = geomdata.ProbLo();
+  const amrex::Real* prob_hi = geomdata.ProbHi();
+  const amrex::Real* dx = geomdata.CellSize();
 
-    AMREX_D_TERM(
-    const amrex::Real x = prob_lo[0] + (i+0.5)*dx[0];,
-    const amrex::Real y = prob_lo[1] + (j+0.5)*dx[1];,
-    const amrex::Real z = prob_lo[2] + (k+0.5)*dx[2];);
+  AMREX_D_TERM(const amrex::Real x = prob_lo[0] + (i + 0.5) * dx[0];
+               , const amrex::Real y = prob_lo[1] + (j + 0.5) * dx[1];
+               , const amrex::Real z = prob_lo[2] + (k + 0.5) * dx[2];);
 
-    amrex::Real massfrac[NUM_SPECIES] = {0.0};
+  amrex::Real massfrac[NUM_SPECIES] = {0.0};
 
-    AMREX_D_TERM(
-    state(i,j,k,Xvel) = prob_parm.vel;,
-    state(i,j,k,Yvel) = 0.;,
-    state(i,j,k,Zvel) = 0.;);
+  AMREX_D_TERM(state(i, j, k, Xvel) = prob_parm.vel;, state(i, j, k, Yvel) = 0.;
+               , state(i, j, k, Zvel) = 0.;);
 
-    massfrac[N2_ID] = prob_parm.Y_N2;
-    massfrac[O2_ID] = prob_parm.Y_O2;
-    state(i,j,k,DEF_Temp) = prob_parm.T0;
-    amrex::Real rho_cgs, P_cgs;
-    P_cgs = prob_parm.P_mean * 10.;
+  massfrac[N2_ID] = prob_parm.Y_N2;
+  massfrac[O2_ID] = prob_parm.Y_O2;
+  state(i, j, k, DEF_Temp) = prob_parm.T0;
+  amrex::Real rho_cgs, P_cgs;
+  P_cgs = prob_parm.P_mean * 10.;
 
-    EOS::PYT2R(P_cgs, massfrac, state(i,j,k,DEF_Temp), rho_cgs);
-    state(i,j,k,Density) = rho_cgs * 1.0e3;            // CGS -> MKS conversion
+  EOS::PYT2R(P_cgs, massfrac, state(i, j, k, DEF_Temp), rho_cgs);
+  state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-    EOS::TY2H(state(i,j,k,DEF_Temp), massfrac, state(i,j,k,DEF_RhoH));
-    state(i,j,k,DEF_RhoH) = state(i,j,k,DEF_RhoH) * 1.0e-4 * state(i,j,k,Density);   // CGS -> MKS conversion
+  EOS::TY2H(state(i, j, k, DEF_Temp), massfrac, state(i, j, k, DEF_RhoH));
+  state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
+                             state(i, j, k, Density); // CGS -> MKS conversion
 
-    for (int n = 0; n < NUM_SPECIES; n++) {
-      state(i,j,k,DEF_first_spec+n) = massfrac[n] * state(i,j,k,Density);
-    }
-
+  for (int n = 0; n < NUM_SPECIES; n++) {
+    state(i, j, k, DEF_first_spec + n) = massfrac[n] * state(i, j, k, Density);
+  }
 }
 
 AMREX_GPU_HOST_DEVICE
@@ -69,12 +68,10 @@ bcnormal(
   amrex::GeometryData const& geomdata,
   ProbParm const& prob_parm,
   ACParm const& ac_parm,
-  PmfData const *pmf_data)
+  PmfData const* pmf_data)
 {
-  AMREX_D_TERM(
-               s_ext[Xvel] = prob_parm.vel;,
-               s_ext[Yvel] = 0.;,
-               s_ext[Zvel] = 0.;);
+  AMREX_D_TERM(s_ext[Xvel] = prob_parm.vel;, s_ext[Yvel] = 0.;
+               , s_ext[Zvel] = 0.;);
 
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[N2_ID] = prob_parm.Y_N2;
@@ -84,33 +81,34 @@ bcnormal(
   P_cgs = prob_parm.P_mean * 10.;
 
   EOS::PYT2R(P_cgs, massfrac, prob_parm.T0, rho_cgs);
-  amrex::Real rho_mks = rho_cgs * 1.0e3;            // CGS -> MKS conversion
+  amrex::Real rho_mks = rho_cgs * 1.0e3; // CGS -> MKS conversion
   s_ext[Density] = rho_mks;
   amrex::Real rhoH;
   EOS::TY2H(prob_parm.T0, massfrac, rhoH);
   s_ext[DEF_RhoH] = rhoH * 1.0e-4 * rho_mks;
   for (int n = 0; n < NUM_SPECIES; n++) {
-    s_ext[DEF_first_spec+n] = massfrac[n] * rho_mks;
+    s_ext[DEF_first_spec + n] = massfrac[n] * rho_mks;
   }
 }
 
 AMREX_GPU_DEVICE
-inline
-void
-zero_visc (int i, int j, int k,
-           amrex::Array4<amrex::Real> const& beta,
-           amrex::GeometryData const& geomdata,
-           amrex::Box const& dBox,
-           const int  dir,
-           const int  state_comp,
-           const int  nComp)
+inline void
+zero_visc(
+  int i,
+  int j,
+  int k,
+  amrex::Array4<amrex::Real> const& beta,
+  amrex::GeometryData const& geomdata,
+  amrex::Box const& dBox,
+  const int dir,
+  const int state_comp,
+  const int nComp)
 {
 
-    const amrex::Real* prob_lo = geomdata.ProbLo();
-    const amrex::Real* dx      = geomdata.CellSize();
-    // const amrex::Real z = prob_lo[2] + (k+0.5)*dx[2];
-    // const amrex::Real y = prob_lo[1] + (j+0.5)*dx[1];
-    //const amrex::Real x = prob_lo[0] + (i+0.5)*dx[0];
-
+  const amrex::Real* prob_lo = geomdata.ProbLo();
+  const amrex::Real* dx = geomdata.CellSize();
+  // const amrex::Real z = prob_lo[2] + (k+0.5)*dx[2];
+  // const amrex::Real y = prob_lo[1] + (j+0.5)*dx[1];
+  // const amrex::Real x = prob_lo[0] + (i+0.5)*dx[0];
 }
 #endif

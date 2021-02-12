@@ -35,22 +35,17 @@ pc_initdata(
   amrex::Real x = 0.;
   amrex::Real y = 0.;
   amrex::Real z = 0.;
-  AMREX_D_TERM
-    (x = prob_lo[0] + (i + 0.5) * dx[0];,
-     y = prob_lo[1] + (j + 0.5) * dx[1];,
-     z = prob_lo[2] + (k + 0.5) * dx[2];);
-  const Real coef = 2.*M_PI;
+  AMREX_D_TERM(x = prob_lo[0] + (i + 0.5) * dx[0];
+               , y = prob_lo[1] + (j + 0.5) * dx[1];
+               , z = prob_lo[2] + (k + 0.5) * dx[2];);
+  const Real coef = 2. * M_PI;
 
   // TG functions
   amrex::Real u[3] = {0.0};
-  u[0] = prob_parm.v0 *
-    std::sin(coef*x / prob_parm.L) *
-    std::cos(coef*y / prob_parm.L) *
-    std::cos(coef*z / prob_parm.L);
-  u[1] = -prob_parm.v0 *
-    std::cos(coef*x / prob_parm.L) *
-    std::sin(coef*y / prob_parm.L) *
-    std::cos(coef*z / prob_parm.L);
+  u[0] = prob_parm.v0 * std::sin(coef * x / prob_parm.L) *
+         std::cos(coef * y / prob_parm.L) * std::cos(coef * z / prob_parm.L);
+  u[1] = -prob_parm.v0 * std::cos(coef * x / prob_parm.L) *
+         std::sin(coef * y / prob_parm.L) * std::cos(coef * z / prob_parm.L);
   if (prob_parm.convecting) {
     u[0] += prob_parm.v0;
     u[1] += prob_parm.v0;
@@ -58,9 +53,9 @@ pc_initdata(
 
   const amrex::Real p =
     prob_parm.p0 + prob_parm.rho0 * prob_parm.v0 * prob_parm.v0 *
-    (std::cos(2.0 * coef * x / prob_parm.L) +
-     std::cos(2.0 * coef * y / prob_parm.L)) *
-    (std::cos(2.0 * coef * z / prob_parm.L) + 2.0)/16.;
+                     (std::cos(2.0 * coef * x / prob_parm.L) +
+                      std::cos(2.0 * coef * y / prob_parm.L)) *
+                     (std::cos(2.0 * coef * z / prob_parm.L) + 2.0) / 16.;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {1.0};
   EOS::PYT2RE(p, massfrac, prob_parm.T0, rho, eint);

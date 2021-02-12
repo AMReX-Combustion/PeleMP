@@ -43,3 +43,14 @@ NUM_SOOT_MOMENTS = 6
 Bpack := ./Make.package
 Blocs := .
 include $(PELEC_HOME)/ExecCpp/Make.PeleC
+
+ifeq ($(shell uname),Darwin)
+  all: $(executable)
+	install_name_tool -add_rpath $(PELE_PHYSICS_HOME)/ThirdParty/INSTALL/$(configSpecificTPSuffix)/lib $(executable)
+	$(SILENT) $(RM) AMReX_buildInfo.cpp
+	@echo SUCCESS
+else
+  all: $(executable)
+	$(SILENT) $(RM) AMReX_buildInfo.cpp
+	@echo SUCCESS
+endif

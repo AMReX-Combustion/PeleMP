@@ -24,7 +24,8 @@ read_inject(const std::string myfile)
   while (std::getline(iss, remaininglines)) {
     line_count++;
   }
-  amrex::Print() << line_count << " data lines found in inject file" << std::endl;
+  amrex::Print() << line_count << " data lines found in inject file"
+                 << std::endl;
 
   PeleC::prob_parm_host->inject_N = line_count;
   PeleC::prob_parm_host->inject_time.resize(PeleC::prob_parm_host->inject_N);
@@ -46,7 +47,8 @@ read_inject(const std::string myfile)
   }
 
   PeleC::prob_parm_host->jet_start_time = PeleC::prob_parm_host->inject_time[0];
-  PeleC::prob_parm_host->jet_end_time = PeleC::prob_parm_host->inject_time[line_count - 1];
+  PeleC::prob_parm_host->jet_end_time =
+    PeleC::prob_parm_host->inject_time[line_count - 1];
 }
 
 extern "C" {
@@ -84,20 +86,23 @@ amrex_probinit(
   if (std::abs(sumY - 1.) > 1.E-8)
     amrex::Abort("'jet_mass_fracs' must sum to 1");
   // Convert to radians
-  PeleC::prob_parm_host->spray_angle *= M_PI/180.;
+  PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
 
-  AMREX_D_TERM(PeleC::prob_parm_host->jet_cent[0] = 0.5*(probhi[0] + problo[0]);,
-               PeleC::prob_parm_host->jet_cent[1] = problo[1];,
-               PeleC::prob_parm_host->jet_cent[2] = 0.5*(probhi[2] + problo[2]););
+  AMREX_D_TERM(
+    PeleC::prob_parm_host->jet_cent[0] = 0.5 * (probhi[0] + problo[0]);
+    , PeleC::prob_parm_host->jet_cent[1] = problo[1];
+    , PeleC::prob_parm_host->jet_cent[2] = 0.5 * (probhi[2] + problo[2]););
 
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[N2_ID] = PeleC::prob_parm_device->Y_N2;
   massfrac[O2_ID] = PeleC::prob_parm_device->Y_O2;
-  EOS::PYT2RE(PeleC::prob_parm_device->p0, massfrac, PeleC::prob_parm_device->T0,
-              PeleC::prob_parm_device->rho0, eint);
-  EOS::RTY2Cs(PeleC::prob_parm_device->rho0, PeleC::prob_parm_device->T0, massfrac, cs);
+  EOS::PYT2RE(
+    PeleC::prob_parm_device->p0, massfrac, PeleC::prob_parm_device->T0,
+    PeleC::prob_parm_device->rho0, eint);
+  EOS::RTY2Cs(
+    PeleC::prob_parm_device->rho0, PeleC::prob_parm_device->T0, massfrac, cs);
   EOS::TY2Cp(PeleC::prob_parm_device->T0, massfrac, cp);
   if (PeleC::prob_parm_host->input_file != "") {
     read_inject(PeleC::prob_parm_host->input_file);
@@ -105,7 +110,8 @@ amrex_probinit(
 }
 }
 
-void pc_prob_close()
+void
+pc_prob_close()
 {
 }
 

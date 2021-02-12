@@ -5,20 +5,24 @@
 #include <AMReX_GpuQualifiers.H>
 #include <AMReX_IntVect.H>
 
-namespace ProbParm {
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real p0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real T0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real v0;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_O2;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real Y_N2;
-extern AMREX_GPU_DEVICE_MANAGED int partNum;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real L_jet;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partTemp;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partRho;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partDia;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real partVel;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real velFluct;
-extern AMREX_GPU_DEVICE_MANAGED amrex::Real velSmooth;
-} // namespace ProbParm
+struct ProbParmDevice : amrex::Gpu::Managed
+{
+  amrex::Real p0 = 1.013e6; // [erg cm^-3]
+  amrex::Real T0 = 900.0;
+  amrex::Real v0 = 1.;
+  amrex::Real Y_O2 = 0.233;
+  amrex::Real Y_N2 = 0.767;
+  amrex::Real L_jet = 0.01;
+};
+
+struct ProbParmHost : amrex::Gpu::Managed
+{
+  int partNum = 8000;
+  amrex::Real partTemp = 300.;
+  amrex::Real partDia = 0.002;
+  amrex::Real partVel = 0.;
+  amrex::Real velFluct = 1.E-2;
+  amrex::Real velSmooth = 7.5E-4;
+};
 
 #endif

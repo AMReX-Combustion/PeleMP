@@ -77,13 +77,13 @@ bcnormal(
   for (int i = 0; i != NVAR; ++i) {
     s_ext[i] = s_int[i];
   }
-//   if (idir == 1 && sgn == -1) {
-//     amrex::Real rad =
-//       AMREX_D_TERM(std::pow(x[0] - prob_parm.jet_cent[0], 2),,
-//                    + std::pow(x[2] - prob_parm.jet_cent[2], 2))
-//       - prob_parm.jet_dia*prob_parm.jet_dia/4.;
-//     if (rad <= 0.) s_ext[UMY] = vel*s_ext[URHO];
-//   }
+  //   if (idir == 1 && sgn == -1) {
+  //     amrex::Real rad =
+  //       AMREX_D_TERM(std::pow(x[0] - prob_parm.jet_cent[0], 2),,
+  //                    + std::pow(x[2] - prob_parm.jet_cent[2], 2))
+  //       - prob_parm.jet_dia*prob_parm.jet_dia/4.;
+  //     if (rad <= 0.) s_ext[UMY] = vel*s_ext[URHO];
+  //   }
 }
 
 struct MyProbTagStruct
@@ -131,11 +131,12 @@ struct MyProbDeriveStruct
     const int* /*bcrec*/,
     int /*level*/)
   {
-//     auto const dat = datfab.array();
-//     auto arr = derfab.array();
-//     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
-//       // do something with arr
-//     });
+    //     auto const dat = datfab.array();
+    //     auto arr = derfab.array();
+    //     amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE(int i, int j, int k)
+    //     noexcept {
+    //       // do something with arr
+    //     });
   }
 };
 
