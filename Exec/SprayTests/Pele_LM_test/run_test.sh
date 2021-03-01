@@ -2,7 +2,7 @@
 
 # Tells script to stop running as soon as an error occurs
 set -e
-EXEC="./PeleLM2d.gnu.MPI.ex"
+EXEC="./PeleLM2d.llvm.MPI.ex"
 TPD="output_files"
 # For name of grid input file
 # Determines box sizes on refined levels

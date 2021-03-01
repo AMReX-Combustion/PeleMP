@@ -23,10 +23,9 @@ FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
 # PeleC
-USE_REACT = TRUE
 USE_SUNDIALS_PP = TRUE
 #USE_ARKODE_PP = FALSE
-USE_CVODE_PP = TRUE
+#USE_CVODE_PP = TRUE
 USE_EB = FALSE
 Eos_dir := Fuego
 Reactions_dir := Fuego
@@ -42,15 +41,4 @@ NUM_SOOT_MOMENTS = 3
 # GNU Make
 Bpack := ./Make.package
 Blocs := .
-include $(PELEC_HOME)/ExecCpp/Make.PeleC
-
-ifeq ($(shell uname),Darwin)
-  all: $(executable)
-	install_name_tool -add_rpath $(PELE_PHYSICS_HOME)/ThirdParty/INSTALL/$(configSpecificTPSuffix)/lib $(executable)
-	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	@echo SUCCESS
-else
-  all: $(executable)
-	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	@echo SUCCESS
-endif
+include $(PELELM_HOME)/Tools/Make/Make.PeleLM
