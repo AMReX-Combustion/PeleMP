@@ -12,8 +12,8 @@ amr.n_cell           = 128 8 8
 pelec.lo_bc =  "Hard" "Interior" "Interior"
 pelec.hi_bc =  "Hard" "Interior" "Interior"
 
-#cvode.solve_type = GMRES
-arkode.solve_type = dense
+cvode.solve_type = GMRES
+#arkode.solve_type = dense
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -61,17 +61,17 @@ amr.plot_per        = 2.5E-5
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
 soot.max_dt_rate = 0.2
+soot.conserve_mass = true
 
 pelec.add_soot_src = 1
 amr.derive_plot_vars = x_velocity y_velocity pressure soot_vars soot_large_particles
 pelec.plot_rhoy = 0
 pelec.plot_massfrac = 1
 pelec.plot_reactions = 0
-amr.file_name_digits = 7
+amr.file_name_digits = 6
 
 pelec.plot_soot = 1
 
 # PROBLEM INPUT
 prob.pmf_datafile = "datafile_init/initial_flame_profile.dat"
-prob.init_T = 1300.
 prob.pamb = 1.01325E6
