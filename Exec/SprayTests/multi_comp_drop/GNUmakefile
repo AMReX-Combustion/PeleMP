@@ -39,4 +39,4 @@ SPRAY_FUEL_NUM = 2
 # GNU Make
 Bpack := ./Make.package
 Blocs := .
-include $(PELEC_HOME)/ExecCpp/Make.PeleC
+include $(PELEC_HOME)/Exec/Make.PeleC

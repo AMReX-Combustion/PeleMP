@@ -42,7 +42,7 @@ NUM_SOOT_MOMENTS = 3
 # GNU Make
 Bpack := ./Make.package
 Blocs := .
-include $(PELEC_HOME)/ExecCpp/Make.PeleC
+include $(PELEC_HOME)/Exec/Make.PeleC
 
 ifeq ($(shell uname),Darwin)
   all: $(executable)
