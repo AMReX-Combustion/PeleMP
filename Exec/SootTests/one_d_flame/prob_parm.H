@@ -23,6 +23,7 @@ struct ProbParmDevice : amrex::Gpu::Managed
   amrex::GpuArray<amrex::Real, NVAR> fuel_state = {{0.0}};
   amrex::Real* d_pmf_X = nullptr;
   amrex::Real* d_pmf_Y = nullptr;
+  amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> soot_vals = {{0.0}};
 };
 
 struct ProbParmHost : amrex::Gpu::Managed

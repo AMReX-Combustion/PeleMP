@@ -35,7 +35,6 @@ pelelm_initdata(
   AMREX_D_TERM(const amrex::Real x = prob_lo[0] + (i+0.5)*dx[0];,
                const amrex::Real y = prob_lo[1] + (j+0.5)*dx[1];,
                const amrex::Real z = prob_lo[2] + (k+0.5)*dx[2];);
-  
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
   amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
   amrex::Real x1 = (x - prob_parm.standoff - 0.5*dx[0])*100.;
@@ -61,25 +60,8 @@ pelelm_initdata(
   for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, DEF_first_spec+n) = massfrac[n] * state(i, j, k, Density);
   }
-}
-
-
-AMREX_GPU_DEVICE
-AMREX_FORCE_INLINE
-void
-pelelm_initsootdata(
-  int i,
-  int j,
-  int k,
-  amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& /*geomdata*/,
-  ProbParm const& /*prob_parm*/,
-  SootData const& soot_data)
-{
-  amrex::GpuArray<amrex::Real, DEF_NUM_SOOT_VARS> sootvars = {{0.0}};
-  soot_data.initialSmallMomVals(sootvars.data());
   for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
-    state(i, j, k, DEF_first_soot + is) = sootvars[is];
+    state(i, j, k, DEF_first_soot + is) = prob_parm.soot_vals[is];
   }
 }
 
@@ -131,6 +113,9 @@ bcnormal(
 
     for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[DEF_first_spec+n] = massfrac[n] * s_ext[Density];
+    }
+    for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
+      s_ext[DEF_first_soot+is] = prob_parm.soot_vals[is];
     }
   }
 }

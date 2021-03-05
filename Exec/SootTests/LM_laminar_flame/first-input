@@ -1,11 +1,13 @@
 #----------------------------TOP LEVEL INPUTS----------------------
-max_step = 1000
+max_step = 1000000
 stop_time = 0.022
 
 # ----------------  PROBLEM DEPENDENT INPUTS
 geometry.is_periodic = 0 1 1
 
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ
+
+amr.n_cell    = 128 8 8
 
 geometry.prob_lo = 0. 0. 0.
 geometry.prob_hi = 0.04 0.0025 0.0025
@@ -16,7 +18,7 @@ prob.standoff = 0.0
 prob.pmf_datafile = "datafile_init/initial_flame_profile.dat"
 
 ns.use_wbar = 0
-ns.do_set_rho_to_species_sum = 0
+#ns.do_set_rho_to_species_sum = 0
 
 amr.max_level = 0
 amr.ref_ratio = 2 2 2 2 # refinement ratio
@@ -37,7 +39,7 @@ peleLM.lo_bc = Inflow Interior Interior
 peleLM.hi_bc = Outflow Interior Interior
 
 #-------------------------AMR INPUTS----------------------------
-amr.n_cell    = 128 8 8
+
 
 amr.v=1
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
@@ -58,16 +60,16 @@ amr.derive_plot_vars = avg_pressure rhoRT mass_fractions soot_vars soot_large_pa
 ns.dt_cutoff       = 5.e-10   # level 0 timestep below which we halt
 ns.visc_tol        = 1.0e-12  # tolerence for viscous solves
 ns.visc_abs_tol    = 1.0e-12  # tolerence for viscous solves
-ns.cfl            = 0.3       # cfl number for hyperbolic system
-ns.init_shrink    = 0.0001       # scale back initial timestep
+ns.cfl            = 0.8       # cfl number for hyperbolic system
+ns.init_shrink    = 0.001       # scale back initial timestep
 ns.change_max     = 1.1       # scale back initial timestep
 ns.init_iter      = 0        # number of init iters to def pressure
 ns.gravity        = 0        # body force  (gravity in MKS units)
 ns.sum_interval   = 1        # timesteps between computing mass
 ns.do_reflux      = 1        # 1 => do refluxing
 ns.do_mac_proj    = 1        # 1 => do MAC projection
-#ns.init_dt        = 1.E-7
-#ns.fixed_dt       = 1.E-7
+ns.init_dt        = 5.E-7
+#ns.fixed_dt       = 1.E-6
 ns.dpdt_option = 0
 
 ns.do_sync_proj   = 1        # 1 => do Sync Project
@@ -165,7 +167,7 @@ amrex.regtest_reduction=1
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.2
+soot.max_dt_rate = 0.05
 soot.conserve_mass = true
 peleLM.add_soot_src = 1
 peleLM.plot_soot_src = 0

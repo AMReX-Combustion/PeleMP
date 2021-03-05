@@ -164,9 +164,15 @@ pc_initdata(
   amrex::Real u[3] = {0.0};
   u[0] = pmf_vals[velCol];
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
+  amrex::Real norm = 0.;
   for (int n = 0; n < NUM_SPECIES; ++n) {
-    massfrac[n] = pmf_vals[specCol + n];
+    massfrac[n] = amrex::max(0., amrex::min(1., pmf_vals[specCol + n]));
+    norm += massfrac[n];
   }
+  for (int n = 0; n < NUM_SPECIES; ++n) {
+    massfrac[n] = massfrac[n]/norm;
+  }
+
   amrex::Real rho = 0.0;
   amrex::Real energy = 0.0;
   EOS::PYT2RE(pres, massfrac, T, rho, energy);
@@ -180,25 +186,8 @@ pc_initdata(
   state(i, j, k, UTEMP) = T;
   for (int n = 0; n < NUM_SPECIES; n++)
     state(i, j, k, UFS + n) = rho * massfrac[n];
-}
-
-
-AMREX_GPU_DEVICE
-AMREX_FORCE_INLINE
-void
-pc_initsootdata(
-  int i,
-  int j,
-  int k,
-  amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata,
-  ProbParmDevice const& prob_parm,
-  SootData const& soot_data)
-{
-  GpuArray<Real, NUM_SOOT_VARS> sootvars = {{0.0}};
-  soot_data.initialSmallMomVals(sootvars.data());
   for (int is = 0; is < NUM_SOOT_VARS; ++is)
-    state(i, j, k, UFSOOT + is) = sootvars[is];
+    state(i, j, k, UFSOOT + is) = prob_parm.soot_vals[is];
 }
 
 AMREX_GPU_DEVICE

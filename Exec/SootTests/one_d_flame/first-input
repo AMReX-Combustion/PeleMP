@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 1000000
+max_step = 100000000
 stop_time = 0.022
 
 # PROBLEM SIZE & GEOMETRY
@@ -15,6 +15,9 @@ pelec.hi_bc =  "Hard" "Interior" "Interior"
 cvode.solve_type = GMRES
 #arkode.solve_type = dense
 
+#amr.loadbalance_with_workestimates = 1
+# amr.loadbalance_level0_int = 1000
+
 # WHICH PHYSICS
 pelec.do_hydro = 1
 pelec.diffuse_vel = 1
@@ -23,12 +26,12 @@ pelec.diffuse_enth = 1
 pelec.diffuse_spec = 1
 pelec.do_react = 1
 pelec.chem_integrator = 2
-pelec.do_mol = 1
+pelec.do_mol = 0
 pelec.do_grav = 0
 pelec.allow_negative_energy = 1
 
 # TIME STEP CONTROL
-pelec.cfl            = 0.3     # cfl number for hyperbolic system
+pelec.cfl            = 0.8     # cfl number for hyperbolic system
 pelec.init_shrink    = 1.     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
@@ -60,7 +63,7 @@ amr.plot_per        = 2.5E-5
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.2
+soot.max_dt_rate = 0.05
 soot.conserve_mass = true
 
 pelec.add_soot_src = 1

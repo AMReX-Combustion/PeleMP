@@ -214,6 +214,12 @@ amrex_probinit(
   read_pmf(pmf_datafile);
 
   init_bc();
+  amrex::Real moments[NUM_SOOT_MOMENTS + 1];
+  SootData* const sd = PeleC::soot_model->getSootData();
+  sd->initialSmallMomVals(moments);
+  for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
+    PeleC::prob_parm_device->soot_vals[n] = moments[n];
+  }
 }
 }
 

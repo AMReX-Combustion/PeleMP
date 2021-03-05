@@ -45,6 +45,12 @@ amrex_probinit(
   EOS::RTY2Cs(
     PeleC::prob_parm_device->rho0, PeleC::prob_parm_device->T0, massfrac, cs);
   EOS::TY2Cp(PeleC::prob_parm_device->T0, massfrac, cp);
+  amrex::Real moments[NUM_SOOT_MOMENTS + 1];
+  SootData* const sd = PeleC::soot_model->getSootData();
+  sd->initialSmallMomVals(moments);
+  for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
+    PeleC::prob_parm_device->soot_vals[n] = moments[n];
+  }
 }
 }
 

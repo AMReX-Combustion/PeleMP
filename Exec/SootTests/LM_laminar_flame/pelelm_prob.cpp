@@ -18,5 +18,11 @@ amrex_probinit(
   pp.query("pmf_datafile", pmf_datafile);
   int pmf_do_average = 1;
   PMF::read_pmf(pmf_datafile, pmf_do_average);
+  amrex::Real moments[NUM_SOOT_MOMENTS + 1];
+  SootData* const sd = PeleLM::soot_model->getSootData();
+  sd->initialSmallMomVals(moments);
+  for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
+    PeleLM::prob_parm->soot_vals[n] = moments[n];
+  }
 }
 }

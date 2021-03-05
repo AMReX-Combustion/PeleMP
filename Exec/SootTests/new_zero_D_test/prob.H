@@ -59,24 +59,8 @@ pc_initdata(
   state(i, j, k, UTEMP) = Tval;
   for (int n = 0; n < NUM_SPECIES; n++)
     state(i, j, k, UFS + n) = rho * massfrac[n];
-}
-
-AMREX_GPU_DEVICE
-AMREX_FORCE_INLINE
-void
-pc_initsootdata(
-  int i,
-  int j,
-  int k,
-  amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata,
-  ProbParmDevice const& prob_parm,
-  SootData const& soot_data)
-{
-  GpuArray<Real, NUM_SOOT_VARS> sootvars = {{0.0}};
-  soot_data.initialSmallMomVals(sootvars.data());
   for (int is = 0; is < NUM_SOOT_VARS; ++is)
-    state(i, j, k, UFSOOT + is) = sootvars[is];
+    state(i, j, k, UFSOOT + is) = prob_parm.soot_vals[is];
 }
 
 AMREX_GPU_DEVICE
