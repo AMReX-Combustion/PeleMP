@@ -30,8 +30,8 @@ pelelm_initdata(
 
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
 
-  AMREX_D_TERM(state(i, j, k, Xvel) = prob_parm.init_vel;, state(i, j, k, Yvel) = 0.;
-               , state(i, j, k, Zvel) = 0.;);
+  AMREX_D_TERM(state(i, j, k, Xvel) = prob_parm.init_vel;
+               , state(i, j, k, Yvel) = 0.;, state(i, j, k, Zvel) = 0.;);
 
   massfrac[N2_ID] = prob_parm.Y_N2;
   massfrac[O2_ID] = prob_parm.Y_O2;
@@ -43,15 +43,15 @@ pelelm_initdata(
   EOS::PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  EOS::TY2H(state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
+  EOS::TY2H(
+    state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
 
   for (int n = 0; n < NUM_SPECIES; n++) {
-    state(i, j, k, DEF_first_spec+n) = massfrac[n] * state(i, j, k, Density);
+    state(i, j, k, DEF_first_spec + n) = massfrac[n] * state(i, j, k, Density);
   }
 }
-
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
@@ -86,8 +86,7 @@ bcnormal(
   ACParm const& /*ac_parm*/,
   PmfData const* /*pmf_data*/)
 {
-  AMREX_D_TERM(s_ext[Xvel] = 0.;, s_ext[Yvel] = 0.;
-               , s_ext[Zvel] = 0.;);
+  AMREX_D_TERM(s_ext[Xvel] = 0.;, s_ext[Yvel] = 0.;, s_ext[Zvel] = 0.;);
 
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
   massfrac[N2_ID] = prob_parm.Y_N2;

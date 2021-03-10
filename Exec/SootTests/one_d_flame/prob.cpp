@@ -33,6 +33,8 @@ read_pmf(const std::string& myfile)
 
   std::ifstream infile(myfile);
   const std::string memfile = read_pmf_file(infile);
+  if (!amrex::FileSystem::Exists(myfile))
+    amrex::Abort("Data file does not exist");
   infile.close();
   std::istringstream iss(memfile);
 
@@ -54,7 +56,7 @@ read_pmf(const std::string& myfile)
   amrex::Vector<std::string> pmf_names;
   pmf_names.resize(variable_count);
   amrex::Vector<std::string> spec_names;
-  EOS::speciesNames(spec_names);
+  pele::physics::eos::speciesNames(spec_names);
   int tempCol = -1;
   int rhoCol = -1;
   int velCol = -1;
@@ -65,15 +67,21 @@ read_pmf(const std::string& myfile)
     pos1 = firstline.find('"', pos1);
     pos2 = firstline.find('"', pos1 + 1);
     pmf_names[i] = firstline.substr(pos1 + 1, pos2 - (pos1 + 1));
-    if (i == 0) xCol = i;
-    else if (pmf_names[i] == "U" || pmf_names[i] == "u") velCol = i - 1;
-    else if (pmf_names[i] == "T" || pmf_names[i] == "temp") tempCol = i - 1;
-    else if (pmf_names[i] == "rho") rhoCol = i - 1;
-    else if (pmf_names[i] != spec_names[i - 4]) amrex::Abort("Variables do not match");
+    if (i == 0)
+      xCol = i;
+    else if (pmf_names[i] == "U" || pmf_names[i] == "u")
+      velCol = i - 1;
+    else if (pmf_names[i] == "T" || pmf_names[i] == "temp")
+      tempCol = i - 1;
+    else if (pmf_names[i] == "rho")
+      rhoCol = i - 1;
+    else if (pmf_names[i] != spec_names[i - 4])
+      amrex::Abort("Variables do not match");
     pos1 = pos2 + 1;
   }
 
-  if (rhoCol < 0 || tempCol < 0 || velCol < 0) amrex::Abort("rho, T, and U were not all found");
+  if (rhoCol < 0 || tempCol < 0 || velCol < 0)
+    amrex::Abort("rho, T, and U were not all found");
   int specCol = std::max(tempCol, std::max(rhoCol, velCol)) + 1;
   PeleC::prob_parm_device->tempCol = tempCol;
   PeleC::prob_parm_device->rhoCol = rhoCol;
@@ -125,7 +133,7 @@ read_pmf(const std::string& myfile)
       const int col = specCol + n;
       amrex::Real Yval = PeleC::prob_parm_host->h_pmf_Y[N * col + i];
       Yval = std::min(1., std::max(Yval, 0.));
-      PeleC::prob_parm_host->h_pmf_Y[N * col + i] = Yval*sumY;
+      PeleC::prob_parm_host->h_pmf_Y[N * col + i] = Yval * sumY;
     }
   }
 
@@ -165,8 +173,8 @@ init_bc()
   T = pmf_vals[tempCol];
   PeleC::prob_parm_device->vn_in = pmf_vals[velCol];
   const amrex::Real p = PeleC::prob_parm_device->pamb;
-
-  EOS::PYT2RE(p, massfrac, T, rho, e);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2RE(p, massfrac, T, rho, e);
 
   vt = PeleC::prob_parm_device->vn_in;
   ek = 0.5 * (vt * vt);
@@ -206,10 +214,9 @@ amrex_probinit(
   pp.query("vn_in", PeleC::prob_parm_device->vn_in);
   pp.get("pmf_datafile", pmf_datafile);
 
-  AMREX_D_TERM(
-  PeleC::prob_parm_device->L[0] = probhi[0] - problo[0];,
-  PeleC::prob_parm_device->L[1] = probhi[1] - problo[1];,
-  PeleC::prob_parm_device->L[2] = probhi[2] - problo[2];);
+  AMREX_D_TERM(PeleC::prob_parm_device->L[0] = probhi[0] - problo[0];
+               , PeleC::prob_parm_device->L[1] = probhi[1] - problo[1];
+               , PeleC::prob_parm_device->L[2] = probhi[2] - problo[2];);
 
   read_pmf(pmf_datafile);
 

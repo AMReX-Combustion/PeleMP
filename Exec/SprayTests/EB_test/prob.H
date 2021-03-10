@@ -10,7 +10,7 @@
 
 #include "IndexDefines.H"
 #include "Constants.H"
-#include "EOS.H"
+#include "PelePhysics.H"
 #include "Tagging.H"
 #include "Transport.H"
 #include "ProblemDerive.H"
@@ -29,6 +29,7 @@ pc_initdata(
 {
 
   // Geometry
+  auto eos = pele::physics::PhysicsType::eos();
   const amrex::Real* prob_lo = geomdata.ProbLo();
   const amrex::Real* prob_hi = geomdata.ProbHi();
   const amrex::Real* dx = geomdata.CellSize();
@@ -45,7 +46,7 @@ pc_initdata(
   massfrac[O2_ID] = prob_parm.Y_O2;
   massfrac[N2_ID] = prob_parm.Y_N2;
   amrex::Real Tval = prob_parm.T0;
-  EOS::PYT2RE(p, massfrac.data(), Tval, rho, eint);
+  eos.PYT2RE(p, massfrac.data(), Tval, rho, eint);
 
   // Set the state
   state(i, j, k, URHO) = rho;

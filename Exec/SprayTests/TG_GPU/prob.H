@@ -11,7 +11,7 @@
 
 #include "IndexDefines.H"
 #include "Constants.H"
-#include "EOS.H"
+#include "PelePhysics.H"
 #include "Tagging.H"
 #include "Transport.H"
 #include "ProblemDerive.H"
@@ -60,7 +60,8 @@ pc_initdata(
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[O2_ID] = prob_parm.Y_O2;
   massfrac[N2_ID] = prob_parm.Y_N2;
-  EOS::PYT2RE(p, massfrac, prob_parm.T0, rho, eint);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2RE(p, massfrac, prob_parm.T0, rho, eint);
 
   // Set the state
   state(i, j, k, URHO) = rho;

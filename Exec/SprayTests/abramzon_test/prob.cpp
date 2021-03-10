@@ -22,12 +22,13 @@ amrex_probinit(
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[N2_ID] = PeleC::prob_parm_device->Y_N2;
   massfrac[O2_ID] = PeleC::prob_parm_device->Y_O2;
-  EOS::PYT2RE(
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2RE(
     PeleC::prob_parm_device->p0, massfrac, PeleC::prob_parm_device->T0,
     PeleC::prob_parm_device->rho0, eint);
-  EOS::RTY2Cs(
+  eos.RTY2Cs(
     PeleC::prob_parm_device->rho0, PeleC::prob_parm_device->T0, massfrac, cs);
-  EOS::TY2Cp(PeleC::prob_parm_device->T0, massfrac, cp);
+  eos.TY2Cp(PeleC::prob_parm_device->T0, massfrac, cp);
 }
 }
 

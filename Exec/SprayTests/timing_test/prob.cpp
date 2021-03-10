@@ -35,10 +35,12 @@ amrex_probinit(
   massfrac[O2_ID] = PeleC::prob_prob_device->Y_O2;
   massfrac[N2_ID] = PeleC::prob_prob_device->Y_N2;
   amrex::Real wbar, gamma0;
-  EOS::TY2G(PeleC::prob_prob_device->T0, massfrac, gamma0);
-  EOS::Y2WBAR(massfrac, wbar);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.TY2G(PeleC::prob_prob_device->T0, massfrac, gamma0);
+  eos.Y2WBAR(massfrac, wbar);
   // Compute the speed of sound
-  cs = std::sqrt(PeleC::prob_prob_device->T0 * gamma0 * EOS::RU / wbar);
+  cs = std::sqrt(
+    PeleC::prob_prob_device->T0 * gamma0 * pele::physics::Constants::RU / wbar);
   PeleC::prob_prob_device->v0 = PeleC::prob_prob_device->mach * cs;
 
   // Output IC

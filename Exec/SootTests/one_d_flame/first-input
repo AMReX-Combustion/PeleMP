@@ -15,6 +15,10 @@ pelec.hi_bc =  "Hard" "Interior" "Interior"
 cvode.solve_type = GMRES
 #arkode.solve_type = dense
 
+
+amrex.fpe_trap_invalid = 1
+amrex.fpe_trap_overflow = 1
+amrex.fpe_trap_zero = 1
 #amr.loadbalance_with_workestimates = 1
 # amr.loadbalance_level0_int = 1000
 
@@ -35,7 +39,6 @@ pelec.cfl            = 0.8     # cfl number for hyperbolic system
 pelec.init_shrink    = 1.     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-pelec.init_dt        = 1.E-7
 #pelec.fixed_dt       = 1.E-7
 
 # DIAGNOSTICS & VERBOSITY

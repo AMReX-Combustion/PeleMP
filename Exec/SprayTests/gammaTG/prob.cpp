@@ -33,16 +33,17 @@ amrex_probinit(
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;
   amrex::Real massfrac[NUM_SPECIES] = {1.0};
-  EOS::PYT2RE(
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2RE(
     PeleC::prob_parm_device->p0, massfrac, PeleC::prob_parm_device->T0,
     PeleC::prob_parm_device->rho0, eint);
-  EOS::RTY2Cs(
+  eos.RTY2Cs(
     PeleC::prob_parm_device->rho0, PeleC::prob_parm_device->T0, massfrac, cs);
-  EOS::TY2Cp(PeleC::prob_parm_device->T0, massfrac, cp);
+  eos.TY2Cp(PeleC::prob_parm_device->T0, massfrac, cp);
 
   amrex::Real refL = PeleC::prob_parm_device->L;
   PeleC::prob_parm_device->v0 = PeleC::prob_parm_device->mach * cs;
-  TransParm trans_parm;
+  pele::physics::transport::TransParm trans_parm;
 
   trans_parm.const_bulk_viscosity = 0.0;
   trans_parm.const_diffusivity = 0.0;

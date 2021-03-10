@@ -39,10 +39,12 @@ amrex_probinit(
   bool get_lambda = false;
   bool get_mu = true;
   amrex::Real wbar, gamma0;
-  EOS::TY2G(PeleC::prob_parm_device->T0, massfrac, gamma0);
-  EOS::Y2WBAR(massfrac, wbar);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.TY2G(PeleC::prob_parm_device->T0, massfrac, gamma0);
+  eos.Y2WBAR(massfrac, wbar);
   // Compute the speed of sound
-  cs = std::sqrt(PeleC::prob_parm_device->T0 * gamma0 * EOS::RU / wbar);
+  cs = std::sqrt(
+    PeleC::prob_parm_device->T0 * gamma0 * pele::physics::Constants::RU / wbar);
   amrex::Real refL = PeleC::prob_parm_device->L;
   PeleC::prob_parm_device->v0 = PeleC::prob_parm_device->mach * cs;
   TransParm const* ltransparm = trans_parm_g;
@@ -55,7 +57,7 @@ amrex_probinit(
   // Compute the density from the Reynolds number
   PeleC::prob_parm_device->rho0 = PeleC::prob_parm_device->reynolds * mu /
                                   (refL * PeleC::prob_parm_device->v0);
-  EOS::RTY2P(
+  eos.RTY2P(
     PeleC::prob_parm_device->T0, PeleC::prob_parm_device->rho0, massfrac,
     PeleC::prob_parm_device->p0);
 
