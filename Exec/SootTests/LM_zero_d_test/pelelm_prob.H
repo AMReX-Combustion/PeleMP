@@ -11,7 +11,7 @@
 #include <PeleLM_parm.H>
 
 #include <IndexDefines.H>
-#include <EOS.H>
+#include <PelePhysics.H>
 #ifdef SOOT_MODEL
 #include "SootModel.H"
 #endif
@@ -40,10 +40,11 @@ pelelm_initdata(
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
-  EOS::PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  EOS::TY2H(
+  eos.TY2H(
     state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
@@ -51,24 +52,8 @@ pelelm_initdata(
   for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, DEF_first_spec + n) = massfrac[n] * state(i, j, k, Density);
   }
-}
-
-AMREX_GPU_DEVICE
-AMREX_FORCE_INLINE
-void
-pelelm_initsootdata(
-  int i,
-  int j,
-  int k,
-  amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& /*geomdata*/,
-  ProbParm const& /*prob_parm*/,
-  SootData const& soot_data)
-{
-  amrex::GpuArray<amrex::Real, DEF_NUM_SOOT_VARS> sootvars = {{0.0}};
-  soot_data.initialSmallMomVals(sootvars.data());
   for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
-    state(i, j, k, DEF_first_soot + is) = sootvars[is];
+    state(i, j, k, DEF_first_soot + is) = prob_parm.soot_vals[is];
   }
 }
 
@@ -96,11 +81,12 @@ bcnormal(
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
-  EOS::PYT2R(P_cgs, massfrac.data(), prob_parm.T0, rho_cgs);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2R(P_cgs, massfrac.data(), prob_parm.T0, rho_cgs);
   amrex::Real rho_mks = rho_cgs * 1.0e3; // CGS -> MKS conversion
   s_ext[Density] = rho_mks;
   amrex::Real rhoH;
-  EOS::TY2H(prob_parm.T0, massfrac.data(), rhoH);
+  eos.TY2H(prob_parm.T0, massfrac.data(), rhoH);
   s_ext[DEF_RhoH] = rhoH * 1.0e-4 * rho_mks;
   for (int n = 0; n < NUM_SPECIES; n++) {
     s_ext[DEF_first_spec + n] = massfrac[n] * rho_mks;

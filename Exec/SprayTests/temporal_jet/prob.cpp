@@ -26,7 +26,7 @@ amrex_probinit(
   pp.query("vel_smoothing", PeleC::prob_parm_host->velSmooth);
 
   // Initial density, velocity, and material properties
-  PeleC::prob_parm_device->v0 = PeleC::prob_parm_host->partVel;
+  PeleC::h_prob_parm_device->v0 = PeleC::prob_parm_host->partVel;
   pp.query("part_num", PeleC::prob_parm_host->partNum);
   pp.query("part_vel", PeleC::prob_parm_host->partVel);
   pp.query("vel_fluct", PeleC::prob_parm_host->velFluct);

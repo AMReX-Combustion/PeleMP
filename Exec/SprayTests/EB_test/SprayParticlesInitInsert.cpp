@@ -40,7 +40,7 @@ SprayParticleContainer::injectParticles(
   Real jet_area = jet_dia;
 #endif
   Real part_temp = prob_parm.part_temp;
-  SprayData const* fdat = m_fuelData.get();
+  const SprayData* fdat = m_sprayData;
   Real rho_part = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
     rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];

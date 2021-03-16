@@ -83,10 +83,10 @@ read_pmf(const std::string& myfile)
   if (rhoCol < 0 || tempCol < 0 || velCol < 0)
     amrex::Abort("rho, T, and U were not all found");
   int specCol = std::max(tempCol, std::max(rhoCol, velCol)) + 1;
-  PeleC::prob_parm_device->tempCol = tempCol;
-  PeleC::prob_parm_device->rhoCol = rhoCol;
-  PeleC::prob_parm_device->velCol = velCol;
-  PeleC::prob_parm_device->specCol = specCol;
+  PeleC::h_prob_parm_device->tempCol = tempCol;
+  PeleC::h_prob_parm_device->rhoCol = rhoCol;
+  PeleC::h_prob_parm_device->velCol = velCol;
+  PeleC::h_prob_parm_device->specCol = specCol;
   amrex::Print() << variable_count << " variables found in PMF file"
                  << std::endl;
 
@@ -96,31 +96,31 @@ read_pmf(const std::string& myfile)
   }
   amrex::Print() << line_count << " data lines found in PMF file" << std::endl;
 
-  PeleC::prob_parm_device->pmf_N = line_count;
-  PeleC::prob_parm_device->pmf_M = variable_count - 1;
-  PeleC::prob_parm_host->h_pmf_X.resize(PeleC::prob_parm_device->pmf_N);
-  PeleC::prob_parm_host->pmf_X.resize(PeleC::prob_parm_device->pmf_N);
+  PeleC::h_prob_parm_device->pmf_N = line_count;
+  PeleC::h_prob_parm_device->pmf_M = variable_count - 1;
+  PeleC::prob_parm_host->h_pmf_X.resize(PeleC::h_prob_parm_device->pmf_N);
+  PeleC::prob_parm_host->pmf_X.resize(PeleC::h_prob_parm_device->pmf_N);
   PeleC::prob_parm_host->h_pmf_Y.resize(
-    PeleC::prob_parm_device->pmf_N * PeleC::prob_parm_device->pmf_M);
+    PeleC::h_prob_parm_device->pmf_N * PeleC::h_prob_parm_device->pmf_M);
   PeleC::prob_parm_host->pmf_Y.resize(
-    PeleC::prob_parm_device->pmf_N * PeleC::prob_parm_device->pmf_M);
+    PeleC::h_prob_parm_device->pmf_N * PeleC::h_prob_parm_device->pmf_M);
 
   iss.clear();
   iss.seekg(0, std::ios::beg);
   std::getline(iss, firstline);
-  for (unsigned int i = 0; i < PeleC::prob_parm_device->pmf_N; i++) {
+  for (unsigned int i = 0; i < PeleC::h_prob_parm_device->pmf_N; i++) {
     std::getline(iss, remaininglines);
     std::istringstream sinput(remaininglines);
     sinput >> PeleC::prob_parm_host->h_pmf_X[i];
-    for (unsigned int j = 0; j < PeleC::prob_parm_device->pmf_M; j++) {
+    for (unsigned int j = 0; j < PeleC::h_prob_parm_device->pmf_M; j++) {
       sinput >>
-        PeleC::prob_parm_host->h_pmf_Y[j * PeleC::prob_parm_device->pmf_N + i];
+        PeleC::prob_parm_host->h_pmf_Y[j * PeleC::h_prob_parm_device->pmf_N + i];
     }
   }
 
   // Renormalize the mass fractions so they sum to 1
-  const int N = PeleC::prob_parm_device->pmf_N;
-  for (unsigned int i = 0; i < PeleC::prob_parm_device->pmf_N; i++) {
+  const int N = PeleC::h_prob_parm_device->pmf_N;
+  for (unsigned int i = 0; i < PeleC::h_prob_parm_device->pmf_N; i++) {
     amrex::Real sumY = 0.;
     for (int n = 0; n < NUM_SPECIES; n++) {
       const int col = specCol + n;
@@ -143,8 +143,10 @@ read_pmf(const std::string& myfile)
   amrex::Gpu::copy(
     amrex::Gpu::hostToDevice, PeleC::prob_parm_host->h_pmf_Y.begin(),
     PeleC::prob_parm_host->h_pmf_Y.end(), PeleC::prob_parm_host->pmf_Y.begin());
-  PeleC::prob_parm_device->d_pmf_X = PeleC::prob_parm_host->pmf_X.data();
-  PeleC::prob_parm_device->d_pmf_Y = PeleC::prob_parm_host->pmf_Y.data();
+  PeleC::h_prob_parm_device->d_pmf_X = PeleC::prob_parm_host->pmf_X.data();
+  PeleC::h_prob_parm_device->d_pmf_Y = PeleC::prob_parm_host->pmf_Y.data();
+  PeleC::d_prob_parm_device->d_pmf_X = PeleC::prob_parm_host->pmf_X.data();
+  PeleC::d_prob_parm_device->d_pmf_Y = PeleC::prob_parm_host->pmf_Y.data();
 }
 
 void
@@ -157,13 +159,13 @@ init_bc()
   amrex::Real e;
   amrex::Real massfrac[NUM_SPECIES];
   amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
-  const int tempCol = PeleC::prob_parm_device->tempCol;
-  const int velCol = PeleC::prob_parm_device->velCol;
-  const int rhoCol = PeleC::prob_parm_device->rhoCol;
-  const int specCol = PeleC::prob_parm_device->specCol;
+  const int tempCol = PeleC::h_prob_parm_device->tempCol;
+  const int velCol = PeleC::h_prob_parm_device->velCol;
+  const int rhoCol = PeleC::h_prob_parm_device->rhoCol;
+  const int specCol = PeleC::h_prob_parm_device->specCol;
   const amrex::Real yl = 0.0;
   const amrex::Real yr = 0.0;
-  pmf(yl, yr, pmf_vals, *PeleC::prob_parm_device);
+  pmf(yl, yr, pmf_vals, *PeleC::h_prob_parm_device);
   amrex::Real mysum = 0.0;
   for (int n = 0; n < NUM_SPECIES; n++) {
     massfrac[n] = amrex::max<amrex::Real>(0.0, pmf_vals[specCol + n]);
@@ -171,23 +173,23 @@ init_bc()
   }
   massfrac[N2_ID] = 1.0 - (mysum - massfrac[N2_ID]);
   T = pmf_vals[tempCol];
-  PeleC::prob_parm_device->vn_in = pmf_vals[velCol];
-  const amrex::Real p = PeleC::prob_parm_device->pamb;
+  PeleC::h_prob_parm_device->vn_in = pmf_vals[velCol];
+  const amrex::Real p = PeleC::h_prob_parm_device->pamb;
   auto eos = pele::physics::PhysicsType::eos();
   eos.PYT2RE(p, massfrac, T, rho, e);
 
-  vt = PeleC::prob_parm_device->vn_in;
+  vt = PeleC::h_prob_parm_device->vn_in;
   ek = 0.5 * (vt * vt);
 
-  PeleC::prob_parm_device->fuel_state[URHO] = rho;
-  PeleC::prob_parm_device->fuel_state[UMX] = rho * vt;
-  PeleC::prob_parm_device->fuel_state[UMY] = 0.0;
-  PeleC::prob_parm_device->fuel_state[UMZ] = 0.0;
-  PeleC::prob_parm_device->fuel_state[UEINT] = rho * e;
-  PeleC::prob_parm_device->fuel_state[UEDEN] = rho * (e + ek);
-  PeleC::prob_parm_device->fuel_state[UTEMP] = T;
+  PeleC::h_prob_parm_device->fuel_state[URHO] = rho;
+  PeleC::h_prob_parm_device->fuel_state[UMX] = rho * vt;
+  PeleC::h_prob_parm_device->fuel_state[UMY] = 0.0;
+  PeleC::h_prob_parm_device->fuel_state[UMZ] = 0.0;
+  PeleC::h_prob_parm_device->fuel_state[UEINT] = rho * e;
+  PeleC::h_prob_parm_device->fuel_state[UEDEN] = rho * (e + ek);
+  PeleC::h_prob_parm_device->fuel_state[UTEMP] = T;
   for (int n = 0; n < NUM_SPECIES; n++) {
-    PeleC::prob_parm_device->fuel_state[UFS + n - 1] = rho * massfrac[n];
+    PeleC::h_prob_parm_device->fuel_state[UFS + n - 1] = rho * massfrac[n];
   }
 }
 
@@ -208,15 +210,15 @@ amrex_probinit(
   std::string pmf_datafile;
 
   amrex::ParmParse pp("prob");
-  pp.get("pamb", PeleC::prob_parm_device->pamb);
-  pp.query("phi_in", PeleC::prob_parm_device->phi_in);
-  pp.query("T_in", PeleC::prob_parm_device->T_in);
-  pp.query("vn_in", PeleC::prob_parm_device->vn_in);
+  pp.get("pamb", PeleC::h_prob_parm_device->pamb);
+  pp.query("phi_in", PeleC::h_prob_parm_device->phi_in);
+  pp.query("T_in", PeleC::h_prob_parm_device->T_in);
+  pp.query("vn_in", PeleC::h_prob_parm_device->vn_in);
   pp.get("pmf_datafile", pmf_datafile);
 
-  AMREX_D_TERM(PeleC::prob_parm_device->L[0] = probhi[0] - problo[0];
-               , PeleC::prob_parm_device->L[1] = probhi[1] - problo[1];
-               , PeleC::prob_parm_device->L[2] = probhi[2] - problo[2];);
+  AMREX_D_TERM(PeleC::h_prob_parm_device->L[0] = probhi[0] - problo[0];
+               , PeleC::h_prob_parm_device->L[1] = probhi[1] - problo[1];
+               , PeleC::h_prob_parm_device->L[2] = probhi[2] - problo[2];);
 
   read_pmf(pmf_datafile);
 
@@ -225,7 +227,7 @@ amrex_probinit(
   SootData* const sd = PeleC::soot_model->getSootData();
   sd->initialSmallMomVals(moments);
   for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
-    PeleC::prob_parm_device->soot_vals[n] = moments[n];
+    PeleC::h_prob_parm_device->soot_vals[n] = moments[n];
   }
 }
 }

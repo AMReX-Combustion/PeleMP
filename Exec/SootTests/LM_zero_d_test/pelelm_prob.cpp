@@ -20,8 +20,14 @@ amrex_probinit(
   pp.query("init_fuel", PeleLM::prob_parm->Y_Fuel);
   std::string fuel_name = "C2H4";
   pp.query("fuel_name", fuel_name);
+  amrex::Real moments[NUM_SOOT_MOMENTS + 1];
+  SootData* const sd = PeleLM::soot_model->getSootData();
+  sd->initialSmallMomVals(moments);
+  for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
+    PeleLM::prob_parm->soot_vals[n] = moments[n];
+  }
   amrex::Vector<std::string> spec_names;
-  EOS::speciesNames(spec_names);
+  pele::physics::eos::speciesNames(spec_names);
   for (int sp = 0; sp < NUM_SPECIES; ++sp) {
     std::string spec_name = spec_names[sp];
     if (spec_name == fuel_name)

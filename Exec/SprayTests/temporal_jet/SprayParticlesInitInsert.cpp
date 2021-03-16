@@ -45,7 +45,7 @@ SprayParticleContainer::InitSprayParticles(
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateY = m_sprayIndx.pstateY;
-  SprayData const* fdat = m_fuelData.get();
+  const SprayData* fdat = m_sprayData;
   Real rho_part = fdat->rho[0];
   Real T_ref = prob_parm.partTemp;
   const auto dx = Geom(lev).CellSizeArray();

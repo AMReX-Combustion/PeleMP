@@ -54,7 +54,7 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
   const int IOProc = ParallelDescriptor::IOProcessorNumber();
-  SprayData const* fdat = m_fuelData.get();
+  const SprayData* fdat = m_sprayData;
   Real part_rho = fdat->rho[0];
   Real part_dia = prob_parm.partDia;
   Real T_ref = prob_parm.partTemp;

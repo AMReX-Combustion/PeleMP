@@ -11,7 +11,7 @@
 #include <PeleLM_parm.H>
 
 #include <IndexDefines.H>
-#include <EOS.H>
+#include <PelePhysics.H>
 #ifdef SOOT_MODEL
 #include "SootModel.H"
 #endif
@@ -49,10 +49,11 @@ pelelm_initdata(
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
-  EOS::PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  EOS::TY2H(
+  eos.TY2H(
     state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
@@ -103,10 +104,11 @@ bcnormal(
     amrex::Real rho_cgs, P_cgs, RhoH_temp;
     P_cgs = prob_parm.P_mean * 10.0;
 
-    EOS::PYT2R(P_cgs, massfrac, s_ext[DEF_Temp], rho_cgs);
+    auto eos = pele::physics::PhysicsType::eos();
+    eos.PYT2R(P_cgs, massfrac, s_ext[DEF_Temp], rho_cgs);
     s_ext[Density] = rho_cgs * 1.0e3;
 
-    EOS::TY2H(s_ext[DEF_Temp], massfrac, RhoH_temp);
+    eos.TY2H(s_ext[DEF_Temp], massfrac, RhoH_temp);
     s_ext[DEF_RhoH] =
       RhoH_temp * 1.0e-4 * s_ext[Density]; // CGS -> MKS conversion
 

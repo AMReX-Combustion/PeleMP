@@ -11,7 +11,7 @@
 #include <PeleLM_parm.H>
 
 #include <IndexDefines.H>
-#include <EOS.H>
+#include <PelePhysics.H>
 
 AMREX_GPU_DEVICE
 inline void
@@ -44,10 +44,11 @@ pelelm_initdata(
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
-  EOS::PYT2R(P_cgs, massfrac, state(i, j, k, DEF_Temp), rho_cgs);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2R(P_cgs, massfrac, state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  EOS::TY2H(state(i, j, k, DEF_Temp), massfrac, state(i, j, k, DEF_RhoH));
+  eos.TY2H(state(i, j, k, DEF_Temp), massfrac, state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
 
@@ -80,11 +81,12 @@ bcnormal(
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
-  EOS::PYT2R(P_cgs, massfrac, prob_parm.T0, rho_cgs);
+  auto eos = pele::physics::PhysicsType::eos();
+  eos.PYT2R(P_cgs, massfrac, prob_parm.T0, rho_cgs);
   amrex::Real rho_mks = rho_cgs * 1.0e3; // CGS -> MKS conversion
   s_ext[Density] = rho_mks;
   amrex::Real rhoH;
-  EOS::TY2H(prob_parm.T0, massfrac, rhoH);
+  eos.TY2H(prob_parm.T0, massfrac, rhoH);
   s_ext[DEF_RhoH] = rhoH * 1.0e-4 * rho_mks;
   for (int n = 0; n < NUM_SPECIES; n++) {
     s_ext[DEF_first_spec + n] = massfrac[n] * rho_mks;

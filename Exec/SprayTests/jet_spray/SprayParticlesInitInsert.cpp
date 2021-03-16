@@ -36,7 +36,7 @@ SprayParticleContainer::injectParticles(
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateY = m_sprayIndx.pstateY;
-  SprayData const* fdat = m_fuelData.get();
+  const SprayData* fdat = m_sprayData;
   Real rho_part = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
     rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];
@@ -230,7 +230,8 @@ SprayParticleContainer::injectParticles(
 }
 
 void
-SprayParticleContainer::InitSprayParticles(ProbParmHost const& prob_parm)
+SprayParticleContainer::InitSprayParticles(ProbParmHost const& prob_parm,
+                                           ProbParmDevice const& prob_parm_d)
 {
   // Start without any particles
   return;

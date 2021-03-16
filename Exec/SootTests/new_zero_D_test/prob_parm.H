@@ -4,7 +4,7 @@
 #include <AMReX_REAL.H>
 #include <AMReX_GpuQualifiers.H>
 
-struct ProbParmDevice : amrex::Gpu::Managed
+struct ProbParmDevice
 {
   amrex::Real p0 = 1.013e6; // [erg cm^-3]
   amrex::Real T0 = 300.0;
@@ -16,7 +16,7 @@ struct ProbParmDevice : amrex::Gpu::Managed
   int fuelIndx = -1;
 };
 
-struct ProbParmHost : amrex::Gpu::Managed
+struct ProbParmHost
 {
 };
 

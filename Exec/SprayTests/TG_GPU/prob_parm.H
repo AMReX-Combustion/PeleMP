@@ -5,7 +5,7 @@
 #include <AMReX_GpuQualifiers.H>
 #include <AMReX_IntVect.H>
 
-struct ProbParmDevice : amrex::Gpu::Managed
+struct ProbParmDevice
 {
   amrex::Real reynolds = 1600.0;
   amrex::Real mach = 0.1;
@@ -19,7 +19,7 @@ struct ProbParmDevice : amrex::Gpu::Managed
   amrex::Real Y_N2 = 0.767;
 };
 
-struct ProbParmHost : amrex::Gpu::Managed
+struct ProbParmHost
 {
   amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
   amrex::Real partTemp = 300.;

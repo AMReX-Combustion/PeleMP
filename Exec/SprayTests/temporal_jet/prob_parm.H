@@ -5,7 +5,7 @@
 #include <AMReX_GpuQualifiers.H>
 #include <AMReX_IntVect.H>
 
-struct ProbParmDevice : amrex::Gpu::Managed
+struct ProbParmDevice
 {
   amrex::Real p0 = 1.013e6; // [erg cm^-3]
   amrex::Real T0 = 900.0;
@@ -15,7 +15,7 @@ struct ProbParmDevice : amrex::Gpu::Managed
   amrex::Real L_jet = 0.01;
 };
 
-struct ProbParmHost : amrex::Gpu::Managed
+struct ProbParmHost
 {
   int partNum = 8000;
   amrex::Real partTemp = 300.;
