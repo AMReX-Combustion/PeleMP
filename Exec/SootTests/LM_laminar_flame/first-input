@@ -1,6 +1,6 @@
 #----------------------------TOP LEVEL INPUTS----------------------
-max_step = 100
-stop_time = 0.012
+max_step = 1000
+stop_time = 0.022
 
 # ----------------  PROBLEM DEPENDENT INPUTS
 geometry.is_periodic = 0 1 1
