@@ -175,6 +175,7 @@ SprayParticleContainer::injectParticles(
           Real x_vel = jet_vel * std::sin(theta) * std::cos(theta2);
           Real y_vel = jet_vel * std::cos(theta);
           Real z_vel = jet_vel * std::sin(theta) * std::sin(theta2);
+          RealVect part_vel(AMREX_D_DECL(x_vel, y_vel, z_vel));
 #ifdef USE_SPRAY_SOA
           AMREX_D_TERM(host_real_attribs[pstateVel].push_back(x_vel);
                        , host_real_attribs[pstateVel + 1].push_back(y_vel);
@@ -187,9 +188,10 @@ SprayParticleContainer::injectParticles(
           Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
           // Use a log normal distribution
           cur_dia = std::exp(cur_dia);
-          Real part_y = plo[1] + amrex::Random() * dt * y_vel;
-          AMREX_D_TERM(p.pos(0) = part_loc[0];, p.pos(1) = part_y;
-                       , p.pos(2) = part_loc[2];);
+          // Add particles as if they have advanced some random portion of dt
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            p.pos(dir) = part_loc[dir] + amrex::Random() * dt * part_vel[dir];
+          }
 #ifdef USE_SPRAY_SOA
           host_real_attribs[pstateT].push_back(part_temp);
           host_real_attribs[pstateDia].push_back(cur_dia);
@@ -207,23 +209,25 @@ SprayParticleContainer::injectParticles(
         }
       }
     }
-    auto& particle_tile =
-      GetParticles(lev)[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
-    auto old_size = particle_tile.GetArrayOfStructs().size();
-    auto new_size = old_size + host_particles.size();
-    particle_tile.resize(new_size);
+    if (host_particles.size() > 0) {
+      auto& particle_tile =
+        GetParticles(lev)[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
+      auto old_size = particle_tile.GetArrayOfStructs().size();
+      auto new_size = old_size + host_particles.size();
+      particle_tile.resize(new_size);
 
-    Gpu::copy(
-      Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
-      particle_tile.GetArrayOfStructs().begin() + old_size);
-#ifdef USE_SPRAY_SOA
-    for (int i = 0; i != NAR_SPR; ++i) {
       Gpu::copy(
-        Gpu::hostToDevice, host_real_attribs[i].begin(),
-        host_real_attribs[i].end(),
-        particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
-    }
+        Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
+        particle_tile.GetArrayOfStructs().begin() + old_size);
+#ifdef USE_SPRAY_SOA
+      for (int i = 0; i != NAR_SPR; ++i) {
+        Gpu::copy(
+          Gpu::hostToDevice, host_real_attribs[i].begin(),
+          host_real_attribs[i].end(),
+          particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+      }
 #endif
+    }
   }
   // Redistribute is done outside of this function
   return true;

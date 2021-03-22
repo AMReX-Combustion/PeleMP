@@ -37,6 +37,8 @@ amrex.fpe_trap_zero = 1
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
 peleLM.lo_bc = Inflow Interior Interior
 peleLM.hi_bc = Outflow Interior Interior
+# peleLM.lo_bc = Inflow SlipWallAdiab Interior
+# peleLM.hi_bc = Outflow SlipWallAdiab Interior
 
 #-------------------------AMR INPUTS----------------------------
 
@@ -60,7 +62,7 @@ amr.derive_plot_vars = avg_pressure rhoRT mass_fractions soot_vars soot_large_pa
 ns.dt_cutoff       = 5.e-10   # level 0 timestep below which we halt
 ns.visc_tol        = 1.0e-12  # tolerence for viscous solves
 ns.visc_abs_tol    = 1.0e-12  # tolerence for viscous solves
-ns.cfl            = 0.8       # cfl number for hyperbolic system
+ns.cfl            = 0.3       # cfl number for hyperbolic system
 ns.init_shrink    = 0.1       # scale back initial timestep
 ns.change_max     = 1.1       # scale back initial timestep
 ns.init_iter      = 5        # number of init iters to def pressure
