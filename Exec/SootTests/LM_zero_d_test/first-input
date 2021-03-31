@@ -32,6 +32,8 @@ amrex.fpe_trap_overflow = 1
 amrex.fpe_trap_invalid = 1
 amrex.fpe_trap_zero = 1
 
+peleLM.use_typ_vals_chem = 1
+
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
