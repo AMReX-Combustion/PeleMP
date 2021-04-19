@@ -69,7 +69,7 @@ ns.gravity        = 0        # body force  (gravity in MKS units)
 ns.sum_interval   = 1        # timesteps between computing mass
 ns.do_reflux      = 1        # 1 => do refluxing
 ns.do_mac_proj    = 1        # 1 => do MAC projection
-ns.init_dt        = 1.E-7
+ns.init_dt        = 5.E-7
 #ns.fixed_dt       = 1.E-7
 ns.dpdt_option = 0
 
