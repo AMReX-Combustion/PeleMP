@@ -106,6 +106,7 @@ prob.init_O2 = 0.
 # Jet properties
 prob.jet_dia = 9.E-3
 prob.spray_angle_deg = 21.
+prob.jet_dx_mod = 50.
 
 # Properties of injected particles
 prob.part_rho = 0.693

@@ -17,6 +17,8 @@ amrex_probinit(
   pp.query("init_N2", PeleC::h_prob_parm_device->Y_N2);
   pp.query("init_O2", PeleC::h_prob_parm_device->Y_O2);
   pp.query("jet_vel", PeleC::prob_parm_host->jet_vel);
+  // The cells are divided by this value when prescribing the jet inlet
+  pp.query("jet_dx_mod", PeleC::prob_parm_host->jet_dx_mod);
   pp.get("jet_dia", PeleC::prob_parm_host->jet_dia);
   pp.get("part_mean_dia", PeleC::prob_parm_host->part_mean_dia);
   pp.query("part_stdev_dia", PeleC::prob_parm_host->part_stdev_dia);

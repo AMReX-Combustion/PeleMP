@@ -2,6 +2,7 @@
 
 # Tells script to stop running as soon as an error occurs
 set -e
+#EXEC="./PeleC2d.llvm.TPROF.MPI.ex"
 EXEC="./PeleC2d.gnu.TPROF.MPI.ex"
 TPD="output_files"
 # For name of grid input file
@@ -48,7 +49,7 @@ for gsi in "${!gridsizes[@]}"; do
             amr.regrid_file = $regridfile
 done
 cd ${TPD}
-FCOMP_EXEC=/Users/ldowen/Codes/amrex/Tools/Plotfile/fcompare.gnu.ex
+FCOMP_EXEC=$AMREX_HOME/Tools/Plotfile/fcompare.gnu.ex
 set +e
 ${FCOMP_EXEC} -a -r 8.E-12 ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>comp.log
 cat comp.log

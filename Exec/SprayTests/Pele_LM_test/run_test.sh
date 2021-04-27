@@ -2,6 +2,7 @@
 
 # Tells script to stop running as soon as an error occurs
 set -e
+#EXEC="./PeleLM2d.gnu.MPI.ex"
 EXEC="./PeleLM2d.llvm.MPI.ex"
 TPD="output_files"
 # For name of grid input file
@@ -49,7 +50,7 @@ for gsi in "${!gridsizes[@]}"; do
 done
 cd ${TPD}
 # Must fill in the path to fcompare here
-FCOMP_EXEC=/Users/ldowen/Codes/amrex/Tools/Plotfile/fcompare.gnu.ex
+FCOMP_EXEC=$AMREX_HOME/Tools/Plotfile/fcompare.gnu.ex
 set +e
 ${FCOMP_EXEC} -a -r 8.E-12 ${gridsizes[0]}_BOX/plt${NUM_ITER} ${gridsizes[1]}_BOX/plt${NUM_ITER}>comp.log
 cat comp.log
