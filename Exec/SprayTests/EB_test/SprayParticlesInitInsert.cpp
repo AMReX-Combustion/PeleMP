@@ -4,6 +4,8 @@
 #include <PeleC.H>
 #include "prob.H"
 
+using namespace amrex;
+
 bool
 SprayParticleContainer::injectParticles(
   Real time,
@@ -22,6 +24,11 @@ SprayParticleContainer::injectParticles(
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateY = m_sprayIndx.pstateY;
+  const SprayData* fdat = m_sprayData;
+  Real rho_part = 0.;
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
+    rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];
+  rho_part = 1. / rho_part;
   // Number of particles per parcel
   const Real num_ppp = m_parcelSize;
   const Geometry& geom = this->m_gdb->Geom(lev);
@@ -33,6 +40,13 @@ SprayParticleContainer::injectParticles(
   Real mass_flow_rate = prob_parm.mass_flow_rate;
   Real jet_vel = prob_parm.jet_vel;
   Real jet_dia = prob_parm.jet_dia;
+  const Real dx_mod = prob_parm.jet_dx_mod;
+  if (10. * dx[0] / dx_mod > jet_dia) {
+    int newdxmod = int(dx[0] / jet_dia * 10.);
+    std::string abrtmsg =
+      "jet_dx_mod must be at least " + std::to_string(newdxmod);
+    Abort(abrtmsg);
+  }
   Real jr2 = jet_dia * jet_dia / 4.; // Jet radius squared
 #if AMREX_SPACEDIM == 3
   Real jet_area = M_PI * jr2;
@@ -40,11 +54,6 @@ SprayParticleContainer::injectParticles(
   Real jet_area = jet_dia;
 #endif
   Real part_temp = prob_parm.part_temp;
-  const SprayData* fdat = m_sprayData;
-  Real rho_part = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
-    rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];
-  rho_part = 1. / rho_part;
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
   if (jet_vel * dt / dx[0] > 0.5) {
@@ -87,7 +96,7 @@ SprayParticleContainer::injectParticles(
         xhi[0] - prob_parm.jet_cent[0], plo[1],
         xhi[2] - prob_parm.jet_cent[2]));
       Real cur_jet_area = 0.;
-      Real testdx = dx[0] / 100.;
+      Real testdx = dx[0] / dx_mod;
       Real testdx2 = testdx * testdx;
       Real curx = xloJ[0];
       Real hix = xloJ[0];
@@ -162,8 +171,9 @@ SprayParticleContainer::injectParticles(
           // Use a log normal distribution
           cur_dia = std::exp(cur_dia);
           // Add particles as if they have advanced some random portion of dt
+          Real pmov = amrex::Random();
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            p.pos(dir) = part_loc[dir] + amrex::Random() * dt * part_vel[dir];
+            p.pos(dir) = part_loc[dir] + pmov * dt * part_vel[dir];
           }
 #ifdef USE_SPRAY_SOA
           host_real_attribs[pstateT].push_back(part_temp);
@@ -182,23 +192,24 @@ SprayParticleContainer::injectParticles(
         }
       }
     }
-    auto& particle_tile =
-      GetParticles(lev)[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
-    auto old_size = particle_tile.GetArrayOfStructs().size();
-    auto new_size = old_size + host_particles.size();
-    particle_tile.resize(new_size);
-
-    Gpu::copy(
-      Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
-      particle_tile.GetArrayOfStructs().begin() + old_size);
-#ifdef USE_SPRAY_SOA
-    for (int i = 0; i != NAR_SPR; ++i) {
+    if (host_particles.size() > 0) {
+      auto& particle_tile =
+        GetParticles(lev)[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
+      auto old_size = particle_tile.GetArrayOfStructs().size();
+      auto new_size = old_size + host_particles.size();
+      particle_tile.resize(new_size);
       Gpu::copy(
-        Gpu::hostToDevice, host_real_attribs[i].begin(),
-        host_real_attribs[i].end(),
-        particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
-    }
+        Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
+        particle_tile.GetArrayOfStructs().begin() + old_size);
+#ifdef USE_SPRAY_SOA
+      for (int i = 0; i != NAR_SPR; ++i) {
+        Gpu::copy(
+          Gpu::hostToDevice, host_real_attribs[i].begin(),
+          host_real_attribs[i].end(),
+          particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+      }
 #endif
+    }
   }
   // Redistribute is done outside of this function
   return true;

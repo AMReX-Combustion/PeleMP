@@ -1,26 +1,26 @@
+#----------------------------TOP LEVEL INPUTS----------------------
+max_step = 1000000
+stop_time = 0.01
+
 # ----------------  PROBLEM DEPENDENT INPUTS
 geometry.is_periodic = 1 0 1
 
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ
 
 geometry.prob_lo = 0. 0. 0.
-geometry.prob_hi = 1. 1. 1.
-prob.num_particles = (150,150,150)
-prob.ref_p = 101325.
-prob.ref_T = 500.
-prob.init_vel = 1.
-prob.part_temp = 300.
-prob.part_dia = 1.E-5
-prob.part_vel = 150. 150. 0.
+geometry.prob_hi = 0.08 0.005 0.005
+prob.ref_p = 1013250.
+prob.ref_T = 1500.
+prob.init_vel = 0.
 
 ns.use_wbar = 0
 
-amr.max_level = 2
+amr.max_level = 0
 amr.ref_ratio = 2 2 2 2 # refinement ratio
 amr.regrid_int = -1 -1 -1
-amr.initial_grid_file = two_d_gridfiles/gridfile_32
+#amr.initial_grid_file = two_d_gridfiles/gridfile_32
 amr.max_grid_size = 32
-amr.blocking_factor = 32
+amr.blocking_factor = 16
 #amr.initial_grid_file = two_d_gridfiles/gridfile_128
 # amr.max_grid_size = 128
 # amr.blocking_factor = 128
@@ -35,41 +35,36 @@ amrex.fpe_trap_zero = 1
 peleLM.lo_bc = Interior Outflow Interior
 peleLM.hi_bc = Interior Outflow Interior
 
-#----------------------------TOP LEVEL INPUTS----------------------
-max_step = 5
-stop_time = 0.008
-
 #-------------------------AMR INPUTS----------------------------
-amr.n_cell    = 128 128 128
+amr.n_cell    = 256 16 16
 
 amr.v=1
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.9     # what constitutes an efficient grid
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
-#amr.restart = chk00005
+#amr.restart = chk00000
 amr.checkpoint_files_output = 0
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 10000       # number of timesteps between checkpoints
 
 amr.plot_file = plt
-amr.plot_int = 100000
-amr.derive_plot_vars= avg_pressure rhoRT mass_fractions
-#rhominsumrhoY
+amr.plot_per = 1.6E-4
+amr.derive_plot_vars= avg_pressure mass_fractions
 
 # ------------------  INPUTS TO PHYSICS CLASS -------------------
 ns.dt_cutoff       = 5.e-10   # level 0 timestep below which we halt
 ns.visc_tol        = 1.0e-12  # tolerence for viscous solves
 ns.visc_abs_tol    = 1.0e-12  # tolerence for viscous solves
-ns.cfl            = 0.7       # cfl number for hyperbolic system
+ns.cfl            = 0.3       # cfl number for hyperbolic system
 ns.init_shrink    = 0.5       # scale back initial timestep
 ns.change_max     = 1.1       # scale back initial timestep
-ns.init_iter      = 5        # number of init iters to def pressure
+ns.init_iter      = 0        # number of init iters to def pressure
 ns.gravity        = 0        # body force  (gravity in MKS units)
 ns.sum_interval   = 1        # timesteps between computing mass
 ns.do_reflux      = 1        # 1 => do refluxing
 ns.do_mac_proj    = 1        # 1 => do MAC projection
-ns.init_dt        = 1.E-5
+ns.init_dt        = 5.E-5
 ns.dpdt_option = 0
 
 ns.do_sync_proj   = 1        # 1 => do Sync Project
@@ -89,7 +84,7 @@ ns.divu_dt_factor = .4
 ns.min_rho_divu_ceiling = .01
 
 ns.fuelName        = NC10H22
-ns.hack_nochem = 0
+ns.hack_nochem = 1
 ns.unity_Le = 0
 
 ns.zeroBndryVisc= 1
@@ -170,15 +165,15 @@ particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.heat_transfer = 1
-particles.particle_init_function = 1
-# Particle data in file must be in MKS
-#particles.particle_init_file = "initspraydata"
+particles.particle_init_function = 0
+# Particle input files must use MKS units
+particles.particle_init_file = "initspraydata"
 #particles.particle_init_file = "initspraydata3d"
-particles.write_spray_ascii_files = 0
+particles.write_spray_ascii_files = 1
 particles.parcel_size = 1.
 
 particles.fuel_species = NC10H22
-# properties for decane, must be in MKS
+# properties for decane, must use MKS units
 particles.fuel_crit_temp = 617.8 # K
 particles.fuel_boil_temp = 447.27 # K
 # If we want the reference point to be same as the boiling temperature

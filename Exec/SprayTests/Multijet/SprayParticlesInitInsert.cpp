@@ -19,17 +19,18 @@ interpolateInjectTime(
 }
 
 Real
-jetOverlapArea (const Real testdx,
-                const RealVect xloJ,
-                const RealVect xhiJ,
-                const RealVect jet_cent,
-                const Real jr2,
+jetOverlapArea(
+  const Real testdx,
+  const RealVect xloJ,
+  const RealVect xhiJ,
+  const RealVect jet_cent,
+  const Real jr2,
 #if AMREX_SPACEDIM == 3
-                Real& loz,
-                Real& hiz,
+  Real& loz,
+  Real& hiz,
 #endif
-                Real& lox,
-                Real& hix)
+  Real& lox,
+  Real& hix)
 {
   // This is how much we reduce x to test for the area of the jet
   // This helps if the jet size is smaller than cell size
@@ -108,7 +109,8 @@ SprayParticleContainer::injectParticles(
   Real dx_mod = prob_parm.jet_dx_mod;
   if (10. * dx[0] / dx_mod > jet_dia) {
     int newdxmod = int(dx[0] / jet_dia * 10.);
-    std::string abrtmsg = "jet_dx_mod must be at least " + std::to_string(newdxmod);
+    std::string abrtmsg =
+      "jet_dx_mod must be at least " + std::to_string(newdxmod);
     Abort(abrtmsg);
   }
   Real jr2 = jet_dia * jet_dia / 4.; // Jet radius squared
@@ -162,19 +164,19 @@ SprayParticleContainer::injectParticles(
         }
         // Box locations relative to jet center
         const RealVect xloJ(AMREX_D_DECL(
-          xlo[0] - cur_jet_cent[0], plo[1],
-          xlo[2] - cur_jet_cent[2]));
+          xlo[0] - cur_jet_cent[0], plo[1], xlo[2] - cur_jet_cent[2]));
         const RealVect xhiJ(AMREX_D_DECL(
-          xhi[0] - cur_jet_cent[0], plo[1],
-          xhi[2] - cur_jet_cent[2]));
+          xhi[0] - cur_jet_cent[0], plo[1], xhi[2] - cur_jet_cent[2]));
         Real lox, hix;
 #if AMREX_SPACEDIM == 3
         Real loz, hiz;
-        Real cur_jet_area = jetOverlapArea(dx[0] / dx_mod, xloJ, xhiJ, cur_jet_cent, jr2, loz, hiz, lox, hix);
+        Real cur_jet_area = jetOverlapArea(
+          dx[0] / dx_mod, xloJ, xhiJ, cur_jet_cent, jr2, loz, hiz, lox, hix);
         Real zlen = hiz - loz;
         loz += cur_jet_cent[2];
 #else
-        Real cur_jet_area = jetOverlapArea(dx[0] / dx_mod, xloJ, xhiJ, cur_jet_cent, jr2, lox, hix);
+        Real cur_jet_area = jetOverlapArea(
+          dx[0] / dx_mod, xloJ, xhiJ, cur_jet_cent, jr2, lox, hix);
 #endif
         Real xlen = hix - lox;
         lox += cur_jet_cent[0];
@@ -184,10 +186,11 @@ SprayParticleContainer::injectParticles(
           Real total_mass = 0.;
           while (total_mass < perc_mass) {
             RealVect part_loc(AMREX_D_DECL(
-              lox + amrex::Random() * xlen, plo[1], loz + amrex::Random() * zlen));
+              lox + amrex::Random() * xlen, plo[1],
+              loz + amrex::Random() * zlen));
             Real r2 = AMREX_D_TERM(
               std::pow(part_loc[0] - cur_jet_cent[0], 2), ,
-              + std::pow(part_loc[2] - cur_jet_cent[2], 2));
+              +std::pow(part_loc[2] - cur_jet_cent[2], 2));
             if (r2 <= jr2) {
               ParticleType p;
               p.id() = ParticleType::NextID();
@@ -205,7 +208,8 @@ SprayParticleContainer::injectParticles(
 #ifdef USE_SPRAY_SOA
               AMREX_D_TERM(host_real_attribs[pstateVel].push_back(x_vel);
                            , host_real_attribs[pstateVel + 1].push_back(y_vel);
-                           , host_real_attribs[pstateVel + 2].push_back(z_vel););
+                           ,
+                           host_real_attribs[pstateVel + 2].push_back(z_vel););
 #else
               AMREX_D_TERM(p.rdata(pstateVel) = x_vel;
                            , p.rdata(pstateVel + 1) = y_vel;
@@ -214,7 +218,8 @@ SprayParticleContainer::injectParticles(
               Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
               // Use a log normal distribution
               cur_dia = std::exp(cur_dia);
-              // Add particles as if they have advanced some random portion of dt
+              // Add particles as if they have advanced some random portion of
+              // dt
               Real pmov = amrex::Random();
               for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 p.pos(dir) = part_loc[dir] + pmov * dt * part_vel[dir];
@@ -252,7 +257,8 @@ SprayParticleContainer::injectParticles(
           Gpu::copy(
             Gpu::hostToDevice, host_real_attribs[i].begin(),
             host_real_attribs[i].end(),
-            particle_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+            particle_tile.GetStructOfArrays().GetRealData(i).begin() +
+              old_size);
         }
 #endif
       }
@@ -263,8 +269,8 @@ SprayParticleContainer::injectParticles(
 }
 
 void
-SprayParticleContainer::InitSprayParticles(ProbParmHost const& prob_parm,
-                                           ProbParmDevice const& prob_parm_d)
+SprayParticleContainer::InitSprayParticles(
+  ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
 {
   // Start without any particles
   return;
