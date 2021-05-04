@@ -1,434 +1,512 @@
 
-#include <SprayParticles.H>
-#include <Transport_F.H>
-#include <drag_F.H>
+#include "SprayParticles.H"
+#include <AMReX_ParticleReduce.H>
+#include <AMReX_Particles.H>
+#ifdef SPRAY_PELE_LM
+#include "PeleLM.H"
+#endif
+#include "Drag.H"
+#include "SprayInterpolation.H"
+#include "Transport.H"
+#include "WallFunctions.H"
+#ifdef AMREX_USE_EB
+#include <AMReX_EBFArrayBox.H>
+#endif
 
 using namespace amrex;
 
 void
 SprayParticleContainer::init_bcs()
 {
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
-    {
-       if (phys_bc->lo(dir) == Symmetry   ||
-           phys_bc->lo(dir) == SlipWall   ||
-           phys_bc->lo(dir) == NoSlipWall)
-       {
-          reflect_lo[dir] = 1;
-       } else {
-          reflect_lo[dir] = 0;
-       }
-       if (phys_bc->hi(dir) == Symmetry   ||
-           phys_bc->hi(dir) == SlipWall   ||
-           phys_bc->hi(dir) == NoSlipWall)
-       {
-          reflect_hi[dir] = 1;
-       } else {
-          reflect_hi[dir] = 0;
-       }
+  for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
+    if (
+      phys_bc->lo(dir) == Symmetry || phys_bc->lo(dir) == SlipWall ||
+      phys_bc->lo(dir) == NoSlipWall) {
+      reflect_lo[dir] = true;
+    } else {
+      reflect_lo[dir] = false;
     }
+    if (
+      phys_bc->hi(dir) == Symmetry || phys_bc->hi(dir) == SlipWall ||
+      phys_bc->hi(dir) == NoSlipWall) {
+      reflect_hi[dir] = true;
+    } else {
+      reflect_hi[dir] = false;
+    }
+  }
 }
 
 void
-SprayParticleContainer::SetAll (Real val, int pstate_idx, int lev)
+SprayParticleContainer::moveKick(
+  MultiFab& state,
+  MultiFab& source,
+  const int level,
+  const Real& dt,
+  const Real time,
+  const bool isVirtualPart,
+  const bool isGhostPart,
+  const int state_ghosts,
+  const int source_ghosts,
+  MultiFab* u_mac)
 {
-    BL_ASSERT(lev >= 0 && lev < GetParticles().size());
+  bool do_move = false;
+  int width = 0;
+  moveKickDrift(
+    state, source, level, dt, time, isVirtualPart, isGhostPart, state_ghosts,
+    source_ghosts, do_move, width, u_mac);
+}
 
-    ParticleLevel& plev = GetParticles(lev);
+void
+SprayParticleContainer::moveKickDrift(
+  MultiFab& state,
+  MultiFab& source,
+  const int level,
+  const Real& dt,
+  const Real time,
+  const bool isVirtualPart,
+  const bool isGhostPart,
+  const int state_ghosts,
+  const int source_ghosts,
+  const bool do_move,
+  const int /*where_width*/,
+  MultiFab* u_mac)
+{
+  BL_PROFILE("ParticleContainer::moveKickDrift()");
+  AMREX_ASSERT(u_mac == nullptr || u_mac[0].nGrow() >= 1);
+  AMREX_ASSERT(level >= 0);
+  AMREX_ASSERT(state.nGrow() >= 2);
 
-    for (auto& kv : plev)
-    {
-        AoS& particles = kv.second.GetArrayOfStructs();
-
-	for (auto& p : particles)
-        {
-            if (p.id() > 0)
-            {
-                p.rdata(pstate_idx) = val;
-            }
-        }
-    }
-
+  // If there are no particles at this level
+  if (level >= this->GetParticles().size())
     return;
-}
 
-void
-SprayParticleContainer::moveKickDrift (MultiFab& state,
-                                      MultiFab& source,
-                                      int       lev,
-                                      Real      dt,
-                                      int       tmp_src_width,
-                                      int       where_width)
-{
-    const Real* dx = Geom(lev).CellSize();
-    ParticleLevel&    pmap          = this->GetParticles(lev);
+  bool isActive = (isVirtualPart || isGhostPart) ? false : true;
 
-    BL_PROFILE("ParticleContainer::moveKickDrift()");
-    BL_ASSERT(lev >= 0);
-    //std::cout << " GROW -1" << state.nGrow() << std::endl;
-    BL_ASSERT(state.nGrow() >= 2);
+  BL_PROFILE_VAR("SprayParticles::updateParticles()", UPD_PART);
+  updateParticles(
+    level, state, source, dt, time, state_ghosts, source_ghosts, isActive,
+    do_move, u_mac);
+  BL_PROFILE_VAR_STOP(UPD_PART);
 
-    //If there are no particles at this level
-    if (lev >= this->GetParticles().size())
-        return;
+  // Fill ghost cells after we've synced up ..
+  // TODO: Check to see if this is needed at all
+  // if (level > 0)
+  //   source.FillBoundary(Geom(level).periodicity());
 
-    const Real strttime      = ParallelDescriptor::second();
+  // ********************************************************************************
 
-    MultiFab* state_ptr;
-    MultiFab* tmp_src_ptr;
-
-    // ********************************************************************************
-    // We only make a new state_ptr if the boxArray of the state differs from the
-    // boxArray onto which the particles are decomposed
-    // ********************************************************************************
-
-    if (this->OnSameGrids(lev, state))
-    {
-        state_ptr = &state;
-    }
-    else
-    {
-        state_ptr = new MultiFab(this->m_gdb->ParticleBoxArray(lev),
-                                        this->m_gdb->ParticleDistributionMap(lev),
-                                        state.nComp(), state.nGrow());
-        state_ptr->setVal(0.);
-        state_ptr->copy(state,0,0,state.nComp());
-        state_ptr->FillBoundary(Geom(lev).periodicity()); 
-    }
-
-    // ********************************************************************************
-    // We make a temporary MultiFab for the source here and initialize it to zero
-    // because if we use one that already has values in it, the SumBoundary call
-    // will end up duplicating those values with each call
-    // 
-    // ********************************************************************************
-    tmp_src_width = 3; // HACK?
-
-    tmp_src_ptr = new MultiFab(this->m_gdb->ParticleBoxArray(lev),
-                                      this->m_gdb->ParticleDistributionMap(lev),
-                                      source.nComp(),tmp_src_width);
-    tmp_src_ptr->setVal(0.);
-
-    // ********************************************************************************
-
-    const Real* plo = Geom(lev).ProbLo();
-    const Real* phi = Geom(lev).ProbHi();
-
-    const Box& domain = Geom(lev).Domain();
-
-    int do_move = 1;
-
-    for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
-
-        AoS& particles = pti.GetArrayOfStructs();
-        int Np = particles.size();
-
-        if (Np > 0) 
-        {
-           const Box& state_box = (*state_ptr)[pti].box();
-           const Box&   src_box = (*tmp_src_ptr)[pti].box();
-
-           update_particles(&Np,&lev, particles.data(), 
-                            (*state_ptr)[pti].dataPtr(),
-                            state_box.loVect(), state_box.hiVect(),
-                            (*tmp_src_ptr)[pti].dataPtr(),
-                            src_box.loVect(), src_box.hiVect(),
-                            domain.loVect(), domain.hiVect(),
-                            plo,phi,reflect_lo,reflect_hi,dx,dt,&do_move);
-        }
-    }
-
-    // ********************************************************************************
-    // Make sure the momentum put into ghost cells of each grid is added to both 
-    //      valid regions AND the ghost cells of other grids.  If at level = 0 
-    //      we can accomplish this with SumBoundary; however if this level has ghost
-    //      cells not covered at this level then we need to do more.
-    // ********************************************************************************
-    if (lev > 0)
-    {
-       int ncomp = tmp_src_ptr->nComp();
-       MultiFab tmp(this->m_gdb->ParticleBoxArray(lev), 
-                    this->m_gdb->ParticleDistributionMap(lev),
-                    ncomp, tmp_src_ptr->nGrow());
-       tmp.setVal(0.);
-       tmp.copy(*tmp_src_ptr, 0, 0, ncomp, tmp_src_ptr->nGrow(), tmp_src_ptr->nGrow(), 
-                Geom(lev).periodicity(), FabArrayBase::ADD);
-       tmp_src_ptr->copy(tmp, 0, 0, ncomp, tmp_src_width, tmp_src_width, 
-                         Geom(lev).periodicity(), FabArrayBase::COPY);
-    } else {
-       tmp_src_ptr->SumBoundary(Geom(lev).periodicity());
-    }
-
-    // Add new sources into source *after* we have called SumBoundary
-    MultiFab::Add(source,*tmp_src_ptr,0,0,source.nComp(),std::min(source.nGrow(),tmp_src_ptr->nGrow()));
-    delete tmp_src_ptr;
-
-    // Fill ghost cells after we've synced up ..
-    source.FillBoundary(Geom(lev).periodicity()); 
-
-    // Only delete this if in fact we created it.  Note we didn't change state_ptr so 
-    //  we don't need to copy anything back into state
-    if (state_ptr != &state ) delete state_ptr;
-
-    // ********************************************************************************
-
-    if (lev > 0 && sub_cycle)
-    {
-        ParticleLocData pld;
-        for (auto& kv : pmap) {
-            AoS&  pbox       = kv.second.GetArrayOfStructs();
-            const int   n    = pbox.size();
-
-#ifdef _OPENMP
-#pragma omp parallel for private(pld)
-#endif
-            for (int i = 0; i < n; i++)
-            {
-                ParticleType& p = pbox[i];
-                if (p.id() <= 0) continue;
-
-                // Move the particle to the proper ghost cell.
-                //      and remove any *ghost* particles that have gone too far
-                // Note that this should only negate ghost particles, not real particles.
-                if (!this->Where(p, pld, lev, lev, where_width))
-                {
-                    // Assert that the particle being removed is a ghost particle;
-                    // the ghost particle is no longer in relevant ghost cells for this grid.
-                    if (p.id() == GhostParticleID)
-                    {
-                        p.id() = -1;
-                    }
-                    else
-                    {
-                        std::cout << "Oops -- removing particle " << p.id() << " " << p.pos(0) << " " << p.pos(1) << std::endl;
-                        p.id() = -1;
-                        //amrex::Error("Trying to get rid of a non-ghost particle in moveKickDrift");
-                    }
-                }
-            }
-        }
-    }
-
-    // ********************************************************************************
-
-    if (this->m_verbose > 1)
-    {
-        Real stoptime = ParallelDescriptor::second() - strttime;
-
-        ParallelDescriptor::ReduceRealMax(stoptime,ParallelDescriptor::IOProcessorNumber());
-
-        if (ParallelDescriptor::IOProcessor())
-        {
-            std::cout << "SprayParticleContainer::moveKickDrift() time: " << stoptime << '\n';
-        }
-    }
-}
-
-void
-SprayParticleContainer::moveKick(MultiFab& state,
-                                MultiFab& source,
-                                int              lev,
-                                Real      dt,
-                                int              tmp_src_width)
-{
-    const Real* dx = Geom(lev).CellSize();
-
-    BL_PROFILE("ParticleContainer::moveKick()");
-    BL_ASSERT(lev >= 0);
-    //std::cout << " GROW -2" << state.nGrow() << std::endl;
-    BL_ASSERT(state.nGrow() >= 2);
-
-    //If there are no particles at this level
-    if (lev >= this->GetParticles().size())
-        return;
-
-    const Real strttime      = ParallelDescriptor::second();
-
-    MultiFab* state_ptr;
-    MultiFab* tmp_src_ptr;
-
-    // ********************************************************************************
-    // We only make a new state_ptr if the boxArray of the state differs from the
-    // boxArray onto which the particles are decomposed
-    // ********************************************************************************
-
-    if (this->OnSameGrids(lev, state))
-    {
-        state_ptr = &state;
-    }
-    else
-    {
-        state_ptr = new MultiFab(this->m_gdb->ParticleBoxArray(lev),
-                                       this->m_gdb->ParticleDistributionMap(lev),
-                                       state.nComp(),state.nGrow());
-        state_ptr->setVal(0.);
-        state_ptr->copy(state,0,0,state.nComp());
-        state_ptr->FillBoundary(Geom(lev).periodicity()); 
-    }
-
-    // ********************************************************************************
-    // We make a temporary MultiFab for the source here and initialize it to zero
-    // because if we use one that already has values in it, the SumBoundary call
-    // will end up duplicating those values with each call
-    // ********************************************************************************
-
-    tmp_src_width = 3; // HACK?
-
-    tmp_src_ptr = new MultiFab(this->m_gdb->ParticleBoxArray(lev),
-                                      this->m_gdb->ParticleDistributionMap(lev),
-                                      source.nComp(),tmp_src_width);
-    tmp_src_ptr->setVal(0.);
-
-    // ********************************************************************************
-
-    const Real* plo = Geom(lev).ProbLo();
-    const Real* phi = Geom(lev).ProbHi();
-
-    const Box& domain = Geom(lev).Domain();
-
-    int do_move = 0;
-
-    for (MyParIter pti(*this, lev); pti.isValid(); ++pti) {
-
-        AoS& particles = pti.GetArrayOfStructs();
-        int Np = particles.size();
-
-        if (Np > 0) 
-        {
-           const Box& state_box = (*state_ptr)[pti].box();
-           const Box&   src_box = (*tmp_src_ptr)[pti].box();
-
-           update_particles(&Np,&lev, particles.data(),
-                            (*state_ptr)[pti].dataPtr(),
-                            state_box.loVect(), state_box.hiVect(),
-                            (*tmp_src_ptr)[pti].dataPtr(),
-                            src_box.loVect(), src_box.hiVect(),
-                            domain.loVect(), domain.hiVect(),
-                            plo,phi,reflect_lo,reflect_hi,
-                            dx,dt,&do_move);
-        }
-    }
-
-    // ********************************************************************************
-    // Make sure the momentum put into ghost cells of each grid is added to both
-    //      valid regions AND the ghost cells of other grids.  If at level = 0
-    //      we can accomplish this with SumBoundary; however if this level has ghost
-    //      cells not covered at this level then we need to do more.
-    // ********************************************************************************
-    if (lev > 0)
-    {
-       int ncomp = tmp_src_ptr->nComp();
-       int ngrow = source.nGrow();
-       MultiFab tmp(this->m_gdb->ParticleBoxArray(lev),
-                    this->m_gdb->ParticleDistributionMap(lev),
-                    ncomp, ngrow);
-       tmp.setVal(0.);
-       tmp.copy(*tmp_src_ptr, 0, 0, ncomp, ngrow, ngrow, Geom(lev).periodicity(), FabArrayBase::ADD);
-       tmp_src_ptr->copy(tmp, 0, 0, ncomp, ngrow, ngrow, Geom(lev).periodicity(), FabArrayBase::COPY);
-    } else {
-       tmp_src_ptr->SumBoundary(Geom(lev).periodicity());
-    }
-
-    // Add new sources into source *after* we have called SumBoundary
-    MultiFab::Add(source,*tmp_src_ptr,0,0,source.nComp(),source.nGrow());
-    delete tmp_src_ptr;
-
-    // Fill ghost cells after we've synced up ..
-    source.FillBoundary(Geom(lev).periodicity());
-
-    // Only delete this if in fact we created it.  Note we didn't change state_ptr so
-    //  we don't need to copy anything back into state
-    if (state_ptr != &state ) delete state_ptr;
-
-    // ********************************************************************************
-
-    if (this->m_verbose > 1)
-    {
-        Real stoptime = ParallelDescriptor::second() - strttime;
-
-        ParallelDescriptor::ReduceRealMax(stoptime,ParallelDescriptor::IOProcessorNumber());
-
-        if (ParallelDescriptor::IOProcessor())
-        {
-            std::cout << "SprayParticleContainer::moveKick() time: " << stoptime << '\n';
-        }
-    }
+  // ********************************************************************************
 }
 
 Real
-SprayParticleContainer::estTimestep (int lev, Real cfl) const
+SprayParticleContainer::estTimestep(int level, Real cfl) const
 {
-    Real dt = 1.e50;
+  BL_PROFILE("ParticleContainer::estTimestep()");
+  // TODO: Clean up this mess and bring the num particle functionality back
+  Real dt = std::numeric_limits<Real>::max();
+  if (level >= this->GetParticles().size() || m_sprayIndx.mom_tran == 0)
+    return -1.;
 
-    if (this->GetParticles().size() == 0)
-        return dt;
-
-    const Real      strttime         = ParallelDescriptor::second();
-    const Geometry& geom             = this->m_gdb->Geom(lev);
-    const Real*     dx               = geom.CellSize();
-    int   tnum                       = 1;
-
-#ifdef _OPENMP
-    tnum = omp_get_max_threads();
+  const Geometry& geom = this->m_gdb->Geom(level);
+  const auto dx = Geom(level).CellSizeArray();
+  const auto dxi = Geom(level).InvCellSizeArray();
+  {
+    amrex::ReduceOps<amrex::ReduceOpMin> reduce_op;
+    amrex::ReduceData<amrex::Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+    for (MyParConstIter pti(*this, level); pti.isValid(); ++pti) {
+      const AoS& pbox = pti.GetArrayOfStructs();
+      const ParticleType* pstruct = pbox().data();
+      const Long n = pbox.numParticles();
+#ifdef USE_SPRAY_SOA
+      auto& attribs = pti.GetAttribs();
+      AMREX_D_TERM(const Real* up = attribs[0].data();
+                   , const Real* vp = attribs[1].data();
+                   , const Real* wp = attribs[2].data(););
 #endif
-
-    Vector<Real> ldt(tnum,1e50);
-
-    long num_particles_at_level = 0;
-    Real max_mag_vel_over_dx;
-
-    // We assume here that the velocity components follow mass in the rdata array
-    for (MyParConstIter pti(*this, lev); pti.isValid(); ++pti) 
-    {
-      auto& particles = pti.GetArrayOfStructs();
-      size_t Np = pti.numParticles();
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-      for (unsigned i = 0; i < Np; ++i)
-      {
-          const ParticleType& p = particles[i];
+      reduce_op.eval(
+        n, reduce_data, [=] AMREX_GPU_DEVICE(const Long i) -> ReduceTuple {
+          const ParticleType& p = pstruct[i];
+          // TODO: This assumes that pstateVel = 0 and dxi[0] = dxi[1] =
+          // dxi[2]
           if (p.id() > 0) {
-            const Real mag_vel_over_dx[BL_SPACEDIM] = { D_DECL(std::abs(p.rdata(1))/dx[0],
-                                                               std::abs(p.rdata(2))/dx[1],
-                                                               std::abs(p.rdata(3))/dx[2]) };
-
-            max_mag_vel_over_dx = std::max(mag_vel_over_dx[0], mag_vel_over_dx[1]);
-#if (BL_SPACEDIM > 2)
-            max_mag_vel_over_dx = std::max(mag_vel_over_dx[2], max_mag_vel_over_dx);
+#ifdef USE_SPRAY_SOA
+            const Real max_mag_vdx =
+              amrex::max(AMREX_D_DECL(
+                std::abs(up[i]), std::abs(vp[i]), std::abs(wp[i]))) *
+              dxi[0];
+#else
+          const Real max_mag_vdx = amrex::max(AMREX_D_DECL(std::abs(p.rdata(0)),
+                                                           std::abs(p.rdata(1)),
+                                                           std::abs(p.rdata(2))))*dxi[0];
 #endif
+            Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
+            return dt_part;
           }
+          return 1.E50;
+        });
+    }
+    ReduceTuple hv = reduce_data.value();
+    Real ldt_cpu = amrex::get<0>(hv);
+    dt = amrex::min(dt, ldt_cpu);
+  }
+  ParallelDescriptor::ReduceRealMin(dt);
+  // Check if the velocity of particles being injected
+  // is greater existing particle velocities
+  if (m_injectVel > 0.)
+    dt = amrex::min(dt, cfl * dx[0] / m_injectVel);
 
-       Real dt_part = (max_mag_vel_over_dx > 0) ? (cfl / max_mag_vel_over_dx) : 1e50;
+  return dt;
+}
 
-       int tid = 0;
-#ifdef _OPENMP
-       tid = omp_get_thread_num();
+void
+SprayParticleContainer::updateParticles(
+  const int& level,
+  MultiFab& state,
+  MultiFab& source,
+  const Real& flow_dt,
+  const Real& time,
+  const int state_ghosts,
+  const int source_ghosts,
+  const bool isActive,
+  const bool do_move,
+  MultiFab* u_mac)
+{
+  AMREX_ASSERT(OnSameGrids(level, state));
+  AMREX_ASSERT(OnSameGrids(level, source));
+  const auto dxiarr = this->Geom(level).InvCellSizeArray();
+  const auto dxarr = this->Geom(level).CellSizeArray();
+  const auto ploarr = this->Geom(level).ProbLoArray();
+  const auto phiarr = this->Geom(level).ProbHiArray();
+  const RealVect dxi(AMREX_D_DECL(dxiarr[0], dxiarr[1], dxiarr[2]));
+  const RealVect dx(AMREX_D_DECL(dxarr[0], dxarr[1], dxarr[2]));
+  const RealVect plo(AMREX_D_DECL(ploarr[0], ploarr[1], ploarr[2]));
+  const RealVect phi(AMREX_D_DECL(phiarr[0], phiarr[1], phiarr[2]));
+  const auto domain = this->Geom(level).Domain();
+#ifdef AMREX_USE_EB
+  const auto& factory =
+    dynamic_cast<EBFArrayBoxFactory const&>(state.Factory());
+  const auto& flagmf = factory.getMultiEBCellFlagFab();
+  const auto cellcent = &(factory.getCentroid());
+  const auto bndrycent = &(factory.getBndryCent());
+  const auto bndryarea = &(factory.getBndryArea());
+  const auto bndrynorm = &(factory.getBndryNormal());
+  const auto volfrac = &(factory.getVolFrac());
 #endif
-      ldt[tid] = std::min(dt_part, ldt[tid]);
-      }
-      num_particles_at_level += Np;
+  IntVect bndry_lo; // Designation for boundary types
+  IntVect bndry_hi; // 0 - Periodic, 1 - Reflective, -1 - Non-reflective
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    if (!this->Geom(level).isPeriodic(dir)) {
+      if (reflect_lo[dir])
+        bndry_lo[dir] = 1;
+      else
+        bndry_lo[dir] = -1;
+      if (reflect_hi[dir])
+        bndry_hi[dir] = 1;
+      else
+        bndry_hi[dir] = -1;
+    } else {
+      bndry_lo[dir] = 0;
+      bndry_hi[dir] = 0;
     }
-
-    for (int i = 0; i < ldt.size(); i++)
-        dt = std::min(dt, ldt[i]);
-
-    ParallelDescriptor::ReduceRealMin(dt);
-
-    //
-    // Set dt negative if there are no particles at this level.
-    //
-    ParallelDescriptor::ReduceLongSum(num_particles_at_level);
-
-    if (num_particles_at_level == 0) dt = -1.e50;
-
-    if (this->m_verbose > 1)
-    {
-        Real stoptime = ParallelDescriptor::second() - strttime;
-        ParallelDescriptor::ReduceRealMax(stoptime,ParallelDescriptor::IOProcessorNumber());
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "SprayParticleContainer::estTimestep() time: " << stoptime << '\n';
+  }
+  const Real wallT = m_wallT;
+  const Real vol = AMREX_D_TERM(dx[0], *dx[1], *dx[2]);
+  const Real inv_vol = 1. / vol;
+  // Particle components indices
+  SprayComps SPI = m_sprayIndx;
+  pele::physics::transport::TransParm const* ltransparm =
+    pele::physics::transport::trans_parm_g;
+  // Start the ParIter, which loops over separate sets of particles in different
+  // boxes
+  for (MyParIter pti(*this, level); pti.isValid(); ++pti) {
+    const Box tile_box = pti.tilebox();
+    const Box state_box = pti.growntilebox(state_ghosts);
+    const Box src_box = pti.growntilebox(source_ghosts);
+    bool at_bounds = tile_at_bndry(tile_box, bndry_lo, bndry_hi, domain);
+    const Long Np = pti.numParticles();
+    ParticleType* pstruct = &(pti.GetArrayOfStructs()[0]);
+#ifdef USE_SPRAY_SOA
+    // Get particle attributes if StructOfArrays are used
+    auto& attribs = pti.GetAttribs();
+#endif
+    const SprayData* fdat = d_sprayData;
+    Array4<const Real> const& statearr = state.array(pti);
+    Array4<Real> const& sourcearr = source.array(pti);
+#ifdef AMREX_USE_EB
+    bool eb_in_box = true;
+    const EBFArrayBox& interp_fab = static_cast<EBFArrayBox const&>(state[pti]);
+    const EBCellFlagFab& flags = interp_fab.getEBCellFlagFab();
+    Array4<const Real> ccent_fab;
+    Array4<const Real> bcent_fab;
+    Array4<const Real> bnorm_fab;
+    Array4<const Real> barea_fab;
+    Array4<const Real> volfrac_fab;
+    const auto& flags_array = flags.array();
+    if (flags.getType(state_box) == FabType::regular) {
+      eb_in_box = false;
+    } else {
+      // Cell centroids
+      ccent_fab = cellcent->array(pti);
+      // Centroid of EB
+      bcent_fab = bndrycent->array(pti);
+      // Area of EB face
+      barea_fab = bndryarea->array(pti);
+      // Normal of EB
+      bnorm_fab = bndrynorm->array(pti);
+      volfrac_fab = volfrac->array(pti);
     }
-
-    return dt;
+#endif
+    // #ifdef SPRAY_PELE_LM
+    //     GpuArray<
+    //       Array4<const Real>, AMREX_SPACEDIM> const
+    //       umac{AMREX_D_DECL(u_mac[0].array(pti), u_mac[1].array(pti),
+    //       u_mac[2].array(pti))};
+    // #endif
+    amrex::ParallelFor(
+      Np, [pstruct, statearr, sourcearr, plo, phi, dx, dxi, do_move, SPI, fdat,
+           src_box, state_box, bndry_hi, bndry_lo, flow_dt, inv_vol, ltransparm,
+           at_bounds, wallT, isActive
+#ifdef USE_SPRAY_SOA
+           ,
+           attribs
+#endif
+#ifdef AMREX_USE_EB
+           ,
+           flags_array, ccent_fab, bcent_fab, bnorm_fab, barea_fab, volfrac_fab,
+           eb_in_box
+#endif
+    ] AMREX_GPU_DEVICE(int pid) noexcept {
+        auto eos = pele::physics::PhysicsType::eos();
+        SprayUnits SPU;
+        GpuArray<Real, NUM_SPECIES> mw_fluid;
+        GpuArray<Real, NUM_SPECIES> invmw;
+        eos.molecular_weight(mw_fluid.data());
+        eos.inv_molecular_weight(invmw.data());
+        for (int n = 0; n < NUM_SPECIES; ++n) {
+          mw_fluid[n] *= SPU.mass_conv;
+          invmw[n] /= SPU.mass_conv;
+        }
+        ParticleType& p = pstruct[pid];
+        if (p.id() > 0) {
+          GpuArray<IntVect, AMREX_D_PICK(2, 4, 8)>
+            indx_array; // Array of adjacent cells
+          GpuArray<Real, AMREX_D_PICK(2, 4, 8)>
+            weights; // Array of corresponding weights
+          bool remove_particle = false;
+          RealVect lx = (p.pos() - plo) * dxi + 0.5;
+          IntVect ijk = lx.floor(); // Upper cell center
+          bool is_wall_film = false;
+          Real face_area = 0.;
+          // If the temperature is a negative value, the particle is a wall film
+          if (p.rdata(SPI.pstateT) < 0.)
+            is_wall_film = true;
+          if (at_bounds) {
+            IntVect bflags(IntVect::TheZeroVector());
+            // Check if particle has left the domain, is wall film,
+            // or is boundary adjacent and must be shifted
+            bool left_dom = check_bounds(
+              p.pos(), plo, phi, dx, bndry_lo, bndry_hi, ijk, bflags);
+            if (left_dom)
+              Abort("Particle has incorrectly left domain");
+            if (is_wall_film) {
+              // TODO: Assumes grid spacing is uniform in all directions
+              face_area = AMREX_D_TERM(1., *dx[0], *dx[0]);
+            }
+          }
+          // Length from cell center to boundary face center
+          Real diff_cent = 0.5 * dx[0];
+          bool do_fe_interp = true;
+#ifdef AMREX_USE_EB
+          // Cell containing particle centroid
+          AMREX_D_TERM(const int ip = static_cast<int>(
+                         amrex::Math::floor((p.pos(0) - plo[0]) * dxi[0]));
+                       , const int jp = static_cast<int>(
+                           amrex::Math::floor((p.pos(1) - plo[1]) * dxi[1]));
+                       , const int kp = static_cast<int>(
+                           amrex::Math::floor((p.pos(2) - plo[2]) * dxi[2])););
+          AMREX_D_TERM(const int i = static_cast<int>(amrex::Math::floor(
+                         (p.pos(0) - plo[0]) * dxi[0] + 0.5));
+                       , const int j = static_cast<int>(amrex::Math::floor(
+                           (p.pos(1) - plo[1]) * dxi[1] + 0.5));
+                       , const int k = static_cast<int>(amrex::Math::floor(
+                           (p.pos(2) - plo[2]) * dxi[2] + 0.5)););
+          if (!eb_in_box) {
+            do_fe_interp = false;
+          } else {
+            // All cells in the stencil are regular. Use
+            // traditional trilinear interpolation
+            if (
+              flags_array(i - 1, j - 1, k - 1).isRegular() and
+              flags_array(i, j - 1, k - 1).isRegular() and
+              flags_array(i - 1, j, k - 1).isRegular() and
+              flags_array(i, j, k - 1).isRegular() and
+              flags_array(i - 1, j - 1, k).isRegular() and
+              flags_array(i, j - 1, k).isRegular() and
+              flags_array(i - 1, j, k).isRegular() and
+              flags_array(i, j, k).isRegular())
+              do_fe_interp = false;
+          }
+          if (do_fe_interp) {
+            fe_interp(
+              p.pos(), ip, jp, kp, dx, dxi, plo, flags_array, ccent_fab,
+              bcent_fab, bnorm_fab, volfrac_fab, indx_array.data(),
+              weights.data());
+          } else {
+            trilinear_interp(ijk, lx, indx_array.data(), weights.data());
+          }
+          bool eb_wall_film = false;
+          if (is_wall_film && flags_array(ip, jp, kp).isSingleValued()) {
+            eb_wall_film = true;
+            face_area = barea_fab(ip, jp, kp);
+            diff_cent = 0.;
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+              diff_cent += std::pow(
+                bcent_fab(ip, jp, kp, dir) - ccent_fab(ip, jp, kp, dir), 2);
+            diff_cent = std::sqrt(diff_cent);
+          }
+#else
+          trilinear_interp(ijk, lx, indx_array.data(), weights.data());
+#endif // AMREX_USE_EB
+       // Interpolate fluid state
+          Real T_fluid = 0.;
+          Real rho_fluid = 0.;
+          GpuArray<Real, NUM_SPECIES> Y_fluid;
+          for (int n = 0; n < NUM_SPECIES; ++n)
+            Y_fluid[n] = 0.;
+          RealVect vel_fluid(RealVect::TheZeroVector());
+          {
+            GpuArray<Real, NUM_SPECIES> mass_frac;
+            for (int aindx = 0.; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
+              IntVect cur_indx = indx_array[aindx];
+              Real cw = weights[aindx];
+#ifdef AMREX_DEBUG
+              if (!state_box.contains(cur_indx))
+                Abort("SprayParticleContainer::updateParticles() -- state box "
+                      "too small");
+#endif
+              Real cur_rho = statearr(cur_indx, SPI.rhoIndx);
+              rho_fluid += cw * cur_rho;
+              Real inv_rho = 1. / cur_rho;
+              for (int n = 0; n < NUM_SPECIES; ++n) {
+                int sp = n + SPI.specIndx;
+                Real cur_mf = statearr(cur_indx, sp) * inv_rho;
+                Y_fluid[n] += cw * cur_mf;
+                mass_frac[n] = cur_mf;
+              }
+#ifdef SPRAY_PELE_LM
+              inv_rho = 1.;
+#endif
+              Real ke = 0.;
+              for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                Real vel = statearr(cur_indx, SPI.momIndx + dir) * inv_rho;
+                vel_fluid[dir] += cw * vel;
+                ke += vel * vel / 2.;
+              }
+              Real T_i = statearr(cur_indx, SPI.utempIndx);
+#ifndef SPRAY_PELE_LM
+              Real intEng = statearr(cur_indx, SPI.engIndx) * inv_rho - ke;
+              eos.EY2T(intEng, mass_frac.data(), T_i);
+#endif
+              T_fluid += cw * T_i;
+            }
+          }
+          GasPhaseVals gpv(
+            vel_fluid, T_fluid, rho_fluid, Y_fluid.data(), mw_fluid.data(),
+            invmw.data());
+          if (!is_wall_film) {
+            remove_particle = calculateSpraySource(
+              flow_dt, do_move, gpv, SPI, *fdat, p,
+#ifdef USE_SPRAY_SOA
+              attribs, pid,
+#endif
+              ltransparm);
+            // Modify particle position by whole time step
+            if (do_move && SPI.mom_tran) {
+              for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+#ifdef USE_SPRAY_SOA
+                const Real cvel = attribs[SPI.pstateVel + dir].data()[pid];
+#else
+                const Real cvel = p.rdata(SPI.pstateVel + dir);
+#endif
+                Gpu::Atomic::Add(&p.pos(dir), flow_dt * cvel);
+              }
+            }
+          } else {
+            remove_particle = calculateWallFilmSource(
+              flow_dt, gpv, SPI, *fdat, p,
+#ifdef USE_SPRAY_SOA
+              attribs, pid,
+#endif
+              wallT, face_area, diff_cent, ltransparm);
+          }
+          if (remove_particle)
+            p.id() = -1;
+          for (int aindx = 0; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
+            IntVect cur_indx = indx_array[aindx];
+            Real cvol = inv_vol;
+#ifdef AMREX_USE_EB
+            if (!flags_array(cur_indx).isRegular())
+              cvol *= 1. / (volfrac_fab(cur_indx));
+#endif
+            Real cur_coef = -weights[aindx] * fdat->num_ppp * cvol;
+#ifdef AMREX_DEBUG
+            if (!src_box.contains(cur_indx))
+              Abort(
+                "SprayParticleContainer::updateParticles() -- source box too "
+                "small");
+#endif
+            if (SPI.mom_tran) {
+              for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                const int nf = SPI.momIndx + dir;
+                Gpu::Atomic::Add(
+                  &sourcearr(cur_indx, nf), cur_coef * gpv.fluid_mom_src[dir]);
+              }
+            }
+            if (SPI.mass_tran) {
+              Gpu::Atomic::Add(
+                &sourcearr(cur_indx, SPI.rhoIndx),
+                cur_coef * gpv.fluid_mass_src);
+              for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+                const int nf = SPI.specIndx + fdat->indx[spf];
+                Gpu::Atomic::Add(
+                  &sourcearr(cur_indx, nf), cur_coef * gpv.fluid_Y_dot[spf]);
+              }
+            }
+            Gpu::Atomic::Add(
+              &sourcearr(cur_indx, SPI.engIndx), cur_coef * gpv.fluid_eng_src);
+          }
+          // Solve for splash model/wall film formation
+          if (at_bounds && do_move) {
+            IntVect ijk_prev = ijk;
+            lx = (p.pos() - plo) * dxi + 0.5;
+            ijk = lx.floor();
+            const Real T_part = p.rdata(SPI.pstateT);
+            const Real dia_part = p.rdata(SPI.pstateDia);
+            IntVect bloc(ijk);
+            RealVect normal;
+            RealVect bcentv;
+            bool dry_wall = false; // TODO: Implement this check
+            bool wall_check = check_wall(
+              p, ijk, ijk_prev, dx, plo, phi,
+#ifdef AMREX_USE_EB
+              eb_in_box, flags_array, bcent_fab, bnorm_fab,
+#endif
+              bndry_lo, bndry_hi, bloc, normal, bcentv);
+            if (wall_check) {
+              splash_type splash_flag = splash_type::no_impact;
+              if (T_part > 0.) {
+                SprayRefl SPRF;
+                SPRF.pos_refl = p.pos();
+                for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
+                  SPRF.Y_refl[spf] = p.rdata(SPI.pstateY + spf);
+                splash_flag = impose_wall(
+                  p, SPI, *fdat, dx, plo, phi, wallT, bloc, normal, bcentv,
+                  SPRF, isActive, dry_wall);
+              } // TODO: Add check for if it is wall film
+            }
+          } // if (at_bounds...
+        }   // End of p.id() > 0 check
+      });   // End of loop over particles
+  }         // for (int MyParIter pti..
 }
