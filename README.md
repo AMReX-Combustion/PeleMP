@@ -1,1 +1,1 @@
-# PeleC-MP
+# PeleMP
