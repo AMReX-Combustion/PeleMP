@@ -14,17 +14,13 @@ PRECISION       = DOUBLE
 
 USE_CUDA        = FALSE
 
-TINY_PROFILE = FALSE
-#USE_WBAR = TRUE
+TINY_PROFILE = TRUE
 
 USE_EB = FALSE
 
 USE_SUNDIALS_PP = TRUE
-# ifeq ($(USE_SUNDIALS_PP), TRUE)
-#   # use KLU sparse features -- only useful if CVODE is used on CPU
-#   USE_KLU_PP = FALSE
-#   USE_CUDA_SUNDIALS_PP=FALSE
-# endif
+USE_ARKODE_PP = FALSE
+USE_CVODE_PP = TRUE
 
 # Enable ht.velocity_plotfile option
 #USE_VELOCITY    = FALSE
