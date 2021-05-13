@@ -62,7 +62,7 @@ particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 0
 particles.heat_transfer = 0
-particles.particle_init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
+particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
 particles.fuel_species = O2
@@ -85,7 +85,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 #amr.plot_files_output = 0
 amr.plot_file       = plt # root name of plotfile
 amr.plot_per        = 4.E-4
-amr.plot_vars = density Temp rho_E xmom ymom zmom eden
+amr.plot_vars = density Temp rho_E xmom ymom zmom
 amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure MachNumber magvel
 amr.file_name_digits = 6
 

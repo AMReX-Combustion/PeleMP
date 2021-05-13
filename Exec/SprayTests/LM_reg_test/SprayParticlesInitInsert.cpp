@@ -1,16 +1,13 @@
 
-#include <SprayParticles.H>
+#include "SprayParticles.H"
 #include <AMReX_Particles.H>
-#include <PeleC.H>
-#include "prob.H"
-
-using namespace amrex;
+#include <pelelm_prob.H>
 
 IntVect
-unflatten_particles(const int idx, const IntVect& max_parts)
+unflatten_particles(const Long idx, const IntVect& max_parts)
 {
   IntVect indx;
-  int cidx = idx;
+  Long cidx = idx;
 #if AMREX_SPACEDIM > 1
 #if AMREX_SPACEDIM > 2
   indx[2] = cidx / (max_parts[0] * max_parts[1]);
@@ -29,15 +26,13 @@ SprayParticleContainer::injectParticles(
   int nstep,
   int lev,
   int finest_level,
-  ProbParmHost const& prob_parm,
-  ProbParmDevice const& prob_parm_d)
+  ProbParm const& prob_parm)
 {
   return false;
 }
 
 void
-SprayParticleContainer::InitSprayParticles(
-  ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
+SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
 {
   const int lev = 0;
   const int MyProc = ParallelDescriptor::MyProc();
@@ -66,10 +61,11 @@ SprayParticleContainer::InitSprayParticles(
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateY = m_sprayIndx.pstateY;
   const IntVect num_part = prob_parm.partNum;
+  const RealVect part_vel = prob_parm.partVel;
   // Reference values for the particles
   Real part_vals[NAR_SPR + NSR_SPR];
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    part_vals[pstateVel + dir] = 0.;
+    part_vals[pstateVel + dir] = part_vel[dir];
   }
   part_vals[pstateT] = T_ref;
   part_vals[pstateDia] = part_dia;

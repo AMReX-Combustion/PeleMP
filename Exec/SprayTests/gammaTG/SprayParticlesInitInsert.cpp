@@ -43,6 +43,22 @@ SprayParticleContainer::InitSprayParticles(
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
   const int IOProc = ParallelDescriptor::IOProcessorNumber();
+  int NRedist = prob_parm.numRedist; // Number of times to redistribute
+  // TODO: This might be overkill but issues persisted at high Summit node counts
+  if (NRedist < 0) {
+    NRedist = 1;
+    if (NProcs <= 512) {
+      NRedist = 2;
+    } else if (NProcs <= 1024) {
+      NRedist = 4;
+    } else if (NProcs <= 2048) {
+      NRedist = 32;
+    } else if (NProcs <= 4096) {
+      NRedist = 48;
+    }
+  }
+  const SprayData* fdat = m_sprayData;
+  Real part_rho = fdat->rho[0];
   Real part_dia = prob_parm.partDia;
   Real T_ref = prob_parm.partTemp;
   const int pstateVel = m_sprayIndx.pstateVel;
@@ -50,6 +66,16 @@ SprayParticleContainer::InitSprayParticles(
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateY = m_sprayIndx.pstateY;
   const IntVect num_part = prob_parm.partNum;
+  // Reference values for the particles
+  Real part_vals[NAR_SPR + NSR_SPR];
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    part_vals[pstateVel + dir] = 0.;
+  }
+  part_vals[pstateT] = T_ref;
+  part_vals[pstateDia] = part_dia;
+  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
+    part_vals[pstateY + sp] = 0.;
+  part_vals[pstateY] = 1.; // Only use the first fuel species
   const auto dx = Geom(lev).CellSizeArray();
   const auto plo = Geom(lev).ProbLoArray();
   const auto phi = Geom(lev).ProbHiArray();
@@ -59,69 +85,136 @@ SprayParticleContainer::InitSprayParticles(
   const Real len = phi[0] - plo[0];
   const RealVect dx_part(AMREX_D_DECL(
     len / Real(num_part[0]), len / Real(num_part[1]), len / Real(num_part[2])));
-  RealVect part_start(
-    AMREX_D_DECL(0.5 * dx_part[0], 0.5 * dx_part[1], 0.5 * dx_part[2]));
   Long parts_pp = total_part_num / NProcs;
+  // Number of particles per processor to be initialized
   Long cur_parts_pp = parts_pp;
-  if (MyProc == 0)
+  // Give any remaining particles to the last processor
+  if (MyProc == NProcs - 1)
     cur_parts_pp += (total_part_num % NProcs);
-  const int first_part = (NProcs - MyProc - 1) * parts_pp;
-  ParticleLocData pld;
-  std::map<std::pair<int, int>, Gpu::HostVector<ParticleType>> host_particles;
-#ifdef USE_SPRAY_SOA
-  std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
-    host_real_attribs;
-#endif
-  for (int prc = first_part; prc != first_part + cur_parts_pp; ++prc) {
-    IntVect indx = unflatten_particles(prc, num_part);
+  // Starting particle for this processor
+  const Long first_part = MyProc * parts_pp;
+  Gpu::HostVector<ParticleType> nparticles;
+  Vector<Gpu::HostVector<Real>> nreals;
+  if (NAR_SPR > 0) nreals.resize(NAR_SPR);
+  for (int prc = 0; prc < cur_parts_pp; ++prc) {
+    Long cur_part = first_part + prc;
+    IntVect indx = unflatten_particles(cur_part, num_part);
     ParticleType p;
     p.id() = ParticleType::NextID();
     p.cpu() = ParallelDescriptor::MyProc();
-    for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
       p.pos(dir) = (Real(indx[dir]) + 0.5) * dx_part[dir];
-    std::pair<int, int> ind(pld.m_grid, pld.m_tile);
-#ifdef USE_SPRAY_SOA
-    for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      host_real_attribs[ind][pstateVel + dir].push_back(0.);
-    host_real_attribs[ind][pstateT].push_back(T_ref);
-    host_real_attribs[ind][pstateDia].push_back(part_dia);
-    host_real_attribs[ind][pstateY].push_back(1.);
-    for (int spf = 1; spf != SPRAY_FUEL_NUM; ++spf)
-      host_real_attribs[ind][pstateY + spf].push_back(0.);
-#else
-    for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
-      p.rdata(pstateVel + dir) = 0.;
-    p.rdata(pstateT) = T_ref;      // temperature
-    p.rdata(pstateDia) = part_dia; // diameter
-    for (int sp = 0; sp != SPRAY_FUEL_NUM; ++sp)
-      p.rdata(pstateY + sp) = 0.;
-    p.rdata(pstateY) = 1.; // Only use the first fuel species
-#endif
-    host_particles[ind].push_back(p);
-  }
-  for (auto& kv : host_particles) {
-    auto grid = kv.first.first;
-    auto tile = kv.first.second;
-    const auto& src_tile = kv.second;
-    auto& dst_tile = GetParticles(lev)[std::make_pair(grid, tile)];
-    auto old_size = dst_tile.GetArrayOfStructs().size();
-    auto new_size = old_size + src_tile.size();
-    dst_tile.resize(new_size);
-
-    // Copy the AoS part of the host particles to the GPU
-    Gpu::copy(
-      Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
-      dst_tile.GetArrayOfStructs().begin() + old_size);
-#ifdef USE_SPRAY_SOA
-    for (int i = 0; i != NAR_SPR; ++i) {
-      Gpu::copy(
-        Gpu::hostToDevice,
-        host_real_attribs[std::make_pair(grid, tile)][i].begin(),
-        host_real_attribs[std::make_pair(grid, tile)][i].end(),
-        dst_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+    for (int n = 0; n < NSR_SPR; ++n) {
+      p.rdata(n) = part_vals[n];
     }
-#endif
+    for (int n = 0; n < NAR_SPR; ++n) {
+      nreals[n].push_back(part_vals[n]);
+    }
+    nparticles.push_back(p);
   }
-  Redistribute();
+  ParticleLocData pld;
+  // Only copy particle data for certain processors at a time
+  int NRchunk = NProcs / NRedist;
+  for (int nr = 0; nr < NRedist; ++nr) {
+    std::map<std::pair<int, int>, Gpu::HostVector<ParticleType>> host_particles;
+    std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
+      host_real_attribs;
+    if (m_verbose > 0) {
+      amrex::Print() << "Redistributing from processor "
+                     << nr*NRchunk << " to "
+                     << (nr+1)*NRchunk-1 << '\n';
+    }
+    for (int which = nr*NRchunk; which < (nr+1)*NRchunk; ++which) {
+      if (which == MyProc) {
+        while (!nparticles.empty()) {
+          // Retrieve the last particle entry and add it to host_particles
+          ParticleType& p = nparticles.back();
+          Where(p, pld);
+          std::pair<int, int> ind(pld.m_grid, pld.m_tile);
+          host_particles[ind].push_back(p);
+          for (int n = 0; n < NAR_SPR; ++n) {
+            host_real_attribs[ind][n].push_back(nreals[n].back());
+          }
+          // Remove the particle just read
+          nparticles.pop_back();
+          for (int n = 0; n < NAR_SPR; ++n) {
+            nreals[n].pop_back();
+          }
+        }
+      } // if (which == MyProc)
+    } // for (int which ...
+    for (auto& kv : host_particles) {
+      auto grid = kv.first.first;
+      auto tile = kv.first.second;
+      const auto& src_tile = kv.second;
+      auto& dst_tile = GetParticles(lev)[std::make_pair(grid, tile)];
+      auto old_size = dst_tile.GetArrayOfStructs().size();
+      auto new_size = old_size + src_tile.size();
+      dst_tile.resize(new_size);
+
+      // Copy the AoS part of the host particles to the GPU
+      Gpu::copy(
+        Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
+        dst_tile.GetArrayOfStructs().begin() + old_size);
+      for (int i = 0; i < NAR_SPR; ++i) {
+        Gpu::copy(
+          Gpu::hostToDevice,
+          host_real_attribs[std::make_pair(grid, tile)][i].begin(),
+          host_real_attribs[std::make_pair(grid, tile)][i].end(),
+          dst_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+      }
+    }
+    Redistribute();
+  } // for (int nr ...
+  // Now copy over any remaining processors
+  for (int which = NRedist*NRchunk; which < NProcs; ++which) {
+    std::map<std::pair<int, int>, Gpu::HostVector<ParticleType>> host_particles;
+    std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
+      host_real_attribs;
+    if (m_verbose > 0) {
+      amrex::Print() << "Redistributing from processor "
+                     << NRedist*NRchunk << " to "
+                     << NProcs << '\n';
+    }
+    if (which == MyProc) {
+      while (!nparticles.empty()) {
+        // Retrieve the last particle entry and add it to host_particles
+        ParticleType& p = nparticles.back();
+        Where(p, pld);
+        std::pair<int, int> ind(pld.m_grid, pld.m_tile);
+        host_particles[ind].push_back(p);
+        for (int n = 0; n < NAR_SPR; ++n) {
+          host_real_attribs[ind][n].push_back(nreals[n].back());
+        }
+        // Remove the particle just read
+        nparticles.pop_back();
+        for (int n = 0; n < NAR_SPR; ++n) {
+          nreals[n].pop_back();
+        }
+      }
+    } // if (which == MyProc)
+    for (auto& kv : host_particles) {
+      auto grid = kv.first.first;
+      auto tile = kv.first.second;
+      const auto& src_tile = kv.second;
+      auto& dst_tile = GetParticles(lev)[std::make_pair(grid, tile)];
+      auto old_size = dst_tile.GetArrayOfStructs().size();
+      auto new_size = old_size + src_tile.size();
+      dst_tile.resize(new_size);
+
+      // Copy the AoS part of the host particles to the GPU
+      Gpu::copy(
+        Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
+        dst_tile.GetArrayOfStructs().begin() + old_size);
+      for (int i = 0; i < NAR_SPR; ++i) {
+        Gpu::copy(
+          Gpu::hostToDevice,
+          host_real_attribs[std::make_pair(grid, tile)][i].begin(),
+          host_real_attribs[std::make_pair(grid, tile)][i].end(),
+          dst_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
+      }
+    }
+    Redistribute();
+  } // for (int which ...
   Gpu::streamSynchronize();
 }

@@ -64,7 +64,7 @@ particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.heat_transfer = 1
 # Set so that SprayParticleInitInsert.cpp is used to initialize
-particles.particle_init_function = 1
+particles.init_function = 1
 particles.write_spray_ascii_files = 0
 
 # Number of particles per parcel
@@ -91,7 +91,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 #amr.plot_files_output = 0
 amr.plot_file       = plt # root name of plotfile
 amr.plot_per        = 1.E-4 # number of timesteps between plotfiles
-amr.plot_vars = density Temp rho_E xmom ymom zmom eden rho_O2 rho_N2 rho_NC10H22
+amr.plot_vars = density Temp rho_E xmom ymom zmom rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6
 

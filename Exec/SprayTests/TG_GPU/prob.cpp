@@ -19,6 +19,7 @@ amrex_probinit(
   pp.query("reynolds", PeleC::h_prob_parm_device->reynolds);
   pp.query("mach", PeleC::h_prob_parm_device->mach);
   pp.query("convecting", PeleC::h_prob_parm_device->convecting);
+  pp.query("init_redist", PeleC::prob_parm_host->numRedist);
   pp.query("ref_T", PeleC::h_prob_parm_device->T0);
   pp.query("init_O2", PeleC::h_prob_parm_device->Y_O2);
   pp.query("init_N2", PeleC::h_prob_parm_device->Y_N2);

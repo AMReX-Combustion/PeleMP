@@ -1,18 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 
 # Tells script to stop running as soon as an error occurs
 set -e
-#EXEC="./PeleLM2d.gnu.MPI.ex"
-EXEC="./PeleLM2d.llvm.MPI.ex"
+EXEC="./PeleLM2d.gnu.MPI.ex"
+#EXEC="./PeleLM2d.gnu.CUDA.ex"
 TPD="output_files"
 # For name of grid input file
 # Determines box sizes on refined levels
-gridsizes=(32 128)
+gridsizes=(32 64)
 # Box sizes for coarse level
-bsize=(32 128)
+bsize=(32 64)
 mkdir -p ${TPD}
+refratio=2
 
-GRIDLOCS="two_d_gridfiles"
+GRIDLOCS="two_d_gridfiles/ref"${reratio}
 # Number of iterations, should have 6 digits
 NUM_ITER_1=00005
 NUM_ITER=00010
@@ -26,7 +27,7 @@ for gsi in "${!gridsizes[@]}"; do
     regridfile=${gridfile}_2
     mkdir -p $outloc
     # Run initial
-    mpiexec -np 4 ${EXEC} $INPUT_FILE \
+    mpiexec -np 8 ${EXEC} $INPUT_FILE \
             amr.plot_file = $outloc/plt \
             amr.check_file = $outloc/chk \
             amr.checkpoint_files_output = 1 \
@@ -35,9 +36,10 @@ for gsi in "${!gridsizes[@]}"; do
             max_step = ${NUM_ITER_1} \
             amr.initial_grid_file = $gridfile \
             amr.regrid_file = $regridfile \
-            amr.regrid_int = 4 4 4 4
+            amr.regrid_int = 4 4 4 4 \
+            amr.ref_ratio = $refratio $refratio $refratio
     # Run from restart
-    mpiexec -np 4 ${EXEC} $INPUT_FILE \
+    mpiexec -np 8 ${EXEC} $INPUT_FILE \
             amr.plot_file = $outloc/plt \
             amr.check_file = $outloc/chk \
             amr.restart = $outloc/chk${NUM_ITER_1} \
@@ -46,7 +48,8 @@ for gsi in "${!gridsizes[@]}"; do
             max_step = ${NUM_ITER} \
             amr.initial_grid_file = $gridfile \
             amr.regrid_file = $regridfile \
-            amr.regrid_int = 4 4 4 4
+            amr.regrid_int = 4 4 4 4 \
+            amr.ref_ratio = $refratio $refratio $refratio
 done
 cd ${TPD}
 # Must fill in the path to fcompare here

@@ -1,108 +1,117 @@
 #----------------------DOMAIN DEFINITION------------------------
-geometry.is_periodic = 1 0 1              # For each dir, 0: non-perio, 1: periodic
+geometry.is_periodic = 1 1                # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
 geometry.prob_lo     = 0.0 0.0 0.0        # x_lo y_lo (z_lo)
-geometry.prob_hi     = 0.012 0.012 0.012  # x_hi y_hi (z_hi)
+geometry.prob_hi     = 10.0 10.0 10.0     # x_hi y_hi (z_hi)
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
-peleLM.lo_bc = Interior NoSlipWallAdiab Interior
-peleLM.hi_bc = Interior Outflow Interior
+peleLM.lo_bc = Interior  Interior
+peleLM.hi_bc = Interior  Interior
 
 #-------------------------AMR CONTROL----------------------------
-amr.n_cell          = 32 32 32         # Level 0 number of cells in each direction   
+amr.n_cell          = 64 64 64         # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
-amr.max_level       = 0                # maximum level number allowed
-amr.ref_ratio       = 2 2 2 2          # refinement ratio
-amr.regrid_int      = 2                # how often to regrid
 amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
-amr.blocking_factor = 16               # block factor in grid generation (min box size)
-amr.max_grid_size   = 64               # max box size
+
+amr.max_level       = 2                # maximum level number allowed
+amr.regrid_int      = 2                # how often to regrid
+
+# Box size: 32
+amr.blocking_factor = 32               # block factor in grid generation (min box size)
+amr.max_grid_size   = 32               # max box size
+# Ref ratio: 4
+amr.ref_ratio       = 4 4              # refinement ratio
+amr.initial_grid_file = two_d_gridfiles/gridfile_r4_32
+amr.regrid_file     = two_d_gridfiles/gridfile_r4_32_2
+# Refinement ratios of 4 with sprays have shown instabilities
+# It is recommended to lower the linear operation order to help with this
+macop.max_order     = 3
+
+# Ref ratio: 2
+# amr.ref_ratio       = 2 2              # refinement ratio
+# amr.initial_grid_file = two_d_gridfiles/gridfile_32
+# amr.regrid_file     = two_d_gridfiles/gridfile_32_2
+
+# Box size: 64
+# amr.blocking_factor = 64               # block factor in grid generation (min box size)
+# amr.max_grid_size   = 64               # max box size
+
+# Ref ratio: 2
+# amr.ref_ratio       = 2 2              # refinement ratio
+# amr.initial_grid_file = two_d_gridfiles/gridfile_64
+# amr.regrid_file     = two_d_gridfiles/gridfile_64_2
+
+# Ref ratio: 4
+# amr.ref_ratio       = 4 4              # refinement ratio
+# amr.initial_grid_file = two_d_gridfiles/gridfile_r4_64
+# amr.regrid_file     = two_d_gridfiles/gridfile_r4_64_2
+# macop.max_order = 3
 
 #----------------------TIME STEPPING CONTROL----------------------
-max_step            = 5               # maximum number of time steps    
-stop_time           = 0.04             # final physical time
+max_step            = 10               # maximum number of time steps
+stop_time           = 100.             # final physical time
 ns.cfl              = 0.3              # cfl number for hyperbolic system
-ns.init_shrink      = 1.              # scale back initial timestep
+ns.init_shrink      = 1.               # scale back initial timestep
 ns.change_max       = 1.1              # max timestep size increase
 ns.dt_cutoff        = 5.e-10           # level 0 timestep below which we halt
-ns.init_dt          = 1.E-6
+ns.init_dt          = 1.E-4
 
 #-------------------------IO CONTROL----------------------------
 amr.checkpoint_files_output = 0
 amr.check_file          = chk          # root name of checkpoint file
-amr.check_int           = 250          # number of timesteps between checkpoints
+amr.check_int           = 5            # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
-amr.plot_int            = 100          # number of timesteps between plot files
+amr.plot_int            = 100000       # number of timesteps between plot files
+amr.plot_vars           = rho_NC10H22 rho_O2 rho_N2 x_velocity y_velocity density RhoRT divu rhoh
 amr.derive_plot_vars    = mass_fractions
-#amr.grid_log            = grdlog       # name of grid logging file
 
 #----------------------- PROBLEM PARAMETERS---------------------
-prob.P_mean = 2.93E6
-prob.ref_T = 440.
-prob.init_N2 = 1.
-prob.init_O2 = 0.
-# Properties of injected particles
-prob.part_temp = 363.
-# Log-normal distribution of particle diameters
-# Mean particle diameter
-prob.part_mean_dia = 4.5E-6
-# Standard deviation of the particle diameter
-prob.part_stdev_dia = 0.
-# Jet properties
-prob.jet_dia = 9.E-5
-prob.spray_angle_deg = 21.
-prob.jets_per_dir = 1
-prob.jet_start_time = 0.
-prob.jet_end_time = 1.54E-3
-prob.jet_vel = 60.
-prob.jet_dx_mod = 42.
-prob.mass_flow_rate = 2.3E-3
+# Gas phase parameters, always used
+prob.init_redist        = 2
+prob.P_mean             = 101325.
+prob.ref_T              = 500.
+prob.init_vel           = 1.E-3 # Small velocity helps stability for open domain
+# Particle parameters, only used if particles.init_function = 1
+prob.num_particles      = (150,150,150)
+prob.part_temp          = 300.
+prob.part_dia           = 1.E-3
+prob.part_vel           = 15. 15. 0.
 
-#--------------------SPRAY PARTICLE DATA-----------------------
-peleLM.do_spray_particles = 1
-particles.v = 0
-particles.mom_transfer = 1
-particles.mass_transfer = 1
-particles.heat_transfer = 1
-particles.init_function = 1 # Sprays are initialized using SprayParticleInitInsert.cpp
-particles.write_spray_ascii_files = 0
-particles.parcel_size = 1. # Number of particles per parcel
+#---------------------PARTICLE CONTROL-----------------------
 particles.fuel_species = NC10H22
-# Properties for liquid decane
+# Properties for decane, in MKS
 particles.fuel_crit_temp = 617.8 # K
 particles.fuel_boil_temp = 447.27 # K
 particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E5
-particles.fuel_cp = 2.1921E3 # Cp at 298
+particles.fuel_cp = 2.1921E3 # Cp at 298 K
 particles.fuel_rho = 640.
 particles.use_splash_model = false
 
-#--------------------REFINEMENT CONTROL------------------------
+# particles.particle_init_function = 0
+# particles.particle_init_file = "initspraydata"
+particles.particle_init_function = 1
 
-# Refinement according to temperature and gradient of temperature
-amr.refinement_indicators = gradT
-
-amr.gradT.max_level = 0
-amr.gradT.adjacent_difference_greater = 20.
-amr.gradT.field_name = temp
-
-# Refinement according to the vorticity, no field_name needed
-#amr.refinement_indicators = magvort
-#amr.magvort.max_level = 3
-#amr.magvort.vorticity_greater = 300
+peleLM.do_spray_particles = 1
+particles.v             = 0
+particles.mom_transfer  = 1
+particles.mass_transfer = 1
+particles.heat_transfer = 1
+particles.cfl           = 0.5
+particles.write_spray_ascii_files = 0
+particles.parcel_size = 1.
 
 #---------------------PHYSICS CONTROL------------------------
 ns.fuelName          = NC10H22         # Fuel species name
 ns.unity_Le          = 0               # Use unity Le number transport ?
 ns.hack_nochem       = 1               # Bypass chemistry ? 0: no, 1: yes
 ns.gravity           = 0               # body force  (gravity in MKS units)
-ns.use_wbar          = 0
 
 #--------------------NUMERICS CONTROL------------------------
-ns.init_iter         = 5               # Number of initial iterations to def pressure
+ns.init_iter         = 3               # Number of initial iterations to def pressure
 ns.num_divu_iters    = 1               # Number of DivU iteration at initialization
 ns.sdc_iterMAX       = 2               # Number of SDC iterations
 ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
@@ -111,19 +120,11 @@ ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
 #peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
 #peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance
-cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
+cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
 ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?
-active_control.use_temp = 1            # Default in fuel mass, rather use iso-T position ?
-active_control.temperature = 1300.0    # Value of iso-T ?
-active_control.tau = 1.0e-4            # Control tau (should ~ 10 dt)
-active_control.height = 0.0070         # Where is the flame held ? Default assumes coordinate along Y in 2D or Z in 3D.
-active_control.v = 1                   # verbose
-active_control.velMax = 1.5            # Optional: limit inlet velocity
-active_control.changeMax = 0.2         # Optional: limit inlet velocity changes (absolute)
-active_control.flameDir  = 1           # Optional: flame main direction. Default: AMREX_SPACEDIM-1
 
 # ---------------------------------------------------------------
 # ------------------  ADVANCED USER INPUTS ----------------------
@@ -140,7 +141,6 @@ ns.do_temp           = 1
 ns.do_diffuse_sync   = 1
 ns.do_reflux_visc    = 1
 ns.zeroBndryVisc     = 1
-#ns.v                 = 0
 
 # 
 ns.divu_ceiling         = 1

@@ -52,13 +52,8 @@ SprayParticleContainer::injectParticles(
   Real mass_flow_rate = prob_parm.mass_flow_rate;
   Real jet_vel = prob_parm.jet_vel;
   Real jet_dia = prob_parm.jet_dia;
-  const Real dx_mod = prob_parm.jet_dx_mod;
-  if (10. * dx[0] / dx_mod > jet_dia) {
-    int newdxmod = int(dx[0] / jet_dia * 10.);
-    std::string abrtmsg =
-      "jet_dx_mod must be at least " + std::to_string(newdxmod);
-    Abort(abrtmsg);
-  }
+  Real newdxmod = dx[0] / jet_dia * 10.;
+  Real dx_mod = amrex::max(prob_parm.jet_dx_mod, newdxmod);
   Real jr2 = jet_dia * jet_dia / 4.; // Jet radius squared
 #if AMREX_SPACEDIM == 3
   Real jet_area = M_PI * jr2;
