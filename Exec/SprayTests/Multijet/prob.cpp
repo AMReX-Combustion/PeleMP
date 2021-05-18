@@ -25,8 +25,8 @@ amrex_probinit(
   pp.get("part_temp", PeleC::prob_parm_host->part_temp);
   pp.query("mass_flow_rate", PeleC::prob_parm_host->mass_flow_rate);
   pp.get("spray_angle_deg", PeleC::prob_parm_host->spray_angle);
-  int jets_per_dir = 0;
-  pp.get("jets_per_dir", jets_per_dir);
+  std::vector<int> jets_per_dir(AMREX_SPACEDIM);
+  pp.getarr("jets_per_dir", jets_per_dir);
   std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
   in_Y_jet[0] = 1.;
   pp.queryarr("jet_mass_fracs", in_Y_jet);
@@ -40,7 +40,7 @@ amrex_probinit(
   // Convert to radians
   PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
   // Total number of jets
-  unsigned int total_jets = std::pow(jets_per_dir, AMREX_SPACEDIM - 1);
+  unsigned int total_jets = AMREX_DTERM(jets_per_dir[0],,*jets_per_dir[2]);
   PeleC::prob_parm_host->num_jets = total_jets;
   PeleC::prob_parm_host->jet_cents.resize(total_jets);
   amrex::Real dom_len = probhi[0] - problo[0];

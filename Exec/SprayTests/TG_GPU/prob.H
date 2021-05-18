@@ -7,7 +7,7 @@
 #include <AMReX_FArrayBox.H>
 #include <AMReX_IntVect.H>
 
-#include "mechanism.h"
+#include "mechanism.H"
 
 #include "IndexDefines.H"
 #include "Constants.H"

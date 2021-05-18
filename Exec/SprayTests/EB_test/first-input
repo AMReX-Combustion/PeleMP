@@ -88,7 +88,7 @@ particles.fuel_lambda = 1.291E4 1.3078E4
 # TODO: Make separate sigmas for each fuel
 particles.fuel_sigma = 19.
 particles.wall_temp = 430.
-#particles.use_splash_model = false
+particles.use_splash_model = false
 #particles.wall_temp = 1500.
 
 # CHECKPOINT FILES

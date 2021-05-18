@@ -2,8 +2,8 @@
 
 # Tells script to stop running as soon as an error occurs
 set -e
-EXEC="./PeleLM2d.gnu.MPI.ex"
-#EXEC="./PeleLM2d.gnu.CUDA.ex"
+EXEC="./PeleLM2d.gnu.TPROF.MPI.ex"
+#EXEC="./PeleLM2d.gnu.TPROF.CUDA.ex"
 TPD="output_files"
 # For name of grid input file
 # Determines box sizes on refined levels
@@ -13,7 +13,7 @@ bsize=(32 64)
 mkdir -p ${TPD}
 refratio=2
 
-GRIDLOCS="two_d_gridfiles/ref"${reratio}
+GRIDLOCS="two_d_gridfiles/ref"${refratio}
 # Number of iterations, should have 6 digits
 NUM_ITER_1=00005
 NUM_ITER=00010

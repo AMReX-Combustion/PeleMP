@@ -6,7 +6,7 @@
 #include <AMReX_Geometry.H>
 #include <AMReX_FArrayBox.H>
 
-#include "mechanism.h"
+#include "mechanism.H"
 
 #include "IndexDefines.H"
 #include "Constants.H"

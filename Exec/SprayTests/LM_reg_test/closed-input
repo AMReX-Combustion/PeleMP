@@ -24,16 +24,16 @@ amr.blocking_factor = 32               # block factor in grid generation (min bo
 amr.max_grid_size   = 32               # max box size
 # Ref ratio: 4
 amr.ref_ratio       = 4 4              # refinement ratio
-amr.initial_grid_file = two_d_gridfiles/gridfile_r4_32
-amr.regrid_file     = two_d_gridfiles/gridfile_r4_32_2
+amr.initial_grid_file = two_d_gridfiles/ref4/gridfile_32
+amr.regrid_file     = two_d_gridfiles/ref4/gridfile_32_2
 # Refinement ratios of 4 with sprays have shown instabilities
 # It is recommended to lower the linear operation order to help with this
 macop.max_order     = 3
 
 # Ref ratio: 2
 # amr.ref_ratio       = 2 2              # refinement ratio
-# amr.initial_grid_file = two_d_gridfiles/gridfile_32
-# amr.regrid_file     = two_d_gridfiles/gridfile_32_2
+# amr.initial_grid_file = two_d_gridfiles/ref2/gridfile_32
+# amr.regrid_file     = two_d_gridfiles/ref2/gridfile_32_2
 
 # Box size: 64
 # amr.blocking_factor = 64               # block factor in grid generation (min box size)
@@ -41,13 +41,13 @@ macop.max_order     = 3
 
 # Ref ratio: 2
 # amr.ref_ratio       = 2 2              # refinement ratio
-# amr.initial_grid_file = two_d_gridfiles/gridfile_64
-# amr.regrid_file     = two_d_gridfiles/gridfile_64_2
+# amr.initial_grid_file = two_d_gridfiles/ref2/gridfile_64
+# amr.regrid_file     = two_d_gridfiles/ref2/gridfile_64_2
 
 # Ref ratio: 4
 # amr.ref_ratio       = 4 4              # refinement ratio
-# amr.initial_grid_file = two_d_gridfiles/gridfile_r4_64
-# amr.regrid_file     = two_d_gridfiles/gridfile_r4_64_2
+# amr.initial_grid_file = two_d_gridfiles/ref4/gridfile_64
+# amr.regrid_file     = two_d_gridfiles/ref4/gridfile_64_2
 # macop.max_order = 3
 
 #----------------------TIME STEPPING CONTROL----------------------
@@ -66,7 +66,6 @@ amr.check_int           = 5            # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
 amr.plot_int            = 100000       # number of timesteps between plot files
 amr.plot_vars           = rho_NC10H22 rho_O2 rho_N2 x_velocity y_velocity density RhoRT divu rhoh
-amr.derive_plot_vars    = mass_fractions
 
 #----------------------- PROBLEM PARAMETERS---------------------
 # Gas phase parameters, always used
@@ -113,8 +112,8 @@ ns.gravity           = 0               # body force  (gravity in MKS units)
 #--------------------NUMERICS CONTROL------------------------
 ns.init_iter         = 3               # Number of initial iterations to def pressure
 ns.num_divu_iters    = 1               # Number of DivU iteration at initialization
-ns.sdc_iterMAX       = 2               # Number of SDC iterations
-ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
+ns.sdc_iterMAX       = 1               # Number of SDC iterations
+ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
 #peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
