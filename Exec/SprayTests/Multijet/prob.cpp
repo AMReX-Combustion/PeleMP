@@ -17,6 +17,8 @@ amrex_probinit(
   pp.query("init_N2", PeleC::h_prob_parm_device->Y_N2);
   pp.query("init_O2", PeleC::h_prob_parm_device->Y_O2);
   pp.query("jet_vel", PeleC::prob_parm_host->jet_vel);
+  pp.query("jet_start_time", PeleC::prob_parm_host->jet_start_time);
+  pp.query("jet_end_time", PeleC::prob_parm_host->jet_end_time);
   // The cells are divided by this value when prescribing the jet inlet
   pp.query("jet_dx_mod", PeleC::prob_parm_host->jet_dx_mod);
   pp.get("jet_dia", PeleC::prob_parm_host->jet_dia);
@@ -43,14 +45,19 @@ amrex_probinit(
   unsigned int total_jets = AMREX_DTERM(jets_per_dir[0],,*jets_per_dir[2]);
   PeleC::prob_parm_host->num_jets = total_jets;
   PeleC::prob_parm_host->jet_cents.resize(total_jets);
-  amrex::Real dom_len = probhi[0] - problo[0];
-  amrex::Real div_len = dom_len / (amrex::Real(jets_per_dir));
+  amrex::Real div_lenx = (probhi[0] - problo[0]) / (amrex::Real(jets_per_dir[0]));
+  int jetz = 1;
+  amrex::Real div_lenz = 0.;
+#if AMREX_SPACEDIM == 3
+  div_lenz = (probhi[2] - problo[2]) / (amrex::Real(jets_per_dir[2]));
+  jetz = jets_per_dir[2];
+#endif
   amrex::Real yloc = problo[1];
   int jindx = 0;
-  for (int i = 0; i < jets_per_dir; ++i) {
-    amrex::Real xloc = div_len * (amrex::Real(i) + 0.5);
-    for (int k = 0; k < jets_per_dir; ++k) {
-      amrex::Real zloc = div_len * (amrex::Real(k) + 0.5);
+  for (int i = 0; i < jets_per_dir[0]; ++i) {
+    amrex::Real xloc = div_lenx * (amrex::Real(i) + 0.5);
+    for (int k = 0; k < jetz; ++k) {
+      amrex::Real zloc = div_lenz * (amrex::Real(k) + 0.5);
       PeleC::prob_parm_host->jet_cents[jindx] =
         amrex::RealVect(AMREX_D_DECL(xloc, yloc, zloc));
       jindx++;
