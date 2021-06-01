@@ -43,3 +43,7 @@ CEXE_sources += SprayParticlesInitInsert.cpp
 Blocs   := .
 
 include $(PELELM_HOME)/Tools/Make/Make.PeleLM
+
+ifeq ($(USE_CUDA),TRUE)
+CXXFLAGS += -Xptxas --disable-optimizer-constants
+endif

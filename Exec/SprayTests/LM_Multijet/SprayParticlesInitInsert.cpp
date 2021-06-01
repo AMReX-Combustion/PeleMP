@@ -5,18 +5,6 @@
 
 using namespace amrex;
 
-int
-interpolateInjectTime(
-  const Real& time, const int nvals, const Real* inject_time)
-{
-  int i = 0;
-  Real ctime = inject_time[i];
-  while (ctime < time) {
-    ctime = inject_time[++i];
-  }
-  return i;
-}
-
 Real
 jetOverlapArea(
   const Real testdx,
@@ -265,6 +253,8 @@ void
 SprayParticleContainer::InitSprayParticles(
   ProbParm const& prob_parm)
 {
+  // This ensures the initial time step size stays reasonable
+  m_injectVel = prob_parm.jet_vel;
   // Start without any particles
   return;
 }

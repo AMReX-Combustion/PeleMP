@@ -9,7 +9,7 @@ geometry.coord_sys = 0  # 0 => cart, 1 => RZ
 
 geometry.prob_lo = 0. 0. 0.
 geometry.prob_hi = 0.08 0.005 0.005
-prob.ref_p = 1013250.
+prob.P_mean = 1013250.
 prob.ref_T = 1500.
 prob.init_vel = 0.
 

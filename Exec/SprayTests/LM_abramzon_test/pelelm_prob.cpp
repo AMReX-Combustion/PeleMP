@@ -12,7 +12,7 @@ amrex_probinit(
 {
   amrex::ParmParse pp("prob");
 
-  pp.query("ref_p", PeleLM::prob_parm->P_mean);
+  pp.query("P_mean", PeleLM::prob_parm->P_mean);
   pp.query("ref_T", PeleLM::prob_parm->T0);
   pp.query("init_vel", PeleLM::prob_parm->vel);
   pp.query("init_N2", PeleLM::prob_parm->Y_N2);
