@@ -269,6 +269,8 @@ void
 SprayParticleContainer::InitSprayParticles(
   ProbParm const& prob_parm)
 {
+  // Do this to prevent the time step from growing too large
+  m_injectVel = prob_parm.jet_vel;
   // Start without any particles
   return;
 }

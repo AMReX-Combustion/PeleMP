@@ -29,8 +29,8 @@ amr.max_grid_size   = 64               # max box size
 max_step            = 200              # maximum number of time steps    
 stop_time           = .5e-3            # final physical time
 ns.cfl              = 0.3              # cfl number for hyperbolic system
-#ns.init_dt          = 2e-7
-ns.init_shrink      = 0.001            # scale back initial timestep
+ns.init_dt          = 5.e-6
+ns.init_shrink      = 1.            # scale back initial timestep
 ns.change_max       = 1.1              # max timestep size increase
 ns.dt_cutoff        = 1.e-12           # level 0 timestep below which we halt
 
@@ -184,7 +184,7 @@ amrex.fpe_trap_zero = 1
 amrex.fpe_trap_overflow = 1
 
 
-ns.fixed_dt         = 1e-7
+#ns.fixed_dt         = 1e-7
 
 #amr.restart         = chk00020
 #amr.regrid_on_restart = 1
