@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 100000
+max_step = 18786
 stop_time = 0.008
 
 # PROBLEM SIZE & GEOMETRY
@@ -53,7 +53,6 @@ pelec.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.heat_transfer = 1
 particles.init_function = 0
 particles.init_file = "initspraydata"
 particles.write_spray_ascii_files = 1

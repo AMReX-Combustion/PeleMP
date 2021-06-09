@@ -56,6 +56,7 @@ pelec.do_spray_particles = 1
 particles.mom_transfer = 0
 particles.mass_transfer = 1
 particles.heat_transfer = 1
+particles.write_spray_ascii_files = 1
 particles.init_function = 0
 particles.init_file = "initsprayfile"
 
