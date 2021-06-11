@@ -82,6 +82,13 @@ particles.fuel_ref_temp = 300.
 particles.fuel_latent = 3.63E9 3.5899E9
 particles.fuel_cp = 2.2483E7 2.1921E7
 particles.fuel_rho = 0.693 0.640
+# Coefficients for saturation pressure using Antoine equation
+# These are from the NIST website
+# Last coefficient converts units, in this case bar, to dyne/cm^2
+particles.NC7H16_psat = 4.02832 1268.636 -56.199 1.E6
+particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E6
+
+
 particles.fuel_mu = 0.00236 0.004428 # Estimated viscosity at 350 K and 10 atm
 particles.fuel_lambda = 1.291E4 1.3078E4
 # TODO: Make separate sigmas for each fuel

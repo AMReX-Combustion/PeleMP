@@ -61,7 +61,6 @@ pelec.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 0
-particles.heat_transfer = 0
 particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
