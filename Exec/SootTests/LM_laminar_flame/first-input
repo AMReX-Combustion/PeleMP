@@ -175,5 +175,5 @@ soot.max_dt_rate = 0.001
 soot.num_subcycles = 10
 soot.temp_cutoff = 350.
 soot.conserve_mass = false
-peleLM.add_soot_src = 1
+peleLM.do_soot_solve = 1
 peleLM.plot_soot_src = 0

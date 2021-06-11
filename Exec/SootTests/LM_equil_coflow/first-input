@@ -1,29 +1,65 @@
 #----------------------------TOP LEVEL INPUTS----------------------
 max_step = 1000000
-stop_time = 0.01
+stop_time = 2.4
 
 # ----------------  PROBLEM DEPENDENT INPUTS
-geometry.is_periodic = 1 0 1
+geometry.is_periodic = 0 0 1
 
 geometry.coord_sys = 0  # 0 => cart, 1 => RZ
 
+amr.n_cell = 64 64 32
+#amr.n_cell = 128 256 64
+
+peleLM.use_typ_vals_chem = 1
+
 geometry.prob_lo = 0. 0. 0.
-geometry.prob_hi = 0.08 0.005 0.005
-prob.P_mean = 1013250.
-prob.ref_T = 1500.
-prob.init_vel = 0.
+#geometry.prob_hi = 0.12 0.12 0.06
+#prob.jet_center = 0.06
+geometry.prob_hi = 0.06 0.12 0.06
+prob.jet_center = 0.0
+# PROBLEM INPUT
+prob.init_vel = 0.0
+
+#prob.data_file = "data/flame_data.csv"
+prob.data_file = "data/equil_flame_data.csv"
+
+prob.ref_p = 101325.
+prob.ref_temp = 300.
+#prob.fuel_name = C2H4
+prob.fuel_name = N-C7H16
+prob.fuel_temp = 300.
+prob.oxid_temp = 300.
+prob.fuel_dia = 0.012
+prob.oxid_dia = 0.055
+prob.fuel_vel = 0.034
+prob.oxid_vel = 0.309
+prob.smooth_factor = 0.01
+prob.oxid_O2 = 0.233
+prob.oxid_N2 = 0.767
+#prob.jet_center = 0.0
 
 ns.use_wbar = 0
+#ns.do_mom_diff = 1
+#ns.do_set_rho_to_species_sum = 1
+#ns.avg_interval = 250
 
 amr.max_level = 0
 amr.ref_ratio = 2 2 2 2 # refinement ratio
-amr.regrid_int = -1 -1 -1
-#amr.initial_grid_file = two_d_gridfiles/gridfile_32
+amr.regrid_int = 8 8 8
 amr.max_grid_size = 32
-amr.blocking_factor = 16
-#amr.initial_grid_file = two_d_gridfiles/gridfile_128
+amr.blocking_factor = 32
 # amr.max_grid_size = 128
 # amr.blocking_factor = 128
+
+amr.refinement_indicators = gradT
+amr.gradT.max_level = 0
+amr.gradT.adjacent_difference_greater = 5.
+amr.gradT.field_name = temp
+
+# amr.refinement_indicators = gradRho
+# amr.gradRho.max_level = 1
+# amr.gradRho.adjacent_difference_greater = 0.001
+# amr.gradRho.field_name = density
 
 amrex.fpe_trap_overflow = 1
 amrex.fpe_trap_invalid = 1
@@ -32,39 +68,42 @@ amrex.fpe_trap_zero = 1
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
-peleLM.lo_bc = Interior Outflow Interior
-peleLM.hi_bc = Interior Outflow Interior
+#peleLM.lo_bc = Outflow Inflow Interior
+peleLM.lo_bc = Symmetry Inflow Interior
+peleLM.hi_bc = Outflow Outflow Interior
+#peleLM.hi_bc = Outflow Outflow Interior
 
 #-------------------------AMR INPUTS----------------------------
-amr.n_cell    = 256 16 16
 
 amr.v=1
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.9     # what constitutes an efficient grid
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
-#amr.restart = chk00000
 amr.checkpoint_files_output = 0
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 10000       # number of timesteps between checkpoints
+amr.check_int       = 250       # number of timesteps between checkpoints
+amr.file_name_digits = 6
 
 amr.plot_file = plt
-amr.plot_per = 1.6E-4
-amr.derive_plot_vars= avg_pressure mass_fractions
+#amr.plot_int = 50
+amr.plot_per = 1.E-3
+amr.derive_plot_vars = avg_pressure rhoRT mass_fractions soot_vars soot_large_particles rhominsumrhoY
 
 # ------------------  INPUTS TO PHYSICS CLASS -------------------
 ns.dt_cutoff       = 5.e-10   # level 0 timestep below which we halt
 ns.visc_tol        = 1.0e-12  # tolerence for viscous solves
 ns.visc_abs_tol    = 1.0e-12  # tolerence for viscous solves
-ns.cfl            = 0.3       # cfl number for hyperbolic system
-ns.init_shrink    = 0.5       # scale back initial timestep
+ns.cfl            = 0.1       # cfl number for hyperbolic system
+ns.init_shrink    = 0.1       # scale back initial timestep
 ns.change_max     = 1.1       # scale back initial timestep
-ns.init_iter      = 0        # number of init iters to def pressure
+ns.init_iter      = 1        # number of init iters to def pressure
 ns.gravity        = 0        # body force  (gravity in MKS units)
 ns.sum_interval   = 1        # timesteps between computing mass
 ns.do_reflux      = 1        # 1 => do refluxing
 ns.do_mac_proj    = 1        # 1 => do MAC projection
-ns.init_dt        = 5.E-5
+ns.init_dt        = 1.E-6
+ns.fixed_dt       = 5.E-3
 ns.dpdt_option = 0
 
 ns.do_sync_proj   = 1        # 1 => do Sync Project
@@ -76,18 +115,18 @@ ns.be_cn_theta = 0.5
 
 ns.do_temp = 1
 
-ns.do_diffuse_sync = 1
+ns.do_diffuse_sync = 0
 ns.do_reflux_visc  = 1
 
-ns.divu_ceiling = 1
+ns.divu_ceiling = 0
 ns.divu_dt_factor = .4
 ns.min_rho_divu_ceiling = .01
 
-ns.fuelName        = NC10H22
-ns.hack_nochem = 1
+ns.fuelName = C2H4
+ns.hack_nochem = 0
 ns.unity_Le = 0
 
-ns.zeroBndryVisc= 1
+ns.zeroBndryVisc= 0
 ns.num_divu_iters = 1
 ns.num_mac_sync_iter = 1
 ns.do_active_control = 0
@@ -99,6 +138,7 @@ ht.plot_rhoydot = 0
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
 cvode.solve_type = GMRES
 ode.analytical_jacobian = 0
+ode.verbose = 0
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                              # Use AC ?
@@ -159,31 +199,13 @@ fab.format = NATIVE
 #fabarray.mfiter_tile_size = 8 8 8
 amrex.regtest_reduction=1
 
-# Particles
-peleLM.do_spray_particles = 1
-particles.v = 0
-particles.mom_transfer = 1
-particles.mass_transfer = 1
-particles.heat_transfer = 1
-particles.init_function = 0
-# Particle input files must use MKS units
-particles.init_file = "initspraydata"
-#particles.init_file = "initspraydata3d"
-particles.write_spray_ascii_files = 1
-particles.parcel_size = 1.
-
-particles.fuel_species = NC10H22
-# properties for decane, must use MKS units
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
-# If we want the reference point to be same as the boiling temperature
-particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E5
-particles.fuel_cp = 2.1921E3 # Cp at 298 K
-particles.fuel_rho = 640.
-# Coefficients for saturation pressure using Antoine equation
-# These are from the NIST website
-# Last coefficient converts units, in this case bar, to Pa
-particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
-
-particles.use_splash_model = false
+# SOOT MODELING
+soot.incept_pah = A2 # Soot inception species
+soot.pah_name = A2 # Only necessary if mechanism uses a name other than A2, A3, or A4 for incept_pah
+soot.v = 0
+soot.max_dt_rate = 5.E-3
+soot.num_subcycles = 10
+soot.temp_cutoff = 350.
+soot.conserve_mass = false
+peleLM.do_soot_solve = 1
+peleLM.plot_soot_src = 0

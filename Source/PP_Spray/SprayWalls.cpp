@@ -33,7 +33,7 @@ SprayParticleContainer::wallImpingement(
   const auto domain = this->Geom(level).Domain();
   IntVect bndry_lo; // Designation for boundary types
   IntVect bndry_hi; // 0 - Periodic, 1 - Reflective, -1 - Non-reflective
-  for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     if (!this->Geom(level).isPeriodic(dir)) {
       if (reflect_lo[dir])
         bndry_lo[dir] = 1;
@@ -105,12 +105,13 @@ SprayParticleContainer::wallImpingement(
             bool dry_wall = true;
             if (film_id(ijk, 0) > 0)
               dry_wall = false;
-//             splash_flag = impose_wall(
-//               p, SPI, SPU, *fdat, ijk, dx, dxi, plo, phi,
-// #ifdef AMREX_USE_EB
-//               eb_in_box, flags_fab, bcent_fab, bnorm_fab,
-// #endif
-//               bndry_lo, bndry_hi, flow_dt, m_wallT, SPRF, isActive, dry_wall);
+            //             splash_flag = impose_wall(
+            //               p, SPI, SPU, *fdat, ijk, dx, dxi, plo, phi,
+            // #ifdef AMREX_USE_EB
+            //               eb_in_box, flags_fab, bcent_fab, bnorm_fab,
+            // #endif
+            //               bndry_lo, bndry_hi, flow_dt, m_wallT, SPRF,
+            //               isActive, dry_wall);
             // Only add active particles, not ghost or virtual
             if (SPRF.Ns_refl > 0 && isActive) {
               for (int nsp = 0; nsp < SPRF.Ns_refl; ++nsp) {

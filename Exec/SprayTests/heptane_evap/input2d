@@ -55,7 +55,6 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 pelec.do_spray_particles = 1
 particles.mom_transfer = 0
 particles.mass_transfer = 1
-particles.heat_transfer = 1
 particles.init_function = 0
 particles.init_file = "initsprayfile"
 
@@ -71,6 +70,11 @@ particles.fuel_ref_temp = 300.
 particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
 particles.fuel_cp = 2.2483E7 # @ 298 K
 particles.fuel_rho = 0.6814
+# Coefficients for saturation pressure using Antoine equation
+# These are from the NIST website
+# Last coefficient converts units, in this case bar, to dyne/cm^2
+particles.NC7H16_psat = 4.02832 1268.636 -56.199 1.E6
+
 particles.use_splash_model = false
 
 # CHECKPOINT FILES

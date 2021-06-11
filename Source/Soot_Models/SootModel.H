@@ -76,9 +76,7 @@ public:
   //
   // Estimate the soot time step
   //
-  Real estSootDt(
-    const Box& vbox,
-    Array4<const Real> const& Qstate) const;
+  Real estSootDt(const Box& vbox, Array4<const Real> const& Qstate) const;
 
   /***********************************************************************
     Reaction functions (SootModel_react.cpp)
@@ -158,7 +156,7 @@ public:
   // Temperature cutoff, any temparatures below this will only do one subcycle
   Real m_Tcutoff;
   // Number of subcycles to use during source calculations
-  Real m_numSubcycles;
+  int m_numSubcycles;
 
   /***********************************************************************
     Reaction member data

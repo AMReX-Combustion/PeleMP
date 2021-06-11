@@ -1,0 +1,3 @@
+CEXE_sources += pelelm_prob.cpp
+CEXE_headers += pelelm_prob.H
+CEXE_headers += pelelm_prob_parm.H

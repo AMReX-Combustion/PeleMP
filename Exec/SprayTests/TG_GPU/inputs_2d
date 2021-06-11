@@ -54,7 +54,6 @@ pelec.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.heat_transfer = 1
 particles.cfl = 0.4
 particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
@@ -67,6 +66,11 @@ particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E9
 particles.fuel_cp = 2.1921E7 # Cp at 298 K
 particles.fuel_rho = 0.640
+# Coefficients for saturation pressure using Antoine equation
+# These are from the NIST website
+# Last coefficient converts units, in this case bar, to dyne/cm^2
+particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E6
+
 particles.use_splash_model = false
 
 # CHECKPOINT FILES
