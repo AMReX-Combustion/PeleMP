@@ -115,7 +115,6 @@ prob.spray_angle_deg = 21.
 prob.jet_dx_mod = 50.
 
 # Properties of injected particles
-prob.part_rho = 0.693
 prob.part_temp = 363.
 # Log-normal distribution of particle diameters
 # Mean particle diameter
