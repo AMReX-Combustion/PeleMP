@@ -40,7 +40,6 @@ read_inject(const std::string myfile)
   for (int i = 0; i < PeleC::prob_parm_host->inject_N; i++) {
     std::getline(iss, remaininglines);
     std::istringstream sinput(remaininglines);
-    amrex::Real test, test1, test2;
     sinput >> PeleC::prob_parm_host->inject_time[i];
     sinput >> PeleC::prob_parm_host->inject_mass[i];
     sinput >> PeleC::prob_parm_host->inject_vel[i];
