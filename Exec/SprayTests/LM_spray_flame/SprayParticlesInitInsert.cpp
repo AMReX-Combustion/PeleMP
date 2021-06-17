@@ -233,7 +233,6 @@ SprayParticleContainer::injectParticles(
 #endif
               host_particles.push_back(p);
               Real pmass = Pi_six * rho_part * std::pow(cur_dia, 3);
-              Print()<<"pmass " << pmass << "\n";
               total_mass += num_ppp * pmass;
             }
           }
