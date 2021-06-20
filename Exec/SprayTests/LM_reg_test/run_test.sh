@@ -3,7 +3,9 @@
 # Tells script to stop running as soon as an error occurs
 set -e
 EXEC="./PeleLM2d.gnu.TPROF.MPI.ex"
+RUN="mpiexec -np 8"
 #EXEC="./PeleLM2d.gnu.TPROF.CUDA.ex"
+#RUN=""
 TPD="output_files"
 # For name of grid input file
 # Determines box sizes on refined levels
@@ -12,6 +14,10 @@ gridsizes=(32 64)
 bsize=(32 64)
 mkdir -p ${TPD}
 refratio=2
+macorder=4
+# If refratio is 4, suggest doing
+#macorder=3
+
 
 GRIDLOCS="two_d_gridfiles/ref"${refratio}
 # Number of iterations, should have 6 digits
@@ -27,7 +33,7 @@ for gsi in "${!gridsizes[@]}"; do
     regridfile=${gridfile}_2
     mkdir -p $outloc
     # Run initial
-    mpiexec -np 8 ${EXEC} $INPUT_FILE \
+    ${RUN} ${EXEC} $INPUT_FILE \
             amr.plot_file = $outloc/plt \
             amr.check_file = $outloc/chk \
             amr.checkpoint_files_output = 1 \
@@ -37,9 +43,10 @@ for gsi in "${!gridsizes[@]}"; do
             amr.initial_grid_file = $gridfile \
             amr.regrid_file = $regridfile \
             amr.regrid_int = 4 4 4 4 \
-            amr.ref_ratio = $refratio $refratio $refratio
+            amr.ref_ratio = $refratio $refratio $refratio \
+            mac_proj.maxorder = $macorder
     # Run from restart
-    mpiexec -np 8 ${EXEC} $INPUT_FILE \
+    ${RUN} ${EXEC} $INPUT_FILE \
             amr.plot_file = $outloc/plt \
             amr.check_file = $outloc/chk \
             amr.restart = $outloc/chk${NUM_ITER_1} \
@@ -49,7 +56,8 @@ for gsi in "${!gridsizes[@]}"; do
             amr.initial_grid_file = $gridfile \
             amr.regrid_file = $regridfile \
             amr.regrid_int = 4 4 4 4 \
-            amr.ref_ratio = $refratio $refratio $refratio
+            amr.ref_ratio = $refratio $refratio $refratio \
+            mac_proj.maxorder = $macorder
 done
 cd ${TPD}
 # Must fill in the path to fcompare here
