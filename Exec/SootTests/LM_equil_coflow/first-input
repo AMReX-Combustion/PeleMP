@@ -4,7 +4,7 @@ geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
 
 geometry.prob_lo = 0. 0. 0.
 geometry.prob_hi = 0.06 0.12 0.06
-amr.n_cell       = 64 64 32
+amr.n_cell       = 32 64 32
 prob.jet_center = 0.0
 # PROBLEM INPUT
 prob.init_vel = 0.0
