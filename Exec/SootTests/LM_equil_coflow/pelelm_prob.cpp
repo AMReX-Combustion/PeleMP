@@ -116,7 +116,7 @@ amrex_probinit(
 {
   // Parse params
   amrex::ParmParse pp("prob");
-  pp.query("ref_p", PeleLM::prob_parm->P_mean);
+  pp.query("P_mean", PeleLM::prob_parm->P_mean);
   pp.query("fuel_temp", PeleLM::prob_parm->fuel_T);
   pp.query("oxid_temp", PeleLM::prob_parm->oxid_T);
   pp.query("ref_temp", PeleLM::prob_parm->T_ref);

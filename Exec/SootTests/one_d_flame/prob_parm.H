@@ -19,6 +19,7 @@ struct ProbParmDevice
   unsigned int pmf_N = 0;
   unsigned int pmf_M = 0;
   int pmf_do_average = 0;
+  amrex::Real standoff = 0.;
 
   amrex::GpuArray<amrex::Real, NVAR> fuel_state = {{0.0}};
   amrex::Real* d_pmf_X = nullptr;

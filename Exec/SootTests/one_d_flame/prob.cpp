@@ -214,6 +214,8 @@ amrex_probinit(
   pp.query("phi_in", PeleC::h_prob_parm_device->phi_in);
   pp.query("T_in", PeleC::h_prob_parm_device->T_in);
   pp.query("vn_in", PeleC::h_prob_parm_device->vn_in);
+  pp.query("pmf_average", PeleC::h_prob_parm_device->pmf_do_average);
+  pp.query("pmf_standoff", PeleC::h_prob_parm_device->standoff);
   pp.get("pmf_datafile", pmf_datafile);
 
   AMREX_D_TERM(PeleC::h_prob_parm_device->L[0] = probhi[0] - problo[0];
@@ -223,11 +225,13 @@ amrex_probinit(
   read_pmf(pmf_datafile);
 
   init_bc();
-  amrex::Real moments[NUM_SOOT_MOMENTS + 1];
-  SootData* const sd = PeleC::soot_model->getSootData();
-  sd->initialSmallMomVals(moments);
-  for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
-    PeleC::h_prob_parm_device->soot_vals[n] = moments[n];
+  amrex::Real moments[NUM_SOOT_MOMENTS + 1] = {0.0};
+  if (PeleC::soot_model) {
+    SootData* const sd = PeleC::soot_model->getSootData();
+    sd->initialSmallMomVals(moments);
+    for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
+      PeleC::h_prob_parm_device->soot_vals[n] = moments[n];
+    }
   }
 }
 }

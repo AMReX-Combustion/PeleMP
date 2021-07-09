@@ -41,8 +41,13 @@ pelelm_initdata(
   amrex::Real x2 = (x - prob_parm.standoff + 0.5 * dx[0]) * 100.;
   PMF::pmf(pmf_data, x1, x2, pmf_vals);
   state(i, j, k, DEF_Temp) = pmf_vals[1];
+  amrex::Real norm = 0.;
   for (int n = 0; n < NUM_SPECIES; n++) {
-    massfrac[n] = pmf_vals[3 + n];
+    massfrac[n] = amrex::max(0., amrex::min(1., pmf_vals[3 + n]));
+    norm += massfrac[n];
+  }
+  for (int n = 0; n < NUM_SPECIES; ++n) {
+    massfrac[n] = massfrac[n] / norm;
   }
   AMREX_D_TERM(state(i, j, k, Xvel) = pmf_vals[0] * 1.E-2;
                , state(i, j, k, Yvel) = 0.;, state(i, j, k, Zvel) = 0.;);

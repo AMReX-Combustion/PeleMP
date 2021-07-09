@@ -155,8 +155,8 @@ pc_initdata(
                , const amrex::Real y = prob_lo[1] + (j + 0.5) * dx[1];
                , const amrex::Real z = prob_lo[2] + (k + 0.5) * dx[2];);
   amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
-  amrex::Real x1 = (x - 0.5 * dx[0]);
-  amrex::Real x2 = (x + 0.5 * dx[0]);
+  amrex::Real x1 = (x - prob_parm.standoff - 0.5 * dx[0]);
+  amrex::Real x2 = (x - prob_parm.standoff + 0.5 * dx[0]);
   pmf(x1, x2, pmf_vals, prob_parm);
   const amrex::Real T = pmf_vals[tempCol];
   const amrex::Real pres = prob_parm.pamb;
@@ -215,20 +215,12 @@ bcnormal(
   amrex::Real rho, energy, T, pres;
   auto eos = pele::physics::PhysicsType::eos();
 
+  // Outflow, extrapolate density and Y, set T, p, u
   if (sgn == -1) {
-    //     rho = s_int[URHO];
-    //     s_ext[URHO] = rho;
-    //     s_ext[UMX] = s_int[UMX];
-    //     s_ext[UMY] = s_int[UMY];
-    //     s_ext[UMZ] = s_int[UMZ];
-    //     s_ext[UEINT] = s_int[UEINT];
-    //     s_ext[UEDEN] = s_int[UEDEN];
-    //     s_ext[UTEMP] = s_int[UTEMP];
-    //     for (int n = 0; n < NUM_SPECIES; n++)
-    //       s_ext[UFS + n] = s_int[UFS + n];
+    rho = s_int[URHO];
     pmf(prob_hi[idir], prob_hi[idir], pmf_vals, prob_parm);
     for (int n = 0; n < NUM_SPECIES; n++)
-      massfrac[n] = pmf_vals[specCol + n];
+      massfrac[n] = s_int[UFS + n] / rho;
     T = pmf_vals[tempCol];
     pres = prob_parm.pamb;
     u[0] = 0.0;
