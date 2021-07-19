@@ -4,10 +4,8 @@ geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
 
 geometry.prob_lo = 0. 0. 0.
 geometry.prob_hi = 0.06 0.12 0.06
-amr.n_cell       = 32 64 32
+amr.n_cell       = 64 128 32
 prob.jet_center = 0.0
-# PROBLEM INPUT
-prob.init_vel = 0.0
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
@@ -55,7 +53,7 @@ prob.fuel_dia = 0.012
 prob.oxid_dia = 0.055
 prob.fuel_vel = 0.034
 prob.oxid_vel = 0.309
-prob.smooth_factor = 0.01
+prob.smooth_factor = 0.1
 prob.oxid_O2 = 0.233
 prob.oxid_N2 = 0.767
 
@@ -64,7 +62,7 @@ peleLM.do_soot_solve = 1
 peleLM.plot_soot_src = 0
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.5
+soot.max_dt_rate = 0.01
 soot.num_subcycles = 10
 soot.temp_cutoff = 350.
 soot.conserve_mass = false
@@ -154,6 +152,7 @@ mac.mac_sync_tol         = 4.0e-12     # tolerence for mac SYNC projection
 mac.mac_abs_tol          = 4.0e-12
 mac.do_outflow_bcs       = 0
 mac.v                    = 0
+mac_proj.verbose         = 0
 
 #--------------------------OMP TILE INPUTS-----------------------------
 #fabarray.mfiter_tile_size = 8 8 8
