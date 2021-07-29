@@ -31,19 +31,22 @@ void
 flame(amrex::Real Z,
       amrex::Real& T,
       Real* massfrac,
+      Real* moments,
       ProbParm const& prob_parm)
 {
   const int N = prob_parm.N_equil;
-  if (Z > 1. - 1.E-12) {
-    massfrac[prob_parm.fuel_indx] = 1.;
-    T = prob_parm.fuel_T;
-  } else if (Z < 1.E-12) {
-    massfrac[N2_ID] = prob_parm.oxid_N2;
-    massfrac[O2_ID] = prob_parm.oxid_O2;
-    T = prob_parm.oxid_T;
+  int loside = -1;
+  int hiside = -1;
+  amrex::Real invdx = 0.;
+  amrex::Real x1 = 0.;
+  amrex::Real x2 = 0.;
+  if (Z >= 1.) {
+    loside = N;
+    hiside = N;
+  } else if (Z <= 0.) {
+    loside = 0;
+    hiside = 0;
   } else {
-    int loside = -1;
-    int hiside = -1;
     for (unsigned int i = 0; i < N - 1; i++) {
       if (
         (Z >= prob_parm.Z_equil[i]) &&
@@ -52,18 +55,29 @@ flame(amrex::Real Z,
         hiside = i + 1;
       }
     }
-    amrex::Real x1 = prob_parm.Z_equil[loside];
-    amrex::Real x2 = prob_parm.Z_equil[hiside];
-    amrex::Real invdx = 1. / (x2 - x1);
-    amrex::Real T1 = prob_parm.T_equil[loside];
-    amrex::Real T2 = prob_parm.T_equil[hiside];
-    T = T1 + (T2 - T1) * invdx * (Z - x1);
-    for (unsigned int j = 0; j < NUM_SPECIES; j++) {
-      const amrex::Real y1 = prob_parm.Y_equil[N * j + loside];
-      const amrex::Real y2 = prob_parm.Y_equil[N * j + hiside];
-      amrex::Real dydx = (y2 - y1) * invdx;
-      massfrac[j] = y1 + dydx * (Z - x1);
-    }
+    x1 = prob_parm.Z_equil[loside];
+    x2 = prob_parm.Z_equil[hiside];
+    invdx = 1. / (x2 - x1);
+  }
+  amrex::Real T1 = prob_parm.T_equil[loside];
+  amrex::Real T2 = prob_parm.T_equil[hiside];
+  T = T1 + (T2 - T1) * invdx * (Z - x1);
+  amrex::Real norm = 0.;
+  for (unsigned int j = 0; j < NUM_SPECIES; j++) {
+    const amrex::Real y1 = prob_parm.Y_equil[N * j + loside];
+    const amrex::Real y2 = prob_parm.Y_equil[N * j + hiside];
+    amrex::Real dydx = (y2 - y1) * invdx;
+    massfrac[j] = amrex::max(0., amrex::min(1., y1 + dydx * (Z - x1)));
+    norm += massfrac[j];
+  }
+  for (unsigned int j = 0; j < NUM_SPECIES; j++) {
+    massfrac[j] /= norm;
+  }
+  for (unsigned int j = 0; j < NUM_SOOT_MOMENTS + 1; j++) {
+    const amrex::Real s1 = prob_parm.soot_equil[N * j + loside];
+    const amrex::Real s2 = prob_parm.soot_equil[N * j + hiside];
+    amrex::Real dsdx = (s2 - s1) * invdx;
+    moments[j] = s1 + dsdx * (Z - x1);
   }
 }
 
@@ -138,23 +152,37 @@ pelelm_initdata(
   amrex::Real o2in = prob_parm.oxid_O2;
   amrex::Real n2in = prob_parm.oxid_N2;
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
+  amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> moments = {{0.0}};
   amrex::Real temp = prob_parm.T_ref;
-  amrex::Real top_flame = 0.7 * leny;
-  // Adjust the fuel diameter linearly in the Y direction to form a triangle
-  amrex::Real cur_dia = prob_parm.fuel_dia * (-(y - prob_lo[1]) / top_flame + 1.);
-  amrex::Real xc = prob_parm.jet_center;
-  amrex::GpuArray<amrex::Real, 4> weights;
-  const amrex::Real smooth_b = prob_parm.smooth_b;
-  weight_vals(weights.data(), smooth_b, len, x, xc, prob_parm.oxid_dia, cur_dia);
-  amrex::Real fuel_mf = profile_vals(weights.data(), 0., 1., 0.);
-  amrex::Real o2_mf = profile_vals(weights.data(), o2in, 0., o2in);
-  amrex::Real n2_mf = profile_vals(weights.data(), n2in, 0., n2in);
-  amrex::Real Yff = fuel_mf;
-  amrex::Real Yoo = o2_mf / o2in;
-  amrex::Real Z = mixture_fraction(prob_parm.S_equil, Yff, Yoo);
-  flame(Z, temp, massfrac.data(), prob_parm);
-  state(i, j, k, DEF_Temp) = temp;
   amrex::Real init_vel = prob_parm.init_vel;
+  // If we want to initialize with an equilibrium solution
+  if (prob_parm.equil_start_time <= 0.) {
+    amrex::Real top_flame = 0.5 * leny;
+    // Adjust the fuel diameter linearly in the Y direction to form a triangle
+    amrex::Real cur_dia = prob_parm.fuel_dia * (-(y - prob_lo[1]) / top_flame + 1.);
+    amrex::Real xc = prob_parm.jet_center;
+    amrex::GpuArray<amrex::Real, 4> weights;
+    const amrex::Real smooth_b = prob_parm.smooth_b;
+    weight_vals(weights.data(), smooth_b, len, x, xc, prob_parm.oxid_dia, cur_dia);
+    amrex::Real fuel_mf = profile_vals(weights.data(), 0., 1., 0.);
+    amrex::Real o2_mf = profile_vals(weights.data(), o2in, 0., o2in);
+    amrex::Real n2_mf = profile_vals(weights.data(), n2in, 0., n2in);
+    amrex::Real Yff = fuel_mf;
+    amrex::Real Yoo = o2_mf / o2in;
+    amrex::Real Zmix = mixture_fraction(prob_parm.S_equil, Yff, Yoo);
+    flame(Zmix, temp, massfrac.data(), moments.data(), prob_parm);
+  } else {
+    temp = prob_parm.T_ref;
+    massfrac[N2_ID] = n2in;
+    massfrac[O2_ID] = o2in;
+    massfrac[prob_parm.fuel_indx] = 0.;
+    const int N = prob_parm.N_equil;
+    // Initialize soot to small moments
+    for (unsigned int j = 0; j < NUM_SOOT_MOMENTS + 1; j++) {
+      moments[j] = prob_parm.soot_equil[N * j];
+    }
+  }
+  state(i, j, k, DEF_Temp) = temp;
   AMREX_D_TERM(state(i, j, k, Xvel) = 0.;
                , state(i, j, k, Yvel) = init_vel;, state(i, j, k, Zvel) = 0.;);
   amrex::Real rho_cgs, P_cgs;
@@ -173,11 +201,11 @@ pelelm_initdata(
     state(i, j, k, DEF_first_spec + n) = massfrac[n] * state(i, j, k, Density);
   }
   for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
-    state(i, j, k, DEF_first_soot + is) = prob_parm.soot_vals[is];
+    state(i, j, k, DEF_first_soot + is) = moments[is];
   }
 }
 
-AMREX_GPU_HOST_DEVICE
+AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
 bcnormal(
@@ -194,10 +222,19 @@ bcnormal(
   const amrex::Real* prob_lo = geomdata.ProbLo();
   const amrex::Real* prob_hi = geomdata.ProbHi();
   if (sgn == 1) {
+    amrex::Real diffe = 1.;
+    if (prob_parm.equil_start_time < prob_parm.equil_end_time) {
+      diffe = (time - prob_parm.equil_start_time) /
+        (prob_parm.equil_end_time - prob_parm.equil_start_time);
+    }
+    diffe = amrex::max(0., amrex::min(diffe, 1.));
     amrex::Real o2in = prob_parm.oxid_O2;
     amrex::Real n2in = prob_parm.oxid_N2;
     amrex::Real len = prob_hi[0] - prob_lo[0];
     amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
+    amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> moments = {{0.0}};
+    amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac_e = {{0.0}};
+    amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> moments_e = {{0.0}};
     amrex::Real xc = prob_parm.jet_center;
     amrex::GpuArray<amrex::Real, 4> weights;
     const amrex::Real smooth_b = prob_parm.smooth_b;
@@ -209,8 +246,26 @@ bcnormal(
     amrex::Real temp = profile_vals(weights.data(), prob_parm.oxid_T, prob_parm.fuel_T, prob_parm.T_ref);
     amrex::Real Yff = fuel_mf;
     amrex::Real Yoo = o2_mf / o2in;
-    amrex::Real Z = mixture_fraction(prob_parm.S_equil, Yff, Yoo);
-    flame(Z, temp, massfrac.data(), prob_parm);
+    amrex::Real Zmix = mixture_fraction(prob_parm.S_equil, Yff, Yoo);
+    amrex::Real temp_e = 0.;
+    if (diffe > 0.)
+      flame(Zmix, temp_e, massfrac_e.data(), moments_e.data(), prob_parm);
+    massfrac[N2_ID] = n2_mf;
+    massfrac[O2_ID] = o2_mf;
+    massfrac[prob_parm.fuel_indx] = Yff;
+    const int N = prob_parm.N_equil;
+    for (unsigned int j = 0; j < NUM_SOOT_MOMENTS + 1; j++) {
+      moments[j] = prob_parm.soot_equil[N * j];
+    }
+    if (diffe > 0.) {
+      temp = diffe * (temp_e - temp) + temp;
+      for (unsigned int n = 0; n < NUM_SPECIES; n++) {
+        massfrac[n] = diffe * (massfrac_e[n] - massfrac[n]) + massfrac[n];
+      }
+      for (unsigned int j = 0; j < NUM_SOOT_MOMENTS + 1; j++) {
+        moments[j] = diffe * (moments_e[j] - moments[j]) + moments[j];
+      }
+    }
     s_ext[DEF_Temp] = temp;
     amrex::Real rho_cgs, P_cgs, RhoH_temp;
     P_cgs = prob_parm.P_mean * 10.0;
@@ -227,7 +282,7 @@ bcnormal(
       s_ext[DEF_first_spec + n] = massfrac[n] * s_ext[Density];
     }
     for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
-      s_ext[DEF_first_soot + is] = prob_parm.soot_vals[is];
+      s_ext[DEF_first_soot + is] = moments[is];
     }
   }
 }

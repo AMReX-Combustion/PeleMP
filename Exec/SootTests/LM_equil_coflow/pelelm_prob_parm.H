@@ -8,7 +8,8 @@ using namespace amrex::literals;
 
 struct ProbParm : amrex::Gpu::Managed
 {
-  amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> soot_vals;
+  amrex::Real equil_start_time = 0.;
+  amrex::Real equil_end_time = 0.;
   amrex::Real init_vel = 0.;
   amrex::Real P_mean = 101325.0;
   amrex::Real T_ref = 300.;
@@ -30,6 +31,7 @@ struct ProbParm : amrex::Gpu::Managed
   amrex::Real* Z_equil = nullptr;
   amrex::Real* T_equil = nullptr;
   amrex::Real* Y_equil = nullptr;
+  amrex::Real* soot_equil = nullptr;
 
 };
 

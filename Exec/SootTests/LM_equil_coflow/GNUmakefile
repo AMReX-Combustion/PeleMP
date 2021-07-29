@@ -25,11 +25,9 @@ THREAD_SANITIZER = FALSE
 
 # PeleC
 USE_SUNDIALS_PP = TRUE
-USE_ARKODE_PP = FALSE
-USE_CVODE_PP = TRUE
 USE_EB = FALSE
 Eos_dir := Fuego
-Reactions_dir := Fuego
+Reactor_dir := cvode
 Chemistry_Model := SootReaction
 Transport_dir := Simple
 
