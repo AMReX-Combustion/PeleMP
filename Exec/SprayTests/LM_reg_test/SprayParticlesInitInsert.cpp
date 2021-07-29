@@ -39,7 +39,8 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
   const int NProcs = ParallelDescriptor::NProcs();
   const int IOProc = ParallelDescriptor::IOProcessorNumber();
   int NRedist = prob_parm.numRedist; // Number of times to redistribute
-  // TODO: This might be overkill but issues persisted at high Summit node counts
+  // TODO: This might be overkill but issues persisted at high Summit node
+  // counts
   if (NRedist < 0) {
     NRedist = 1;
     if (NProcs <= 512) {
@@ -78,9 +79,11 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
   const Long total_part_num =
     AMREX_D_TERM(num_part[0], *num_part[1], *num_part[2]);
   const Box& boxDom = Geom(lev).Domain();
-  const Real len = phi[0] - plo[0];
+
   const RealVect dx_part(AMREX_D_DECL(
-    len / Real(num_part[0]), len / Real(num_part[1]), len / Real(num_part[2])));
+    (phi[0] - plo[0]) / Real(num_part[0]),
+    (phi[1] - plo[1]) / Real(num_part[1]),
+    (phi[2] - plo[2]) / Real(num_part[2])));
   Long parts_pp = total_part_num / NProcs;
   // Number of particles per processor to be initialized
   Long cur_parts_pp = parts_pp;
@@ -91,7 +94,8 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
   const Long first_part = MyProc * parts_pp;
   Gpu::HostVector<ParticleType> nparticles;
   Vector<Gpu::HostVector<Real>> nreals;
-  if (NAR_SPR > 0) nreals.resize(NAR_SPR);
+  if (NAR_SPR > 0)
+    nreals.resize(NAR_SPR);
   for (int prc = 0; prc < cur_parts_pp; ++prc) {
     Long cur_part = first_part + prc;
     IntVect indx = unflatten_particles(cur_part, num_part);
@@ -116,16 +120,16 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
     std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
       host_real_attribs;
     if (m_verbose > 0) {
-      amrex::Print() << "Redistributing from processor "
-                     << nr*NRchunk << " to "
-                     << (nr+1)*NRchunk-1 << '\n';
+      amrex::Print() << "Redistributing from processor " << nr * NRchunk
+                     << " to " << (nr + 1) * NRchunk - 1 << '\n';
     }
-    for (int which = nr*NRchunk; which < (nr+1)*NRchunk; ++which) {
+    for (int which = nr * NRchunk; which < (nr + 1) * NRchunk; ++which) {
       if (which == MyProc) {
         while (!nparticles.empty()) {
           // Retrieve the last particle entry and add it to host_particles
           ParticleType& p = nparticles.back();
-          Where(p, pld);
+          bool where = Where(p, pld);
+          if (!where) Abort("Bad particle");
           std::pair<int, int> ind(pld.m_grid, pld.m_tile);
           host_particles[ind].push_back(p);
           for (int n = 0; n < NAR_SPR; ++n) {
@@ -138,7 +142,7 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
           }
         }
       } // if (which == MyProc)
-    } // for (int which ...
+    }   // for (int which ...
     for (auto& kv : host_particles) {
       auto grid = kv.first.first;
       auto tile = kv.first.second;
@@ -163,14 +167,13 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
     Redistribute();
   } // for (int nr ...
   // Now copy over any remaining processors
-  for (int which = NRedist*NRchunk; which < NProcs; ++which) {
+  for (int which = NRedist * NRchunk; which < NProcs; ++which) {
     std::map<std::pair<int, int>, Gpu::HostVector<ParticleType>> host_particles;
     std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
       host_real_attribs;
     if (m_verbose > 0) {
-      amrex::Print() << "Redistributing from processor "
-                     << NRedist*NRchunk << " to "
-                     << NProcs << '\n';
+      amrex::Print() << "Redistributing from processor " << NRedist * NRchunk
+                     << " to " << NProcs << '\n';
     }
     if (which == MyProc) {
       while (!nparticles.empty()) {
