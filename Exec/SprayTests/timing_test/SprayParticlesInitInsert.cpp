@@ -86,9 +86,9 @@ SprayParticleContainer::InitSprayParticles(
   const Long total_part_num =
     AMREX_D_TERM(num_part[0], *num_part[1], *num_part[2]);
   const Box& boxDom = Geom(lev).Domain();
-  const Real len = phi[0] - plo[0];
+  const RealVect len = phi - plo;
   const RealVect dx_part(AMREX_D_DECL(
-    len / Real(num_part[0]), len / Real(num_part[1]), len / Real(num_part[2])));
+    len[0] / Real(num_part[0]), len[1] / Real(num_part[1]), len[2] / Real(num_part[2])));
   Long parts_pp = total_part_num / NProcs;
   // Number of particles per processor to be initialized
   Long cur_parts_pp = parts_pp;
