@@ -69,18 +69,18 @@ particles.write_spray_ascii_files = 0
 # Number of particles per parcel
 particles.parcel_size = 1.
 
-particles.fuel_species = NC10H22
-# properties for decane
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
+particles.fuel_species = NC12H26
+# Properties for liquid dodecane
+particles.fuel_crit_temp = 658.2 # K
+particles.fuel_boil_temp = 489. # K
 particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E9
-particles.fuel_cp = 2.1921E7 # Cp at 298
-particles.fuel_rho = 0.640
+particles.fuel_latent = 3.0294E5
+particles.fuel_cp = 2.5939E3 # Cp at 298
+particles.fuel_rho = 669.
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to dyne/cm^2
-particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E6
+particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E6
 
 particles.use_splash_model = false
 
@@ -94,18 +94,17 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 amr.plot_file       = plt # root name of plotfile
 amr.plot_int        = 1
 #amr.plot_per        = 1.E-5 # number of timesteps between plotfiles
-amr.plot_vars = density Temp rho_E xmom ymom zmom rho_O2 rho_N2 rho_NC10H22
+amr.plot_vars = density Temp rho_E xmom ymom zmom rho_O2 rho_N2 rho_NC12H26
 amr.derive_plot_vars = x_velocity y_velocity z_velocity pressure   # these variables appear in the plotfile
 amr.file_name_digits = 6
 
 # PROBLEM
 # Initial fluid properties
-prob.ref_T = 440.
-#prob.ref_p = 6.E7
+prob.ref_T = 900.
 prob.ref_p = 2.93E7
 prob.init_v = 0.
-prob.init_N2 = 1.
-prob.init_O2 = 0.
+prob.init_N2 = 0.767
+prob.init_O2 = 0.233
 
 # Jet properties
 prob.jet_dia = 9.E-3

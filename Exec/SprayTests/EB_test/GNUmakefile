@@ -27,10 +27,9 @@ THREAD_SANITIZER = FALSE
 # PeleC
 USE_REACT = FALSE
 USE_EB = TRUE
-Eos_dir := Fuego
-Reactions_dir := Fuego
+Eos_Model := Fuego
 Chemistry_Model := multi_dechep
-Transport_dir := Simple
+Transport_Model := Simple
 
 # PeleC-MP
 USE_PARTICLES = TRUE

@@ -22,13 +22,12 @@ DEBUG = FALSE
 FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
-DEFINES += -DCONVERGENCE
+#DEFINES += -DCONVERGENCE
 
 # PeleC
 USE_REACT = FALSE
 USE_EB = FALSE
-Eos_dir := Fuego
-Reactions_dir := Fuego
+Eos_Model := Fuego
 Chemistry_Model := multi_dechep
 Transport_dir := Simple
 

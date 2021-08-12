@@ -23,12 +23,12 @@ FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
 # PeleC
-USE_REACT = FALSE
+USE_REACT = TRUE
 USE_EB = FALSE
-Eos_dir := Fuego
-Reactions_dir := Fuego
-Chemistry_Model := decane_3sp
-Transport_dir := Simple
+Eos_Model := Fuego
+Reactor_dir := cvode
+Chemistry_Model := dodecane_lu
+Transport_Model := Simple
 
 # PeleC-MP
 USE_PARTICLES = TRUE

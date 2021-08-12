@@ -27,9 +27,9 @@ THREAD_SANITIZER = FALSE
 # PeleC
 USE_REACT = FALSE
 USE_EB = FALSE
-Eos_dir := GammaLaw
+Eos_Model := GammaLaw
 Chemistry_Model := Null
-Transport_dir := Constant
+Transport_Model := Constant
 
 # PeleC-MP
 USE_PARTICLES = TRUE

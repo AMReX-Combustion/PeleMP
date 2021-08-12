@@ -36,8 +36,8 @@ amr.checkpoint_files_output = 0
 amr.check_file          = chk          # root name of checkpoint file
 amr.check_int           = 10           # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
-amr.plot_per            = 4.E-4
-amr.derive_plot_vars    = rhoRT mag_vort mass_fractions enthalpy soot_vars rhominsumrhoY
+amr.plot_per            = 8.E-4
+amr.derive_plot_vars    = rhoRT mag_vort mole_fractions enthalpy soot_vars rhominsumrhoY
 #amr.grid_log            = grdlog       # name of grid logging file
 
 #----------------------- PROBLEM PARAMETERS---------------------
@@ -74,15 +74,15 @@ ns.gravity           = 0               # body force  (gravity in MKS units)
 #--------------------NUMERICS CONTROL------------------------
 ns.init_iter         = 1               # Number of initial iterations to def pressure
 ns.num_divu_iters    = 1               # Number of DivU iteration at initialization
-ns.sdc_iterMAX       = 2               # Number of SDC iterations
-ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
+ns.sdc_iterMAX       = 1               # Number of SDC iterations
+ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
-peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
+#peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
 #peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance
-cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
-ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
+cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
+ode.analytical_jacobian = 1            # Provide analytical jacobian (from Fuego) ?
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?
@@ -109,7 +109,7 @@ ns.do_temp           = 1
 ns.do_diffuse_sync   = 1
 ns.do_reflux_visc    = 1
 ns.zeroBndryVisc     = 1
-#ns.v                 = 1
+ns.v                 = 0
 
 # 
 ns.divu_ceiling         = 1
@@ -124,7 +124,7 @@ diffuse.tensor_max_order = 4
 diffuse.v                = 0
 
 # ------------------  INPUTS TO PROJECTION CLASS -------------------
-proj.proj_tol            = 3.0e-12     # tolerence for projections
+proj.proj_tol            = 3.0e-11     # tolerence for projections
 proj.proj_abs_tol        = 3.0e-12
 proj.sync_tol            = 3.0e-12     # tolerence for projections
 proj.rho_wgt_vel_proj    = 0           # 0 => const den proj, 1 => rho weighted

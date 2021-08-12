@@ -24,8 +24,8 @@ amrex_probinit(
   std::string fuel_name = "C2H4";
   pp.query("fuel_name", fuel_name);
   amrex::Vector<std::string> spec_names;
-  pele::physics::eos::speciesNames(spec_names);
-  for (int sp = 0; sp != NUM_SPECIES; ++sp) {
+  pele::physics::eos::speciesNames<pele::physics::EosType>(spec_names);
+  for (int sp = 0; sp < NUM_SPECIES; ++sp) {
     std::string spec_name = spec_names[sp];
     if (spec_name == fuel_name)
       PeleC::h_prob_parm_device->fuelIndx = sp;

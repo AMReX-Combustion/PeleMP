@@ -56,7 +56,7 @@ read_pmf(const std::string& myfile)
   amrex::Vector<std::string> pmf_names;
   pmf_names.resize(variable_count);
   amrex::Vector<std::string> spec_names;
-  pele::physics::eos::speciesNames(spec_names);
+  pele::physics::eos::speciesNames<pele::physics::EosType>(spec_names);
   int tempCol = -1;
   int rhoCol = -1;
   int velCol = -1;
