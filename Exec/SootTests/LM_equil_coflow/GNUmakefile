@@ -23,13 +23,12 @@ DEBUG = FALSE
 FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
-# PeleC
-USE_SUNDIALS_PP = TRUE
+# PeleLM
 USE_EB = FALSE
-Eos_dir := Fuego
+Eos_Model := Fuego
 Reactor_dir := cvode
 Chemistry_Model := SootReaction
-Transport_dir := Simple
+Transport_Model := Simple
 
 # PeleC-MP
 USE_SOOT = TRUE

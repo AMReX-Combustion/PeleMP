@@ -19,28 +19,21 @@ USE_CUDA        = FALSE
 USE_HIP         = FALSE
 
 # MISC options
-DEBUG           = TRUE
+DEBUG           = FALSE
 PRECISION       = DOUBLE
 VERBOSE         = FALSE
-TINY_PROFILE    = FALSE
-
-# CVODE
-USE_SUNDIALS_PP = TRUE
-USE_KLU_PP      = FALSE
-
-# PeleLM options
-DO_2S_CONVERGENCE=FALSE
+TINY_PROFILE    = TRUE
 
 Chemistry_Model := decane_3sp
 
 # This sets the EOS directory in $(PELE_PHYSICS_HOME)/Eos
-Eos_dir     := Fuego
+Eos_Model     := Fuego
 
 # This sets the network directory in $(PELE_PHYSICS_HOME)/Reactions
 Reactor_dir := cvode
 
 # This sets the transport directory in $(PELE_PHYSICS_HOME)/Transport
-Transport_dir := Simple
+Transport_Model := Simple
 
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1

@@ -6,10 +6,12 @@ stop_time = 0.022
 geometry.is_periodic = 0 1 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0. 0. 0.
-geometry.prob_hi     = 4. 0.125 0.125
+#geometry.prob_hi     = 4. 0.125 0.125
+geometry.prog_hi     = 5. 0.15625 0.15625
 amr.n_cell           = 256 8 8
 
-prob.pmf_datafile = "datafile_init/burner_profile.dat"
+#prob.pmf_datafile = "datafile_init/burner_profile.dat"
+prob.pmf_datafile = "datafile_init/burner_profile_xu.dat"
 
 pelec.lo_bc =  "Hard" "Interior" "Interior"
 pelec.hi_bc =  "Hard" "Interior" "Interior"
