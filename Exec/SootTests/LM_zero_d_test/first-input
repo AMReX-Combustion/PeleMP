@@ -10,13 +10,14 @@ geometry.coord_sys = 0  # 0 => cart, 1 => RZ
 geometry.prob_lo = 0. 0. 0.
 geometry.prob_hi = 1. 1. 1.
 # PROBLEM INPUT
-prob.init_T = 1300.
+prob.init_T = 1100.
 prob.ref_p = 101325.
 prob.init_N2 = 0.6686465670855919
 prob.init_O2 = 0.20313062439007742
 prob.init_fuel = 0.12822280852433066
 prob.init_vel = 0.
-prob.fuel_name = N-C7H16
+prob.fuel_name = C2H4
+#prob.fuel_name = N-C7H16
 
 ns.use_wbar = 0
 
@@ -32,7 +33,7 @@ amrex.fpe_trap_overflow = 1
 amrex.fpe_trap_invalid = 1
 amrex.fpe_trap_zero = 1
 
-peleLM.use_typ_vals_chem = 1
+#peleLM.use_typ_vals_chem = 1
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
@@ -89,12 +90,13 @@ ns.divu_ceiling = 1
 ns.divu_dt_factor = .4
 ns.min_rho_divu_ceiling = .01
 
-ns.fuelName        = N-C7H16
+ns.fuelName        = C2H4
 ns.hack_nochem = 0
 ns.unity_Le = 0
 
 ns.zeroBndryVisc= 1
 ns.num_divu_iters = 1
+ns.sdc_iterMAX = 2
 ns.num_mac_sync_iter = 1
 ns.do_active_control = 0
 ht.plot_reactions = 0
@@ -136,20 +138,22 @@ proj.do_outflow_bcs = 0
 proj.divu_minus_s_factor = .5
 proj.divu_minus_s_factor = 0.
 proj.proj_2 = 1
+proj.v = 0
+nodal_proj.verbose = 0
 
 # ------------------  INPUTS TO MACPROJ CLASS -------------------
 mac.mac_tol        = 1.0e-12  # tolerence for mac projections
 mac.mac_sync_tol   = 1.0e-12  # tolerence for mac SYNC projection
 mac.mac_abs_tol    = 1.0e-12
 mac.do_outflow_bcs = 0
+mac.v = 0
+mac_proj.verbose = 0
 
 #--------------------------MISC/UNSORTED INPUTS-----------------------------
 
 ns.htt_tempmin=1.0
 ns.htt_tempmax=2.5
-#ns.v = 0
-mac.v = 0
-proj.v = 0
+ns.v = 0
 #ns.do_group_bndry_fills = 1
 
 #
@@ -168,7 +172,7 @@ amrex.regtest_reduction=1
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.2
-soot.num_subcycles = 10
-peleLM.add_soot_src = 1
+soot.max_dt_rate = 0.1
+soot.num_subcycles = 20
+peleLM.do_soot_src = 0
 peleLM.plot_soot_src = 0

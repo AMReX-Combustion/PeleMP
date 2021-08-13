@@ -27,7 +27,7 @@ amrex_probinit(
     PeleLM::prob_parm->soot_vals[n] = moments[n];
   }
   amrex::Vector<std::string> spec_names;
-  pele::physics::eos::speciesNames(spec_names);
+  pele::physics::eos::speciesNames<pele::physics::EosType>(spec_names);
   for (int sp = 0; sp < NUM_SPECIES; ++sp) {
     std::string spec_name = spec_names[sp];
     if (spec_name == fuel_name)
