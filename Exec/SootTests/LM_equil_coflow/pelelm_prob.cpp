@@ -37,7 +37,7 @@ read_data(const std::string& myfile)
   }
 
   amrex::Vector<std::string> spec_names;
-  pele::physics::eos::speciesNames(spec_names);
+  pele::physics::eos::speciesNames<pele::physics::EosType>(spec_names);
   int Ycol = -1;
   int Tcol = -1;
   int Zcol = -1;

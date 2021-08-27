@@ -20,6 +20,7 @@ amrex_probinit(
   pp.query("init_fuel", PeleLM::prob_parm->Y_Fuel);
   std::string fuel_name = "C2H4";
   pp.query("fuel_name", fuel_name);
+
   amrex::Real moments[NUM_SOOT_MOMENTS + 1];
   SootData* const sd = PeleLM::soot_model->getSootData();
   sd->initialSmallMomVals(moments);
@@ -35,5 +36,26 @@ amrex_probinit(
   }
   if (PeleLM::prob_parm->fuelIndx < 0)
     amrex::Abort("Fuel not found in chemistry mechanism");
+  auto eos = pele::physics::PhysicsType::eos();
+  amrex::Real air_O2 = 0.233;
+  amrex::Real air_N2 = 0.767;
+  amrex::Real S_equil = 0.;
+  {
+    int ecompCHON[NUM_SPECIES * 4];
+    pele::physics::eos::element_compositionCHON<pele::physics::EosType>(ecompCHON);
+    int numc = ecompCHON[PeleLM::prob_parm->fuelIndx * 4];
+    int numh = ecompCHON[PeleLM::prob_parm->fuelIndx * 4 + 1];
+    amrex::Real m = (Real)numc;
+    amrex::Real n = (Real)numh;
+    amrex::Real s = 32. * (m + n / 4.) / (12. * m + n);
+    S_equil = s / air_O2;
+  }
+  if (pp.contains("mixture_fraction")) {
+    amrex::Real Z = 0.;
+    pp.get("mixture_fraction", Z);
+    PeleLM::prob_parm->Y_Fuel = Z;
+    PeleLM::prob_parm->Y_O2 = air_O2 * (1. - Z);
+    PeleLM::prob_parm->Y_N2 = (1. - air_O2) * (1. - Z);
+  }
 }
 }
