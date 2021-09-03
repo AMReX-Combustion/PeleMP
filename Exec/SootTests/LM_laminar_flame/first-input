@@ -51,8 +51,8 @@ peleLM.do_soot_solve = 1
 peleLM.plot_soot_src = 0
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.001
-soot.num_subcycles = 10
+soot.max_dt_rate = 0.05
+soot.num_subcycles = 3
 soot.temp_cutoff = 350.
 soot.conserve_mass = false
 
@@ -78,9 +78,10 @@ ns.sdc_iterMAX       = 1               # Number of SDC iterations
 ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
-#peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
+peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
+ns.reset_typical_vals_int = 8
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
-#peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance
+peleLM.absolute_tol_chem = 1.0e-2     # CVODE absolute tolerance
 cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
 ode.analytical_jacobian = 1            # Provide analytical jacobian (from Fuego) ?
 

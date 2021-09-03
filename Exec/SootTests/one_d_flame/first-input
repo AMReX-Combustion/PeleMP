@@ -62,7 +62,7 @@ amr.plot_per        = 8.E-5
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.001
+soot.max_dt_rate = 0.01
 soot.num_subcycles = 1
 soot.temp_cutoff = 350.
 soot.conserve_mass = false
