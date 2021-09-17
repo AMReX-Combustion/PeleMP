@@ -102,10 +102,11 @@ ht.plot_consumption = 0
 ht.plot_rhoydot = 0
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
+peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem  = 1
 ns.reset_typical_vals_int = 8
 peleLM.absolute_tol_chem = 1.0e-2
-cvode.solve_type = dense
+cvode.solve_type = dense_direct
 ode.analytical_jacobian = 1
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------

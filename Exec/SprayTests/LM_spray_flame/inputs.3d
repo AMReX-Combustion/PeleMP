@@ -113,6 +113,7 @@ ns.sdc_iterMAX       = 2               # Number of SDC iterations
 ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
+peleLM.chem_integrator = "ReactorCvode"
 #peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
 #peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance

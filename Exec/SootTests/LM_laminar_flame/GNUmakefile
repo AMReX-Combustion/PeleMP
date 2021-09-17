@@ -25,7 +25,6 @@ THREAD_SANITIZER = FALSE
 # PeleLM
 USE_EB = FALSE
 Eos_Model := Fuego
-Reactor_dir := cvode
 Chemistry_Model := SootReaction
 Transport_Model := Simple
 

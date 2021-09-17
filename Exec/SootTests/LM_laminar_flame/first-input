@@ -74,15 +74,16 @@ ns.gravity           = 0               # body force  (gravity in MKS units)
 #--------------------NUMERICS CONTROL------------------------
 ns.init_iter         = 1               # Number of initial iterations to def pressure
 ns.num_divu_iters    = 1               # Number of DivU iteration at initialization
-ns.sdc_iterMAX       = 1               # Number of SDC iterations
+ns.sdc_iterMAX       = 2               # Number of SDC iterations
 ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
-peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
+peleLM.chem_integrator = "ReactorCvode"
+peleLM.use_typ_vals_chem = 1           # Use species/temp typical values in CVODE
 ns.reset_typical_vals_int = 8
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
-peleLM.absolute_tol_chem = 1.0e-2     # CVODE absolute tolerance
-cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
+peleLM.absolute_tol_chem = 1.0e-2      # CVODE absolute tolerance
+cvode.solve_type = dense_direct        # CVODE Linear solve type (for Newton direction)
 ode.analytical_jacobian = 1            # Provide analytical jacobian (from Fuego) ?
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------

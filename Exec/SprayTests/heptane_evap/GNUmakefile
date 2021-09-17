@@ -25,7 +25,6 @@ THREAD_SANITIZER = FALSE
 DEFINES += -DCONVERGENCE
 
 # PeleC
-USE_REACT = FALSE
 USE_EB = FALSE
 Eos_Model := Fuego
 Chemistry_Model := heptane_3sp

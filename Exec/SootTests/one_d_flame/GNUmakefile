@@ -23,14 +23,12 @@ FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
 # PeleC
-USE_REACT = TRUE
 USE_EB = FALSE
 Eos_Model := Fuego
-Reactor_dir := cvode
 Chemistry_Model := SootReaction
 Transport_Model := Simple
 
-# PeleC-MP
+# PeleMP
 USE_SOOT = TRUE
 # If this is changed, must run a make clean and rerun make
 NUM_SOOT_MOMENTS = 3
