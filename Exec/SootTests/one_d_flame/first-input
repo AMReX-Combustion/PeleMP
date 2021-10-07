@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 100000
+max_step = 1
 stop_time = 0.022
 
 # PROBLEM SIZE & GEOMETRY
@@ -10,9 +10,15 @@ geometry.prob_lo     = 0. 0. 0.
 # amr.n_cell           = 256 8 8
 geometry.prob_hi     = 4. 0.25 0.25
 amr.n_cell           = 128 8 8
+# prob.pmf_datafile = "datafile_init/mueller_burner.dat"
+# prob.pamb = 1.E6
+
+# geometry.prob_hi      = 8. 0.25 0.25
+# amr.n_cell            = 256 8 8
+prob.pmf_datafile = "datafile_init/50_bar_burner.dat"
+prob.pamb = 50.E6
 
 #prob.pmf_datafile = "datafile_init/burner_profile.dat"
-prob.pmf_datafile = "datafile_init/mueller_burner.dat"
 
 pelec.lo_bc =  "Hard" "Interior" "Interior"
 pelec.hi_bc =  "Hard" "Interior" "Interior"
@@ -58,7 +64,8 @@ amr.check_int       = 1000
 
 # PLOTFILES
 amr.plot_file       = plt # root name of plotfile
-amr.plot_per        = 8.E-5
+amr.plot_int = 1
+#amr.plot_per        = 8.E-5
 
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species
@@ -70,6 +77,7 @@ soot.conserve_mass = false
 
 pelec.add_soot_src = 1
 amr.derive_plot_vars = x_velocity y_velocity pressure soot_vars
+pelec.plot_reactions = 0
 pelec.plot_rhoy = 0
 pelec.plot_massfrac = 1
 pelec.plot_reactions = 0
@@ -80,7 +88,7 @@ pelec.plot_soot = 1
 # PROBLEM INPUT
 prob.pmf_standoff = 0.
 prob.pmf_average = 0
-prob.pamb = 1.E6
+
 
 #--------------------------DEBUG/REGTESTS INPUTS-----------------------------
 # amrex.regtest_reduction=1

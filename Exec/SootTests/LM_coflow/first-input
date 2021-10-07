@@ -1,74 +1,105 @@
 #----------------------DOMAIN DEFINITION------------------------
-geometry.is_periodic = 0 1 1              # For each dir, 0: non-perio, 1: periodic
+geometry.is_periodic = 0 0 0              # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
 
 geometry.prob_lo = 0. 0. 0.
-# geometry.prob_hi = 0.04 0.00125 0.00125
-# amr.n_cell       = 256 8 8
+geometry.prob_hi = 0.06 0.12 0.06
+amr.n_cell       = 64 128 64
+prob.jet_center = 0.0
 
-geometry.prob_hi = 0.04 0.0025 0.0025
-amr.n_cell       = 128 8 8
+#godunov.use_ppm = 1
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
-peleLM.lo_bc = Inflow Interior Interior
-peleLM.hi_bc = Outflow Interior Interior
+peleLM.lo_bc = Symmetry Inflow Symmetry
+peleLM.hi_bc = SlipWallAdiab Outflow SlipWallAdiab
 
 #-------------------------AMR CONTROL----------------------------
 amr.v               = 1                # AMR verbose
 amr.max_level       = 0                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
-amr.regrid_int      = 2                # how often to regrid
-amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
+amr.regrid_int      = 4 4 4             # how often to regrid
+amr.n_error_buf     = 2 2 2 2           # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
-amr.blocking_factor = 8
-amr.max_grid_size   = 64
+amr.blocking_factor = 16
+amr.max_grid_size   = 128
 
 #----------------------TIME STEPING CONTROL----------------------
-max_step            = 100000
-stop_time           = 0.022
-ns.cfl              = 0.3              # cfl number for hyperbolic system
+max_step            = 1000000
+stop_time           = 100.
+ns.cfl              = 0.1
 ns.init_dt          = 5.e-6
 ns.init_shrink      = 0.1            # scale back initial timestep
 ns.change_max       = 1.1              # max timestep size increase
 ns.dt_cutoff        = 1.e-12           # level 0 timestep below which we halt
+#ns.fixed_dt = 5.E-6
+#ns.fixed_dt = 1.E-6
 
 #-------------------------IO CONTROL----------------------------
-amr.checkpoint_files_output = 0
-amr.check_file          = chk          # root name of checkpoint file
-amr.check_int           = 10           # number of timesteps between checkpoints
+amr.checkpoint_files_output = 1
+amr.check_file          = chk
+amr.check_int           = 1000
 amr.plot_file           = plt          # root name of plot file
-#amr.plot_int = 5
-amr.plot_per            = 8.E-4
-amr.derive_plot_vars    = rhoRT mag_vort mass_fractions mole_fractions enthalpy soot_vars rhominsumrhoY
+amr.plot_per = 0.01
+amr.derive_plot_vars    = rhoRT mag_vort enthalpy soot_vars rhominsumrhoY Y(OH) Y(C2H4) Y(O2) Y(N2) Y(A2) Y(N-C7H16) Y(O) Y(H) Y(H2) Y(H2O) Y(HO2) Y(CO) Y(CO2) Y(C2H2)
 #amr.grid_log            = grdlog       # name of grid logging file
+amr.file_name_digits = 7
 
 #----------------------- PROBLEM PARAMETERS---------------------
-#prob.P_mean = 1.E5
-prob.P_mean = 98700.
-prob.standoff = 0.0
-prob.pmf_average = 0
-prob.pmf_datafile = "datafile_init/mueller_burner.dat"
+prob.init_vel = 0.001
+prob.hot_spot_center = 0.007
+prob.hot_spot_temp = 300.
+prob.hot_spot_smooth = 0.0055
+prob.P_mean = 101325.
+prob.ref_temp = 300.
+prob.fuel_name = C2H4
+prob.ign_name = N-C7H16
+#prob.ign_Y = 0.1
+#prob.ign_Y_start = 0.
+prob.oxid_temp = 300.
+prob.fuel_dia = 0.012
+prob.wall_thick = 0.
+prob.oxid_dia = 0.055
+#prob.vel_ramp_time = 0.01
+prob.vel_smooth = 0.00001
+# If flat profile is used
+prob.fuel_vel = 0.034
+prob.oxid_vel = 0.309
+# If develope velocity profile is used
+prob.oxid_vel_flat = 1
+prob.fuel_vel_flat = 1
+prob.oxid_O2 = 0.233
+prob.oxid_N2 = 0.767
 
 #--------------------SOOT MODELING------------------------
 peleLM.do_soot_solve = 1
 peleLM.plot_soot_src = 0
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.01
-soot.num_subcycles = 5
-soot.temp_cutoff = 290.
+soot.max_dt_rate = 0.05
+soot.num_subcycles = 3
+soot.temp_cutoff = 350.
 soot.conserve_mass = false
 
 #--------------------REFINEMENT CONTROL------------------------
-# amr.refinement_indicators = gradT magvort
+amr.refinement_indicators = hi_temp
+amr.hi_temp.max_level = 1
+amr.hi_temp.value_greater = 1800.
+amr.hi_temp.field_name = temp
+# amr.gradRho.max_level = 2
+# amr.gradRho.adjacent_difference_greater = 10.
+# #amr.gradRho.adjacent_difference_greater = 0.001
+# amr.gradRho.field_name = density
 # amr.gradT.max_level = 2
-# amr.gradT.adjacent_difference_greater = .1
+# #amr.gradT.adjacent_difference_greater = 5000.
+# amr.gradT.adjacent_difference_greater = 30.
 # amr.gradT.field_name = temp
 
-# amr.magvort.max_level = 2
-# amr.magvort.vorticity_greater = 1e4
+# amr.refinement_indicators = watertrace
+# amr.watertrace.max_level = 1
+# amr.watertrace.value_greater = 0.05
+# amr.watertrace.field_name = Y(H2O)
 
 #---------------------PHYSICS CONTROL------------------------
 ns.fuelName          = C2H4
@@ -84,12 +115,14 @@ ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
 peleLM.chem_integrator = "ReactorCvode"
-peleLM.use_typ_vals_chem = 1           # Use species/temp typical values in CVODE
+peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
 ns.reset_typical_vals_int = 8
-#cvode.solve_type = GMRES
-cvode.solve_type = denseAJ_direct      # CVODE Linear solve type (for Newton direction)
-ode.atol = 1.E-5
-#ode.atol = 1.E-2
+#cvode.solve_type = cuSparse_simplified_AJacobian
+cvode.solve_type = GMRES
+#cvode.max_order = 4
+ode.verbose = 0
+ode.atol = 1.E-3
+#ode.rtol = 1.E-6
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?
@@ -115,7 +148,7 @@ ns.be_cn_theta       = 0.5
 ns.do_temp           = 1
 ns.do_diffuse_sync   = 1
 ns.do_reflux_visc    = 1
-ns.zeroBndryVisc     = 1
+ns.zeroBndryVisc     = 0
 ns.v                 = 0
 
 # 
@@ -131,21 +164,19 @@ diffuse.tensor_max_order = 4
 diffuse.v                = 0
 
 # ------------------  INPUTS TO PROJECTION CLASS -------------------
-proj.proj_tol            = 3.0e-11     # tolerence for projections
-proj.proj_abs_tol        = 3.0e-12
-proj.sync_tol            = 3.0e-12     # tolerence for projections
+proj.proj_tol            = 1.0e-11     # tolerence for projections
+proj.proj_abs_tol        = 1.0e-11
+proj.sync_tol            = 1.0e-11     # tolerence for projections
 proj.rho_wgt_vel_proj    = 0           # 0 => const den proj, 1 => rho weighted
 proj.do_outflow_bcs      = 0
-proj.divu_minus_s_factor = .5
-proj.divu_minus_s_factor = 0.
 proj.proj_2              = 1
 proj.v                   = 0
 nodal_proj.verbose       = 0
 
 # ------------------  INPUTS TO MACPROJ CLASS -------------------
-mac.mac_tol              = 3.0e-12     # tolerence for mac projections
-mac.mac_sync_tol         = 3.0e-12     # tolerence for mac SYNC projection
-mac.mac_abs_tol          = 3.0e-12
+mac.mac_tol              = 1.0e-11     # tolerence for mac projections
+mac.mac_sync_tol         = 1.0e-11     # tolerence for mac SYNC projection
+mac.mac_abs_tol          = 1.0e-11
 mac.do_outflow_bcs       = 0
 mac.v                    = 0
 mac_proj.verbose         = 0
@@ -155,6 +186,7 @@ mac_proj.verbose         = 0
 
 #--------------------------DEBUG/REGTESTS INPUTS-----------------------------
 # amrex.regtest_reduction=1
-amrex.fpe_trap_invalid = 1
-amrex.fpe_trap_zero = 1
-amrex.fpe_trap_overflow = 1
+# amrex.fpe_trap_invalid = 1
+# amrex.fpe_trap_zero = 1
+# amrex.fpe_trap_overflow = 1
+amrex.abort_on_out_of_gpu_memory = 1
