@@ -55,13 +55,18 @@ prob.P_mean = 101325.
 prob.ref_temp = 300.
 prob.fuel_name = C2H4
 prob.ign_name = N-C7H16
+# How much igniter mass fraction for the inlet
+# This drops to 0 over the vel_ramp_time
 #prob.ign_Y = 0.1
+#prob.vel_ramp_time = 0.01
+# How much igniter mass fraction in the hot spot
+# Probably not recommended
 #prob.ign_Y_start = 0.
 prob.oxid_temp = 300.
 prob.fuel_dia = 0.012
 prob.wall_thick = 0.
 prob.oxid_dia = 0.055
-#prob.vel_ramp_time = 0.01
+
 prob.vel_smooth = 0.00001
 # If flat profile is used
 prob.fuel_vel = 0.034
