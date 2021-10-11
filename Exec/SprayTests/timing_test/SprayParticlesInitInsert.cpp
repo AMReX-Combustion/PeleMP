@@ -74,8 +74,9 @@ SprayParticleContainer::InitSprayParticles(
   }
   part_vals[pstateT] = T_ref;
   part_vals[pstateDia] = part_dia;
-  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
+  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp) {
     part_vals[pstateY + sp] = 0.;
+  }
   part_vals[pstateY] = 1.; // Only use the first fuel species
   const Long total_part_num =
     AMREX_D_TERM(num_part[0], *num_part[1], *num_part[2]);
@@ -87,22 +88,25 @@ SprayParticleContainer::InitSprayParticles(
   // Number of particles per processor to be initialized
   Long cur_parts_pp = parts_pp;
   // Give any remaining particles to the last processor
-  if (MyProc == NProcs - 1)
+  if (MyProc == NProcs - 1) {
     cur_parts_pp += (total_part_num % NProcs);
+  }
   // Starting particle for this processor
   const Long first_part = MyProc * parts_pp;
   Gpu::HostVector<ParticleType> nparticles;
   Vector<Gpu::HostVector<Real>> nreals;
-  if (NAR_SPR > 0)
+  if (NAR_SPR > 0) {
     nreals.resize(NAR_SPR);
+  }
   for (int prc = 0; prc < cur_parts_pp; ++prc) {
     Long cur_part = first_part + prc;
     IntVect indx = unflatten_particles(cur_part, num_part);
     ParticleType p;
     p.id() = ParticleType::NextID();
     p.cpu() = ParallelDescriptor::MyProc();
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       p.pos(dir) = (Real(indx[dir]) + 0.5) * dx_part[dir];
+    }
     for (int n = 0; n < NSR_SPR; ++n) {
       p.rdata(n) = part_vals[n];
     }

@@ -25,8 +25,9 @@ amrex_probinit(
   pp.query("num_particles", PeleC::prob_parm_host->partNum);
   std::array<amrex::Real, AMREX_SPACEDIM> pvel;
   pp.query<amrex::Real>("part_vel", pvel);
-  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     PeleC::prob_parm_host->partVel[dir] = pvel[dir];
+  }
   pp.get("part_dia", PeleC::prob_parm_host->partDia);
   pp.get("part_temp", PeleC::prob_parm_host->partTemp);
 
@@ -50,13 +51,15 @@ amrex_probinit(
     std::ofstream ofs("ic.txt", std::ofstream::out);
     amrex::Print(ofs) << "number of particles: "
                       << PeleC::prob_parm_host->partNum[0];
-    for (int dir = 1; dir < AMREX_SPACEDIM; ++dir)
+    for (int dir = 1; dir < AMREX_SPACEDIM; ++dir) {
       amrex::Print(ofs) << ", " << PeleC::prob_parm_host->partNum[dir];
+    }
     amrex::Print(ofs) << std::endl;
     amrex::Print(ofs) << "particle velocity: "
                       << PeleC::prob_parm_host->partVel[0];
-    for (int dir = 1; dir < AMREX_SPACEDIM; ++dir)
+    for (int dir = 1; dir < AMREX_SPACEDIM; ++dir) {
       amrex::Print(ofs) << ", " << PeleC::prob_parm_host->partVel[dir];
+    }
     amrex::Print(ofs) << std::endl;
     amrex::Print(ofs) << "p0: " << PeleC::h_prob_parm_device->p0 << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;
