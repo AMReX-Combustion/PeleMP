@@ -13,7 +13,6 @@ struct ProbParmDevice
   amrex::Real vn_in = 0.2;
   amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> L = {{1.0}};
   int tempCol = -1;
-  int rhoCol = -1;
   int velCol = -1;
   int specCol = -1;
   unsigned int pmf_N = 0;
@@ -21,7 +20,6 @@ struct ProbParmDevice
   int pmf_do_average = 0;
   amrex::Real standoff = 0.;
 
-  amrex::GpuArray<amrex::Real, NVAR> fuel_state = {{0.0}};
   amrex::Real* d_pmf_X = nullptr;
   amrex::Real* d_pmf_Y = nullptr;
   amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> soot_vals = {{0.0}};

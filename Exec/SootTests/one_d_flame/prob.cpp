@@ -33,8 +33,9 @@ read_pmf(const std::string& myfile)
 
   std::ifstream infile(myfile);
   const std::string memfile = read_pmf_file(infile);
-  if (!amrex::FileSystem::Exists(myfile))
+  if (!amrex::FileSystem::Exists(myfile)) {
     amrex::Abort("Data file does not exist");
+  }
   infile.close();
   std::istringstream iss(memfile);
 
@@ -58,33 +59,28 @@ read_pmf(const std::string& myfile)
   amrex::Vector<std::string> spec_names;
   pele::physics::eos::speciesNames<pele::physics::EosType>(spec_names);
   int tempCol = -1;
-  int rhoCol = -1;
   int velCol = -1;
-  int xCol = -1;
   pos1 = 0;
   // pos2 = 0;
   for (int i = 0; i < variable_count; i++) {
     pos1 = firstline.find('"', pos1);
     pos2 = firstline.find('"', pos1 + 1);
     pmf_names[i] = firstline.substr(pos1 + 1, pos2 - (pos1 + 1));
-    if (i == 0)
-      xCol = i;
-    else if (pmf_names[i] == "U" || pmf_names[i] == "u")
+    if (pmf_names[i] == "U" || pmf_names[i] == "u") {
       velCol = i - 1;
-    else if (pmf_names[i] == "T" || pmf_names[i] == "temp")
+    } else if (pmf_names[i] == "T" || pmf_names[i] == "temp") {
       tempCol = i - 1;
-    else if (pmf_names[i] == "rho")
-      rhoCol = i - 1;
-    else if (pmf_names[i] != spec_names[i - 4])
+    } else if (pmf_names[i] != spec_names[i - 4]) {
       amrex::Abort("Variables do not match");
+    }
     pos1 = pos2 + 1;
   }
 
-  if (rhoCol < 0 || tempCol < 0 || velCol < 0)
-    amrex::Abort("rho, T, and U were not all found");
-  int specCol = std::max(tempCol, std::max(rhoCol, velCol)) + 1;
+  if (tempCol < 0 || velCol < 0) {
+    amrex::Abort("T and U were not all found");
+  }
+  int specCol = std::max(tempCol, velCol) + 1;
   PeleC::h_prob_parm_device->tempCol = tempCol;
-  PeleC::h_prob_parm_device->rhoCol = rhoCol;
   PeleC::h_prob_parm_device->velCol = velCol;
   PeleC::h_prob_parm_device->specCol = specCol;
   amrex::Print() << variable_count << " variables found in PMF file"
@@ -150,50 +146,6 @@ read_pmf(const std::string& myfile)
 }
 
 void
-init_bc()
-{
-  amrex::Real vt;
-  amrex::Real ek;
-  amrex::Real T;
-  amrex::Real rho;
-  amrex::Real e;
-  amrex::Real massfrac[NUM_SPECIES];
-  amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
-  const int tempCol = PeleC::h_prob_parm_device->tempCol;
-  const int velCol = PeleC::h_prob_parm_device->velCol;
-  const int rhoCol = PeleC::h_prob_parm_device->rhoCol;
-  const int specCol = PeleC::h_prob_parm_device->specCol;
-  const amrex::Real yl = 0.0;
-  const amrex::Real yr = 0.0;
-  pmf(yl, yr, pmf_vals, *PeleC::h_prob_parm_device);
-  amrex::Real mysum = 0.0;
-  for (int n = 0; n < NUM_SPECIES; n++) {
-    massfrac[n] = amrex::max<amrex::Real>(0.0, pmf_vals[specCol + n]);
-    mysum += massfrac[n];
-  }
-  massfrac[N2_ID] = 1.0 - (mysum - massfrac[N2_ID]);
-  T = pmf_vals[tempCol];
-  PeleC::h_prob_parm_device->vn_in = pmf_vals[velCol];
-  const amrex::Real p = PeleC::h_prob_parm_device->pamb;
-  auto eos = pele::physics::PhysicsType::eos();
-  eos.PYT2RE(p, massfrac, T, rho, e);
-
-  vt = PeleC::h_prob_parm_device->vn_in;
-  ek = 0.5 * (vt * vt);
-
-  PeleC::h_prob_parm_device->fuel_state[URHO] = rho;
-  PeleC::h_prob_parm_device->fuel_state[UMX] = rho * vt;
-  PeleC::h_prob_parm_device->fuel_state[UMY] = 0.0;
-  PeleC::h_prob_parm_device->fuel_state[UMZ] = 0.0;
-  PeleC::h_prob_parm_device->fuel_state[UEINT] = rho * e;
-  PeleC::h_prob_parm_device->fuel_state[UEDEN] = rho * (e + ek);
-  PeleC::h_prob_parm_device->fuel_state[UTEMP] = T;
-  for (int n = 0; n < NUM_SPECIES; n++) {
-    PeleC::h_prob_parm_device->fuel_state[UFS + n - 1] = rho * massfrac[n];
-  }
-}
-
-void
 pc_prob_close()
 {
 }
@@ -224,7 +176,6 @@ amrex_probinit(
 
   read_pmf(pmf_datafile);
 
-  init_bc();
   amrex::Real moments[NUM_SOOT_MOMENTS + 1] = {0.0};
   if (PeleC::soot_model) {
     SootData* const sd = PeleC::soot_model->getSootData();

@@ -144,16 +144,12 @@ pc_initdata(
   amrex::GeometryData const& geomdata,
   ProbParmDevice const& prob_parm)
 {
-  const int rhoCol = prob_parm.rhoCol;
   const int tempCol = prob_parm.tempCol;
   const int velCol = prob_parm.velCol;
   const int specCol = prob_parm.specCol;
   const amrex::Real* prob_lo = geomdata.ProbLo();
-  // const amrex::Real* prob_hi = geomdata.ProbHi();
   const amrex::Real* dx = geomdata.CellSize();
-  AMREX_D_TERM(const amrex::Real x = prob_lo[0] + (i + 0.5) * dx[0];
-               , const amrex::Real y = prob_lo[1] + (j + 0.5) * dx[1];
-               , const amrex::Real z = prob_lo[2] + (k + 0.5) * dx[2];);
+  const amrex::Real x = prob_lo[0] + (i + 0.5) * dx[0];
   amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
   amrex::Real x1 = (x - prob_parm.standoff - 0.5 * dx[0]);
   amrex::Real x2 = (x - prob_parm.standoff + 0.5 * dx[0]);
@@ -184,10 +180,12 @@ pc_initdata(
   state(i, j, k, UEDEN) =
     rho * (energy + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
   state(i, j, k, UTEMP) = T;
-  for (int n = 0; n < NUM_SPECIES; n++)
+  for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, UFS + n) = rho * massfrac[n];
-  for (int is = 0; is < NUM_SOOT_VARS; ++is)
+  }
+  for (int is = 0; is < NUM_SOOT_VARS; ++is) {
     state(i, j, k, UFSOOT + is) = prob_parm.soot_vals[is];
+  }
 }
 
 AMREX_GPU_DEVICE
@@ -203,7 +201,6 @@ bcnormal(
   amrex::GeometryData const& geomdata,
   ProbParmDevice const& prob_parm)
 {
-  const int rhoCol = prob_parm.rhoCol;
   const int tempCol = prob_parm.tempCol;
   const int velCol = prob_parm.velCol;
   const int specCol = prob_parm.specCol;
@@ -236,12 +233,14 @@ bcnormal(
     s_ext[UEDEN] =
       rho * (energy + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
     s_ext[UTEMP] = T;
-    for (int n = 0; n < NUM_SPECIES; n++)
+    for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[UFS + n] = rho * massfrac[n];
+    }
   } else {
     pmf(prob_lo[idir], prob_lo[idir], pmf_vals, prob_parm);
-    for (int n = 0; n < NUM_SPECIES; n++)
+    for (int n = 0; n < NUM_SPECIES; n++) {
       massfrac[n] = pmf_vals[specCol + n];
+    }
     T = pmf_vals[tempCol];
     pres = prob_parm.pamb;
     u[0] = 0.0;
@@ -257,11 +256,13 @@ bcnormal(
     s_ext[UEDEN] =
       rho * (energy + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
     s_ext[UTEMP] = T;
-    for (int n = 0; n < NUM_SPECIES; n++)
+    for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[UFS + n] = rho * massfrac[n];
+    }
   }
-  for (int n = 0; n < NUM_SOOT_VARS; n++)
+  for (int n = 0; n < NUM_SOOT_VARS; n++) {
     s_ext[UFSOOT + n] = s_int[UFSOOT + n];
+  }
 }
 
 void pc_prob_close();
