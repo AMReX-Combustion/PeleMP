@@ -18,9 +18,9 @@
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
-amrex::Real mixture_fraction (const amrex::Real S_equil,
-                              const amrex::Real Y_ff,
-                              const amrex::Real Y_oo)
+amrex::Real
+mixture_fraction(
+  const amrex::Real S_equil, const amrex::Real Y_ff, const amrex::Real Y_oo)
 {
   return (S_equil * Y_ff - Y_oo + 1.) / (S_equil + 1.);
 }
@@ -28,11 +28,12 @@ amrex::Real mixture_fraction (const amrex::Real S_equil,
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
-flame(amrex::Real Z,
-      amrex::Real& T,
-      Real* massfrac,
-      Real* moments,
-      ProbParm const& prob_parm)
+flame(
+  amrex::Real Z,
+  amrex::Real& T,
+  Real* massfrac,
+  Real* moments,
+  ProbParm const& prob_parm)
 {
   const int N = prob_parm.N_equil;
   int loside = -1;
@@ -48,9 +49,7 @@ flame(amrex::Real Z,
     hiside = 0;
   } else {
     for (unsigned int i = 0; i < N - 1; i++) {
-      if (
-        (Z >= prob_parm.Z_equil[i]) &&
-        (Z <= prob_parm.Z_equil[i + 1])) {
+      if ((Z >= prob_parm.Z_equil[i]) && (Z <= prob_parm.Z_equil[i + 1])) {
         loside = i;
         hiside = i + 1;
       }
@@ -84,28 +83,27 @@ flame(amrex::Real Z,
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 amrex::Real
-smooth_function(const amrex::Real b,
-                const amrex::Real L,
-                const amrex::Real x)
+smooth_function(const amrex::Real b, const amrex::Real L, const amrex::Real x)
 {
-  return 0.5 - 0.5*std::tanh(x/(b*L));
+  return 0.5 - 0.5 * std::tanh(x / (b * L));
 }
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
-weight_vals(amrex::Real* weights,
-            const amrex::Real b,
-            const amrex::Real L,
-            const amrex::Real x,
-            const amrex::Real xc,
-            const amrex::Real oxid_dia,
-            const amrex::Real fuel_dia)
+weight_vals(
+  amrex::Real* weights,
+  const amrex::Real b,
+  const amrex::Real L,
+  const amrex::Real x,
+  const amrex::Real xc,
+  const amrex::Real oxid_dia,
+  const amrex::Real fuel_dia)
 {
-  amrex::Real x1 = x - xc + oxid_dia/2.;
-  amrex::Real x2 = x - xc + fuel_dia/2.;
-  amrex::Real x3 = x - xc - fuel_dia/2.;
-  amrex::Real x4 = x - xc - oxid_dia/2.;
+  amrex::Real x1 = x - xc + oxid_dia / 2.;
+  amrex::Real x2 = x - xc + fuel_dia / 2.;
+  amrex::Real x3 = x - xc - fuel_dia / 2.;
+  amrex::Real x4 = x - xc - oxid_dia / 2.;
   weights[0] = smooth_function(b, L, x1);
   weights[1] = smooth_function(b, L, x2);
   weights[2] = smooth_function(b, L, x3);
@@ -116,15 +114,16 @@ weight_vals(amrex::Real* weights,
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 amrex::Real
-profile_vals(const amrex::Real* weights,
-             const amrex::Real oxid_y,
-             const amrex::Real fuel_y,
-             const amrex::Real ext_y)
+profile_vals(
+  const amrex::Real* weights,
+  const amrex::Real oxid_y,
+  const amrex::Real fuel_y,
+  const amrex::Real ext_y)
 {
-  amrex::Real y1 = (ext_y - oxid_y)*weights[0] + oxid_y;
-  amrex::Real y2 = (y1 - fuel_y)*weights[1] + fuel_y;
-  amrex::Real y3 = (y2 - oxid_y)*weights[2] + oxid_y;
-  return (y3 - ext_y)*weights[3] + ext_y;
+  amrex::Real y1 = (ext_y - oxid_y) * weights[0] + oxid_y;
+  amrex::Real y2 = (y1 - fuel_y) * weights[1] + fuel_y;
+  amrex::Real y3 = (y2 - oxid_y) * weights[2] + oxid_y;
+  return (y3 - ext_y) * weights[3] + ext_y;
 }
 
 AMREX_GPU_DEVICE
@@ -159,11 +158,13 @@ pelelm_initdata(
   if (prob_parm.equil_start_time <= 0.) {
     amrex::Real top_flame = 0.5 * leny;
     // Adjust the fuel diameter linearly in the Y direction to form a triangle
-    amrex::Real cur_dia = prob_parm.fuel_dia * (-(y - prob_lo[1]) / top_flame + 1.);
+    amrex::Real cur_dia =
+      prob_parm.fuel_dia * (-(y - prob_lo[1]) / top_flame + 1.);
     amrex::Real xc = prob_parm.jet_center;
     amrex::GpuArray<amrex::Real, 4> weights;
     const amrex::Real smooth_b = prob_parm.smooth_b;
-    weight_vals(weights.data(), smooth_b, len, x, xc, prob_parm.oxid_dia, cur_dia);
+    weight_vals(
+      weights.data(), smooth_b, len, x, xc, prob_parm.oxid_dia, cur_dia);
     amrex::Real fuel_mf = profile_vals(weights.data(), 0., 1., 0.);
     amrex::Real o2_mf = profile_vals(weights.data(), o2in, 0., o2in);
     amrex::Real n2_mf = profile_vals(weights.data(), n2in, 0., n2in);
@@ -183,8 +184,8 @@ pelelm_initdata(
     }
   }
   state(i, j, k, DEF_Temp) = temp;
-  AMREX_D_TERM(state(i, j, k, Xvel) = 0.;
-               , state(i, j, k, Yvel) = init_vel;, state(i, j, k, Zvel) = 0.;);
+  AMREX_D_TERM(state(i, j, k, Xvel) = 0.;, state(i, j, k, Yvel) = init_vel;
+               , state(i, j, k, Zvel) = 0.;);
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
@@ -192,8 +193,7 @@ pelelm_initdata(
   eos.PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  eos.TY2H(
-    state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
+  eos.TY2H(state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
 
@@ -225,7 +225,7 @@ bcnormal(
     amrex::Real diffe = 1.;
     if (prob_parm.equil_start_time < prob_parm.equil_end_time) {
       diffe = (time - prob_parm.equil_start_time) /
-        (prob_parm.equil_end_time - prob_parm.equil_start_time);
+              (prob_parm.equil_end_time - prob_parm.equil_start_time);
     }
     diffe = amrex::max(0., amrex::min(diffe, 1.));
     amrex::Real o2in = prob_parm.oxid_O2;
@@ -238,12 +238,16 @@ bcnormal(
     amrex::Real xc = prob_parm.jet_center;
     amrex::GpuArray<amrex::Real, 4> weights;
     const amrex::Real smooth_b = prob_parm.smooth_b;
-    weight_vals(weights.data(), smooth_b, len, x[0], xc, prob_parm.oxid_dia, prob_parm.fuel_dia);
+    weight_vals(
+      weights.data(), smooth_b, len, x[0], xc, prob_parm.oxid_dia,
+      prob_parm.fuel_dia);
     amrex::Real fuel_mf = profile_vals(weights.data(), 0., 1., 0.);
     amrex::Real o2_mf = profile_vals(weights.data(), o2in, 0., o2in);
     amrex::Real n2_mf = profile_vals(weights.data(), n2in, 0., n2in);
-    amrex::Real jet_vel = profile_vals(weights.data(), prob_parm.oxid_vel, prob_parm.fuel_vel, 0.);
-    amrex::Real temp = profile_vals(weights.data(), prob_parm.oxid_T, prob_parm.fuel_T, prob_parm.T_ref);
+    amrex::Real jet_vel =
+      profile_vals(weights.data(), prob_parm.oxid_vel, prob_parm.fuel_vel, 0.);
+    amrex::Real temp = profile_vals(
+      weights.data(), prob_parm.oxid_T, prob_parm.fuel_T, prob_parm.T_ref);
     amrex::Real Yff = fuel_mf;
     amrex::Real Yoo = o2_mf / o2in;
     amrex::Real Zmix = mixture_fraction(prob_parm.S_equil, Yff, Yoo);
@@ -275,9 +279,7 @@ bcnormal(
     eos.TY2H(s_ext[DEF_Temp], massfrac.data(), RhoH_temp);
     s_ext[DEF_RhoH] =
       RhoH_temp * 1.0e-4 * s_ext[Density]; // CGS -> MKS conversion
-    AMREX_D_TERM(s_ext[Xvel] = 0.;,
-                 s_ext[Yvel] = jet_vel;,
-                 s_ext[Zvel] = 0.;);
+    AMREX_D_TERM(s_ext[Xvel] = 0.;, s_ext[Yvel] = jet_vel;, s_ext[Zvel] = 0.;);
     for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[DEF_first_spec + n] = massfrac[n] * s_ext[Density];
     }

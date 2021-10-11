@@ -43,10 +43,11 @@ amrex_probinit(
   // Convert to radians
   PeleLM::prob_parm->spray_angle *= M_PI / 180.;
   // Total number of jets
-  unsigned int total_jets = AMREX_D_TERM(jets_per_dir[0],*1,*jets_per_dir[2]);
+  unsigned int total_jets = AMREX_D_TERM(jets_per_dir[0], *1, *jets_per_dir[2]);
   PeleLM::prob_parm->num_jets = total_jets;
   PeleLM::prob_parm->jet_cents.resize(total_jets);
-  amrex::Real div_lenx = (probhi[0] - problo[0]) / (amrex::Real(jets_per_dir[0]));
+  amrex::Real div_lenx =
+    (probhi[0] - problo[0]) / (amrex::Real(jets_per_dir[0]));
   int jetz = 1;
   amrex::Real div_lenz = 0.;
 #if AMREX_SPACEDIM == 3

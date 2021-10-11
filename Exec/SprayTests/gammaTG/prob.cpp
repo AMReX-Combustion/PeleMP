@@ -39,7 +39,8 @@ amrex_probinit(
     PeleC::h_prob_parm_device->p0, massfrac, PeleC::h_prob_parm_device->T0,
     PeleC::h_prob_parm_device->rho0, eint);
   eos.RTY2Cs(
-    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac, cs);
+    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac,
+    cs);
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
 
   amrex::Real refL = PeleC::h_prob_parm_device->L;
@@ -104,7 +105,8 @@ amrex_probinit(
     for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
       amrex::Print(ofs) << ", " << PeleC::prob_parm_host->partNum[dir];
     amrex::Print(ofs) << std::endl;
-    amrex::Print(ofs) << "rho0: " << PeleC::h_prob_parm_device->rho0 << std::endl;
+    amrex::Print(ofs) << "rho0: " << PeleC::h_prob_parm_device->rho0
+                      << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;
     amrex::Print(ofs) << "U: " << PeleC::h_prob_parm_device->v0 << std::endl;
     amrex::Print(ofs) << "mu: " << trans_parm.const_viscosity << std::endl;

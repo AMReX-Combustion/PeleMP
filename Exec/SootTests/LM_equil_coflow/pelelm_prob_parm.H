@@ -32,7 +32,6 @@ struct ProbParm : amrex::Gpu::Managed
   amrex::Real* T_equil = nullptr;
   amrex::Real* Y_equil = nullptr;
   amrex::Real* soot_equil = nullptr;
-
 };
 
 #endif

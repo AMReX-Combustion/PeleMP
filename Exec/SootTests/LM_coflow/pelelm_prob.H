@@ -59,8 +59,8 @@ pelelm_initdata(
   massfrac[prob_parm.ign_indx] = ign_mf;
 
   state(i, j, k, DEF_Temp) = T_init;
-  AMREX_D_TERM(state(i, j, k, Xvel) = 0.;
-               , state(i, j, k, Yvel) = jet_vel;, state(i, j, k, Zvel) = 0.;);
+  AMREX_D_TERM(state(i, j, k, Xvel) = 0.;, state(i, j, k, Yvel) = jet_vel;
+               , state(i, j, k, Zvel) = 0.;);
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.;
 
@@ -68,8 +68,7 @@ pelelm_initdata(
   eos.PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  eos.TY2H(
-    state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
+  eos.TY2H(state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
 
@@ -148,9 +147,7 @@ bcnormal(
     eos.TY2H(s_ext[DEF_Temp], massfrac.data(), RhoH_temp);
     s_ext[DEF_RhoH] =
       RhoH_temp * 1.0e-4 * s_ext[Density]; // CGS -> MKS conversion
-    AMREX_D_TERM(s_ext[Xvel] = 0.;,
-                 s_ext[Yvel] = jet_vel;,
-                 s_ext[Zvel] = 0.;);
+    AMREX_D_TERM(s_ext[Xvel] = 0.;, s_ext[Yvel] = jet_vel;, s_ext[Zvel] = 0.;);
     for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[DEF_first_spec + n] = massfrac[n] * s_ext[Density];
     }

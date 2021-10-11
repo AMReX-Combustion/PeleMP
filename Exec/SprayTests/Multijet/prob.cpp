@@ -42,10 +42,11 @@ amrex_probinit(
   // Convert to radians
   PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
   // Total number of jets
-  unsigned int total_jets = AMREX_DTERM(jets_per_dir[0],,*jets_per_dir[2]);
+  unsigned int total_jets = AMREX_DTERM(jets_per_dir[0], , *jets_per_dir[2]);
   PeleC::prob_parm_host->num_jets = total_jets;
   PeleC::prob_parm_host->jet_cents.resize(total_jets);
-  amrex::Real div_lenx = (probhi[0] - problo[0]) / (amrex::Real(jets_per_dir[0]));
+  amrex::Real div_lenx =
+    (probhi[0] - problo[0]) / (amrex::Real(jets_per_dir[0]));
   int jetz = 1;
   amrex::Real div_lenz = 0.;
 #if AMREX_SPACEDIM == 3
@@ -73,7 +74,8 @@ amrex_probinit(
     PeleC::h_prob_parm_device->p0, massfrac, PeleC::h_prob_parm_device->T0,
     PeleC::h_prob_parm_device->rho0, eint);
   eos.RTY2Cs(
-    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac, cs);
+    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac,
+    cs);
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
 }
 }

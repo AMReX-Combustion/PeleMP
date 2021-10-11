@@ -180,8 +180,7 @@ SprayParticleContainer::injectParticles(
           Real total_mass = 0.;
           while (total_mass < perc_mass) {
             RealVect part_loc(AMREX_D_DECL(
-              lox + amrex::Random() * xlen,
-              loy + amrex::Random() * ylen,
+              lox + amrex::Random() * xlen, loy + amrex::Random() * ylen,
               plo[2]));
 
             Real r2 = AMREX_D_TERM(
@@ -265,8 +264,7 @@ SprayParticleContainer::injectParticles(
 }
 
 void
-SprayParticleContainer::InitSprayParticles(
-  ProbParm const& prob_parm)
+SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
 {
   // This ensures the initial time step size stays reasonable
   m_injectVel = prob_parm.jet_vel;

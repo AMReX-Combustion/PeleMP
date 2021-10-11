@@ -113,8 +113,8 @@ read_pmf(const std::string& myfile)
     std::istringstream sinput(remaininglines);
     sinput >> PeleC::prob_parm_host->h_pmf_X[i];
     for (unsigned int j = 0; j < PeleC::h_prob_parm_device->pmf_M; j++) {
-      sinput >>
-        PeleC::prob_parm_host->h_pmf_Y[j * PeleC::h_prob_parm_device->pmf_N + i];
+      sinput >> PeleC::prob_parm_host
+                  ->h_pmf_Y[j * PeleC::h_prob_parm_device->pmf_N + i];
     }
   }
 

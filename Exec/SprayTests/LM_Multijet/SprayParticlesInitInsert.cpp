@@ -250,8 +250,7 @@ SprayParticleContainer::injectParticles(
 }
 
 void
-SprayParticleContainer::InitSprayParticles(
-  ProbParm const& prob_parm)
+SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
 {
   // This ensures the initial time step size stays reasonable
   m_injectVel = prob_parm.jet_vel;

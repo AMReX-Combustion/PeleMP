@@ -42,7 +42,8 @@ amrex_probinit(
   amrex::Real S_equil = 0.;
   {
     int ecompCHON[NUM_SPECIES * 4];
-    pele::physics::eos::element_compositionCHON<pele::physics::EosType>(ecompCHON);
+    pele::physics::eos::element_compositionCHON<pele::physics::EosType>(
+      ecompCHON);
     int numc = ecompCHON[PeleLM::prob_parm->fuelIndx * 4];
     int numh = ecompCHON[PeleLM::prob_parm->fuelIndx * 4 + 1];
     amrex::Real m = (Real)numc;

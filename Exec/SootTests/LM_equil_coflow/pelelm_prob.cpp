@@ -51,7 +51,7 @@ read_data(const std::string& myfile)
     else if (cur_name == "soot_N")
       sootcol = i;
     else if (cur_name != spec_names[i - 2] && i < sootcol) {
-      Print() << cur_name << " " << spec_names[i-2] << std::endl;
+      Print() << cur_name << " " << spec_names[i - 2] << std::endl;
       amrex::Abort("Variables do not match");
     }
   }
@@ -60,7 +60,8 @@ read_data(const std::string& myfile)
     line_count++;
   }
   bool read_soot = false;
-  if (sootcol > -1) read_soot = true;
+  if (sootcol > -1)
+    read_soot = true;
   if (Zcol != 0 || Tcol != 1)
     amrex::Abort("Columns must be ordered Z, T, Y");
   amrex::Print() << line_count << " lines found in data file" << std::endl;
@@ -115,11 +116,14 @@ read_data(const std::string& myfile)
   if (!read_soot && use_soot) {
     sd->initialSmallMomVals(initmoments);
   }
-  PeleLM::prob_parm->Z_equil = (amrex::Real *) The_Arena()->alloc(line_count * sizeof(amrex::Real));
-  PeleLM::prob_parm->T_equil = (amrex::Real *) The_Arena()->alloc(line_count * sizeof(amrex::Real));
-  PeleLM::prob_parm->Y_equil = (amrex::Real *) The_Arena()->alloc(line_count * NUM_SPECIES * sizeof(amrex::Real));
-  PeleLM::prob_parm->soot_equil =
-    (amrex::Real *) The_Arena()->alloc(line_count * (NUM_SOOT_MOMENTS + 1) * sizeof(amrex::Real));
+  PeleLM::prob_parm->Z_equil =
+    (amrex::Real*)The_Arena()->alloc(line_count * sizeof(amrex::Real));
+  PeleLM::prob_parm->T_equil =
+    (amrex::Real*)The_Arena()->alloc(line_count * sizeof(amrex::Real));
+  PeleLM::prob_parm->Y_equil = (amrex::Real*)The_Arena()->alloc(
+    line_count * NUM_SPECIES * sizeof(amrex::Real));
+  PeleLM::prob_parm->soot_equil = (amrex::Real*)The_Arena()->alloc(
+    line_count * (NUM_SOOT_MOMENTS + 1) * sizeof(amrex::Real));
   for (unsigned int i = 0; i < line_count; i++) {
     PeleLM::prob_parm->Z_equil[i] = Z_vals[i];
     PeleLM::prob_parm->T_equil[i] = T_vals[i];
@@ -191,7 +195,7 @@ amrex_probinit(
     int numh = ecompCHON[PeleLM::prob_parm->fuel_indx * 4 + 1];
     amrex::Real m = (Real)numc;
     amrex::Real n = (Real)numh;
-    amrex::Real s = 32.*(m + n / 4.)/(12. * m + n);
+    amrex::Real s = 32. * (m + n / 4.) / (12. * m + n);
     PeleLM::prob_parm->S_equil = s / PeleLM::prob_parm->oxid_O2;
   }
 

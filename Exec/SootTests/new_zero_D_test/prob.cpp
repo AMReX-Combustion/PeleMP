@@ -39,12 +39,14 @@ amrex_probinit(
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[N2_ID] = PeleC::h_prob_parm_device->Y_N2;
   massfrac[O2_ID] = PeleC::h_prob_parm_device->Y_O2;
-  massfrac[PeleC::h_prob_parm_device->fuelIndx] = PeleC::h_prob_parm_device->Y_Fuel;
+  massfrac[PeleC::h_prob_parm_device->fuelIndx] =
+    PeleC::h_prob_parm_device->Y_Fuel;
   eos.PYT2RE(
     PeleC::h_prob_parm_device->p0, massfrac, PeleC::h_prob_parm_device->T0,
     PeleC::h_prob_parm_device->rho0, eint);
   eos.RTY2Cs(
-    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac, cs);
+    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac,
+    cs);
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
   amrex::Real moments[NUM_SOOT_MOMENTS + 1];
   SootData* const sd = PeleC::soot_model->getSootData();

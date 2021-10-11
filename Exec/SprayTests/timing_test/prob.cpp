@@ -8,11 +8,11 @@ pc_prob_close()
 extern "C" {
 void
 amrex_probinit(
-  const int* init,
-  const int* name,
-  const int* namelen,
-  const amrex_real* problo,
-  const amrex_real* probhi)
+  const int* /*init*/,
+  const int* /*name*/,
+  const int* /*namelen*/,
+  const amrex_real* /*problo*/,
+  const amrex_real* /*probhi*/)
 {
   // Parse params
   amrex::ParmParse pp("prob");
@@ -31,7 +31,7 @@ amrex_probinit(
   pp.get("part_temp", PeleC::prob_parm_host->partTemp);
 
   // Initial density, velocity, and material properties
-  amrex::Real cs, cp;
+  amrex::Real cs;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[O2_ID] = PeleC::h_prob_parm_device->Y_O2;
   massfrac[N2_ID] = PeleC::h_prob_parm_device->Y_N2;
@@ -41,7 +41,8 @@ amrex_probinit(
   eos.Y2WBAR(massfrac, wbar);
   // Compute the speed of sound
   cs = std::sqrt(
-    PeleC::h_prob_parm_device->T0 * gamma0 * pele::physics::Constants::RU / wbar);
+    PeleC::h_prob_parm_device->T0 * gamma0 * pele::physics::Constants::RU /
+    wbar);
   PeleC::h_prob_parm_device->v0 = PeleC::h_prob_parm_device->mach * cs;
 
   // Output IC

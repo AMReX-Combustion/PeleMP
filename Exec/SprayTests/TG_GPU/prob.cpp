@@ -45,10 +45,12 @@ amrex_probinit(
   eos.Y2WBAR(massfrac, wbar);
   // Compute the speed of sound
   cs = std::sqrt(
-    PeleC::h_prob_parm_device->T0 * gamma0 * pele::physics::Constants::RU / wbar);
+    PeleC::h_prob_parm_device->T0 * gamma0 * pele::physics::Constants::RU /
+    wbar);
   amrex::Real refL = PeleC::h_prob_parm_device->L;
   PeleC::h_prob_parm_device->v0 = PeleC::h_prob_parm_device->mach * cs;
-  pele::physics::transport::TransParm const* ltransparm = pele::physics::transport::trans_parm_g;
+  pele::physics::transport::TransParm const* ltransparm =
+    pele::physics::transport::trans_parm_g;
   amrex::Real rho, mu, xi, lambda;
   amrex::Real Ddiag[NUM_SPECIES]; // Should be unused
   auto trans = pele::physics::PhysicsType::transport();
@@ -58,7 +60,7 @@ amrex_probinit(
     massfrac, Ddiag, mu, xi, lambda, pele::physics::transport::trans_parm_g);
   // Compute the density from the Reynolds number
   PeleC::h_prob_parm_device->rho0 = PeleC::h_prob_parm_device->reynolds * mu /
-                                  (refL * PeleC::h_prob_parm_device->v0);
+                                    (refL * PeleC::h_prob_parm_device->v0);
   eos.RTY2P(
     PeleC::h_prob_parm_device->T0, PeleC::h_prob_parm_device->rho0, massfrac,
     PeleC::h_prob_parm_device->p0);
@@ -71,7 +73,8 @@ amrex_probinit(
     for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
       amrex::Print(ofs) << ", " << PeleC::prob_parm_host->partNum[dir];
     amrex::Print(ofs) << std::endl;
-    amrex::Print(ofs) << "rho0: " << PeleC::h_prob_parm_device->rho0 << std::endl;
+    amrex::Print(ofs) << "rho0: " << PeleC::h_prob_parm_device->rho0
+                      << std::endl;
     amrex::Print(ofs) << "p0: " << PeleC::h_prob_parm_device->p0 << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;
     amrex::Print(ofs) << "U: " << PeleC::h_prob_parm_device->v0 << std::endl;

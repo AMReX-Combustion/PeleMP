@@ -129,7 +129,8 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
           // Retrieve the last particle entry and add it to host_particles
           ParticleType& p = nparticles.back();
           bool where = Where(p, pld);
-          if (!where) Abort("Bad particle");
+          if (!where)
+            Abort("Bad particle");
           std::pair<int, int> ind(pld.m_grid, pld.m_tile);
           host_particles[ind].push_back(p);
           for (int n = 0; n < NAR_SPR; ++n) {

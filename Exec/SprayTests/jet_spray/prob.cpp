@@ -104,7 +104,8 @@ amrex_probinit(
     PeleC::h_prob_parm_device->p0, massfrac, PeleC::h_prob_parm_device->T0,
     PeleC::h_prob_parm_device->rho0, eint);
   eos.RTY2Cs(
-    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac, cs);
+    PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac,
+    cs);
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
   if (PeleC::prob_parm_host->input_file != "") {
     read_inject(PeleC::prob_parm_host->input_file);
