@@ -38,8 +38,9 @@ amrex_probinit(
     PeleLM::prob_parm->Y_jet[spf] = in_Y_jet[spf];
     sumY += in_Y_jet[spf];
   }
-  if (std::abs(sumY - 1.) > 1.E-8)
+  if (std::abs(sumY - 1.) > 1.E-8) {
     amrex::Abort("'jet_mass_fracs' must sum to 1");
+  }
   // Convert to radians
   PeleLM::prob_parm->spray_angle *= M_PI / 180.;
   // Total number of jets

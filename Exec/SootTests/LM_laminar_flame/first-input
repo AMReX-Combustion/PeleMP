@@ -49,7 +49,7 @@ amr.derive_plot_vars    = rhoRT mag_vort mass_fractions mole_fractions enthalpy 
 prob.P_mean = 98700.
 prob.standoff = 0.0
 prob.pmf_average = 0
-prob.pmf_datafile = "datafile_init/mueller_burner.dat"
+prob.pmf_datafile = "datafile_init/burner_profile.dat"
 
 #--------------------SOOT MODELING------------------------
 peleLM.do_soot_solve = 1

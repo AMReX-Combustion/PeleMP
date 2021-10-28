@@ -6,7 +6,7 @@
 
 using namespace amrex::literals;
 
-struct ProbParm : amrex::Gpu::Managed
+struct ProbParm
 {
   amrex::Real P_mean = 1013250.0;
   amrex::Real T0 = 1500.;

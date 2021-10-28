@@ -6,7 +6,7 @@
 
 using namespace amrex::literals;
 
-struct ProbParm : amrex::Gpu::Managed
+struct ProbParm
 {
   amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> soot_vals;
   amrex::Real init_vel = 0.;

@@ -17,11 +17,6 @@ amrex_probinit(
   pp.query("standoff", PeleLM::prob_parm->standoff);
   pp.query("pertmag", PeleLM::prob_parm->pertmag);
 
-  std::string pmf_datafile;
-  pp.query("pmf_datafile", pmf_datafile);
-  int pmf_do_average = 1;
-  PMF::read_pmf(pmf_datafile, pmf_do_average);
-
   pp.query("jet_vel", PeleLM::prob_parm->jet_vel);
   // The cells are divided by this value when prescribing the jet inlet
   pp.query("jet_dx_mod", PeleLM::prob_parm->jet_dx_mod);
@@ -41,21 +36,19 @@ amrex_probinit(
     PeleLM::prob_parm->Y_jet[spf] = in_Y_jet[spf];
     sumY += in_Y_jet[spf];
   }
-  if (std::abs(sumY - 1.) > 1.E-8)
+  if (std::abs(sumY - 1.) > 1.E-8) {
     amrex::Abort("'jet_mass_fracs' must sum to 1");
+  }
   // Convert to radians
   PeleLM::prob_parm->spray_angle *= M_PI / 180.;
   // Total number of jets
   // unsigned int total_jets = std::pow(jets_per_dir, AMREX_SPACEDIM - 1);
-  unsigned int total_jets = 1;
-  PeleLM::prob_parm->num_jets = total_jets;
-  PeleLM::prob_parm->jet_cents.resize(total_jets);
   amrex::Real dom_len = probhi[0] - problo[0];
-  amrex::Real div_len = dom_len / (amrex::Real(jets_per_dir));
   amrex::Real yloc = (probhi[1] - problo[1]) * .5;
-  amrex::Real xloc = div_len * .5;
+  amrex::Real xloc = dom_len * .5;
   amrex::Real zloc = problo[2];
-  PeleLM::prob_parm->jet_cents[0] =
-    amrex::RealVect(AMREX_D_DECL(xloc, yloc, zloc));
+  AMREX_D_TERM(PeleLM::prob_parm->jet_cents[0] = xloc;,
+               PeleLM::prob_parm->jet_cents[1] = yloc;,
+               PeleLM::prob_parm->jet_cents[2] = zloc;)
 }
 }

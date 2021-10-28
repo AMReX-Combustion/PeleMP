@@ -6,7 +6,7 @@
 
 using namespace amrex::literals;
 
-struct ProbParm : amrex::Gpu::Managed
+struct ProbParm
 {
   amrex::Real P_mean = 101325.0_rt;
   amrex::Real standoff = 0.0_rt;
@@ -24,7 +24,6 @@ struct ProbParm : amrex::Gpu::Managed
   amrex::Real spray_angle = 20.;
   amrex::Real jet_dx_mod = 50.;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};
-  unsigned int num_jets = 1;
-  amrex::Gpu::HostVector<amrex::RealVect> jet_cents;
+  amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> jet_cents;
 };
 #endif
