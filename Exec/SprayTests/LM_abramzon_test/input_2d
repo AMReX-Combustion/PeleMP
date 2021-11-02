@@ -97,8 +97,7 @@ ht.plot_consumption = 0
 ht.plot_rhoydot = 0
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
-cvode.solve_type = GMRES
-ode.analytical_jacobian = 0
+peleLM.chem_integrator = "ReactorNull"
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                              # Use AC ?

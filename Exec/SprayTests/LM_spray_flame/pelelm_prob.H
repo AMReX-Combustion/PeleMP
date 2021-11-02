@@ -7,8 +7,8 @@
 #include <AMReX_SPACE.H>
 
 #include <pelelm_prob_parm.H>
-#include <pmf.H>
-#include <pmf_data.H>
+#include <PMF.H>
+#include <PMFData.H>
 #include <PeleLM_parm.H>
 
 #include <NavierStokesBase.H>
@@ -25,7 +25,7 @@ pelelm_initdata(
   amrex::Array4<amrex::Real> const& state,
   amrex::GeometryData const& geomdata,
   ProbParm const& prob_parm,
-  PmfData const* pmf_data)
+  pele::physics::PMF::PmfData::DataContainer const* pmf_data)
 {
 
   const amrex::Real* prob_lo = geomdata.ProbLo();
@@ -39,33 +39,31 @@ pelelm_initdata(
   auto eos = pele::physics::PhysicsType::eos();
 
   const amrex::Real L_x = prob_hi[0] - prob_lo[0];
-  amrex::Real molefrac[NUM_SPECIES] = {0.0};
-  amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  amrex::Real pert;
-  amrex::Real y1, y2;
+  amrex::GpuArray<amrex::Real, NUM_SPECIES> molefrac = {{0.0}};
+  amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
 
   state(i, j, k, DEF_Temp) = prob_parm.T_ox;
 
   molefrac[O2_ID] = 0.21;
   molefrac[N2_ID] = 0.79;
 
-  eos.X2Y(molefrac, massfrac);
+  eos.X2Y(molefrac.data(), massfrac.data());
 
   state(i, j, k, Xvel) = 0;
 #if (AMREX_SPACEDIM == 2)
-  state(i, j, k, Yvel) = 0.; // pmf_vals[1]*1e-2;
+  state(i, j, k, Yvel) = 0.;
 #elif (AMREX_SPACEDIM == 3)
   state(i, j, k, Yvel) = 0;
-  state(i, j, k, Zvel) = 0.; // pmf_vals[1]*1e-2;
+  state(i, j, k, Zvel) = 0.;
 #endif
 
   amrex::Real rho_cgs, P_cgs;
   P_cgs = prob_parm.P_mean * 10.0;
 
-  eos.PYT2R(P_cgs, massfrac, state(i, j, k, DEF_Temp), rho_cgs);
+  eos.PYT2R(P_cgs, massfrac.data(), state(i, j, k, DEF_Temp), rho_cgs);
   state(i, j, k, Density) = rho_cgs * 1.0e3; // CGS -> MKS conversion
 
-  eos.TY2H(state(i, j, k, DEF_Temp), massfrac, state(i, j, k, DEF_RhoH));
+  eos.TY2H(state(i, j, k, DEF_Temp), massfrac.data(), state(i, j, k, DEF_RhoH));
   state(i, j, k, DEF_RhoH) = state(i, j, k, DEF_RhoH) * 1.0e-4 *
                              state(i, j, k, Density); // CGS -> MKS conversion
 
@@ -86,53 +84,28 @@ bcnormal(
   amrex::GeometryData const& geomdata,
   ProbParm const& prob_parm,
   ACParm const& ac_parm,
-  PmfData const* pmf_data)
+  pele::physics::PMF::PmfData::DataContainer const* pmf_data)
 {
   const amrex::Real* prob_lo = geomdata.ProbLo();
-  amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {0.0};
-  amrex::Real molefrac[NUM_SPECIES] = {0.0};
-  amrex::Real massfrac[NUM_SPECIES] = {0.0};
+  amrex::GpuArray<amrex::Real, NUM_SPECIES> molefrac = {{0.0}};
+  amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
   auto eos = pele::physics::PhysicsType::eos();
 
   if (sgn == 1) {
-    //     PMF::pmf(pmf_data,prob_lo[idir], prob_lo[idir], pmf_vals);
-    //
-    //     if (!ac_parm.ctrl_active || time <= 0.0) {
-    //        s_ext[Xvel] = 0.0;
-    // #if ( AMREX_SPACEDIM == 2 )
-    //        s_ext[Yvel] = 0.;//pmf_vals[1]*1e-2;
-    // #elif (AMREX_SPACEDIM == 3)
-    //        s_ext[Yvel] = 0.0;
-    //        s_ext[Zvel] = 0.;//pmf_vals[1]*1e-2;
-    // #endif
-    //     } else {
-    //        s_ext[Xvel] = 0.0;
-    // #if ( AMREX_SPACEDIM == 2 )
-    //        s_ext[Yvel] = ac_parm.ctrl_V_in + (time - ac_parm.ctrl_tBase) *
-    //        ac_parm.ctrl_dV;
-    // #elif (AMREX_SPACEDIM == 3)
-    //        s_ext[Yvel] = 0.0;
-    //        s_ext[Zvel] = ac_parm.ctrl_V_in + (time - ac_parm.ctrl_tBase) *
-    //        ac_parm.ctrl_dV;
-    // #endif
-    //     }
 
     s_ext[DEF_Temp] = prob_parm.T_ox;
 
-    // for (int n = 0; n < NUM_SPECIES; n++){
-    //   molefrac[n] = pmf_vals[3 + n];
-    // }
     molefrac[O2_ID] = 0.21;
     molefrac[N2_ID] = 0.79;
-    eos.X2Y(molefrac, massfrac);
+    eos.X2Y(molefrac.data(), massfrac.data());
 
     amrex::Real rho_cgs, P_cgs, RhoH_temp;
     P_cgs = prob_parm.P_mean * 10.0;
 
-    eos.PYT2R(P_cgs, massfrac, s_ext[DEF_Temp], rho_cgs);
+    eos.PYT2R(P_cgs, massfrac.data(), s_ext[DEF_Temp], rho_cgs);
     s_ext[Density] = rho_cgs * 1.0e3;
 
-    eos.TY2H(s_ext[DEF_Temp], massfrac, RhoH_temp);
+    eos.TY2H(s_ext[DEF_Temp], massfrac.data(), RhoH_temp);
     s_ext[DEF_RhoH] =
       RhoH_temp * 1.0e-4 * s_ext[Density]; // CGS -> MKS conversion
 

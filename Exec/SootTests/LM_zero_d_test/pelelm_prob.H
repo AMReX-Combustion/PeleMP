@@ -6,8 +6,8 @@
 #include <AMReX_ParmParse.H>
 
 #include <pelelm_prob_parm.H>
-#include <pmf.H>
-#include <pmf_data.H>
+#include <PMF.H>
+#include <PMFData.H>
 #include <PeleLM_parm.H>
 
 #include <IndexDefines.H>
@@ -25,7 +25,7 @@ pelelm_initdata(
   amrex::Array4<amrex::Real> const& state,
   amrex::GeometryData const& /*geomdata*/,
   ProbParm const& prob_parm,
-  PmfData const* /*pmf_data*/)
+  pele::physics::PMF::PmfData::DataContainer const* /*pmf_data*/)
 {
 
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
@@ -68,7 +68,7 @@ bcnormal(
   amrex::GeometryData const& geomdata,
   ProbParm const& prob_parm,
   ACParm const& /*ac_parm*/,
-  PmfData const* /*pmf_data*/)
+  pele::physics::PMF::PmfData::DataContainer const* /*pmf_data*/)
 {
   AMREX_D_TERM(s_ext[Xvel] = 0.;, s_ext[Yvel] = 0.;, s_ext[Zvel] = 0.;);
 

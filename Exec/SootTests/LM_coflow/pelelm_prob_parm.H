@@ -8,7 +8,9 @@ using namespace amrex::literals;
 
 struct ProbParm
 {
+#ifdef SOOT_MODEL
   amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> soot_vals;
+#endif
   amrex::Real init_vel = 0.;
   amrex::Real P_mean = 101325.0;
   amrex::Real T_ref = 300.;
@@ -22,14 +24,13 @@ struct ProbParm
   amrex::Real oxid_vel = 0.309;
   amrex::Real ext_vel = 0.;
   amrex::Real vel_time = 0.;
-  amrex::Real vel_smooth = 0.008;
   amrex::Real ign_Y = 0.;
-  amrex::Real ign_Y_start = 0.;
   // Whether to use a developed velocity profile or flat
   int oxid_flat = 1;
   int fuel_flat = 1;
   int fuel_indx = -1;
   int ign_indx = -1;
+  int norm_dir = 1;
 
   // These are for the hot spot used to ignite the mixture
   amrex::Real hot_spot_center = -1.;

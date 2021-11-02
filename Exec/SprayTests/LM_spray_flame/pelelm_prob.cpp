@@ -1,6 +1,6 @@
 #include <PeleLM.H>
 #include <pelelm_prob.H>
-#include <pmf.H>
+#include <PMF.H>
 
 extern "C" {
 void
@@ -26,8 +26,6 @@ amrex_probinit(
   pp.get("part_temp", PeleLM::prob_parm->part_temp);
   pp.query("mass_flow_rate", PeleLM::prob_parm->mass_flow_rate);
   pp.get("spray_angle_deg", PeleLM::prob_parm->spray_angle);
-  int jets_per_dir = 0;
-  pp.get("jets_per_dir", jets_per_dir);
   std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
   in_Y_jet[0] = 1.;
   pp.queryarr("jet_mass_fracs", in_Y_jet);

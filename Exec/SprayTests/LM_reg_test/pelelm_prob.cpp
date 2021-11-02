@@ -22,8 +22,9 @@ amrex_probinit(
   pp.query("num_particles", PeleLM::prob_parm->partNum);
   std::array<amrex::Real, AMREX_SPACEDIM> pvel;
   pp.query<amrex::Real>("part_vel", pvel);
-  for (int dir = 0; dir != AMREX_SPACEDIM; ++dir)
+  for (int dir = 0; dir != AMREX_SPACEDIM; ++dir) {
     PeleLM::prob_parm->partVel[dir] = pvel[dir];
+  }
   pp.get("part_dia", PeleLM::prob_parm->partDia);
   pp.get("part_temp", PeleLM::prob_parm->partTemp);
 }

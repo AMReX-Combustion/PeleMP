@@ -49,15 +49,14 @@ prob.P_mean = 6079500.
 prob.part_temp = 363.
 # Log-normal distribution of particle diameters
 # Mean particle diameter
-prob.part_mean_dia = 2E-6
+prob.part_mean_dia = 2.E-6
 # Standard deviation of the particle diameter
 prob.part_stdev_dia = 0.
 # Jet properties
-prob.jet_dia = 4e-5
+prob.jet_dia = 4.E-5
 prob.spray_angle_deg = 21.
-prob.jets_per_dir = 1
 prob.jet_start_time = 0.
-prob.jet_end_time = .5E-3
+prob.jet_end_time = 0.5E-3
 prob.jet_vel = 30.
 prob.jet_dx_mod = 42.
 prob.mass_flow_rate = 2.0349e-5
@@ -114,11 +113,11 @@ ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
 peleLM.chem_integrator = "ReactorCvode"
-#peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
-#peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
-#peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance
-cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
-ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
+peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
+cvode.solve_type = GMRES              # CVODE Linear solve type (for Newton direction) 
+ode.analytical_jacobian = 0           # Provide analytical jacobian (from Fuego) ?
+ode.atol = 1.E-8
+ode.rtol = 1.E-6
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?

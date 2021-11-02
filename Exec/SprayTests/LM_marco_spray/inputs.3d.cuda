@@ -1,139 +1,143 @@
 #----------------------DOMAIN DEFINITION------------------------
-geometry.is_periodic = 1 0 1              # For each dir, 0: non-perio, 1: periodic
+geometry.is_periodic = 0 0 0              # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo     = 0.0 0.0 0.0        # x_lo y_lo (z_lo)
-geometry.prob_hi     = 0.012 0.012 0.012  # x_hi y_hi (z_hi)
+geometry.prob_lo   = 0.0 0.0 0.
+geometry.prob_hi   =   .00256  0.00256 0.01024
 
+#amr.restart = chk00700
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
-peleLM.lo_bc = Interior NoSlipWallAdiab Interior
-peleLM.hi_bc = Interior Outflow Interior
+peleLM.lo_bc = SlipWallAdiab  SlipWallAdiab Inflow
+peleLM.hi_bc = SlipWallAdiab  SlipWallAdiab Outflow
 
 #-------------------------AMR CONTROL----------------------------
-amr.n_cell          = 32 32 32         # Level 0 number of cells in each direction   
+amr.n_cell         = 64 64 256        # Level 0 number of cells in each direction
+#amr.n_cell          = 128 128 512
 amr.v               = 1                # AMR verbose
-amr.max_level       = 0                # maximum level number allowed
+amr.max_level       = 2                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
-amr.regrid_int      = 2                # how often to regrid
+amr.regrid_int      = 8               # how often to regrid
 amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
-amr.blocking_factor = 16               # block factor in grid generation (min box size)
-amr.max_grid_size   = 64               # max box size
+amr.blocking_factor = 32               # block factor in grid generation (min box size)
+amr.max_grid_size   = 128               # max box size
 
-#----------------------TIME STEPPING CONTROL----------------------
-max_step            = 5               # maximum number of time steps    
-stop_time           = 0.04             # final physical time
-ns.cfl              = 0.3              # cfl number for hyperbolic system
-ns.init_shrink      = 1.              # scale back initial timestep
+#----------------------TIME STEPING CONTROL----------------------
+max_step            = 1000          # maximum number of time steps    
+stop_time           = .5e-1            # final physical time
+ns.cfl              = 0.1            # cfl number for hyperbolic system
+ns.init_dt          = 5.e-6
+ns.init_shrink      = 1.            # scale back initial timestep
 ns.change_max       = 1.1              # max timestep size increase
-ns.dt_cutoff        = 5.e-10           # level 0 timestep below which we halt
-ns.init_dt          = 1.E-6
+ns.dt_cutoff        = 1.e-12           # level 0 timestep below which we halt
 
 #-------------------------IO CONTROL----------------------------
-amr.checkpoint_files_output = 0
+amr.checkpoint_files_output = 1
 amr.check_file          = chk          # root name of checkpoint file
-amr.check_int           = 250          # number of timesteps between checkpoints
+amr.check_int           = 250         # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
-amr.plot_int            = 10           # number of timesteps between plot files
+amr.plot_per = 1.E-4
+#amr.plot_int            = -1         # number of timesteps between plot files
+#amr.derive_plot_vars    = rhoRT mag_vort avg_pressure gradpx gradpy sumRhoYdot mass_fractions molweight rhominsumrhoY cc_transport_coeffs cpmix mixfrac_only enthalpy
+amr.derive_plot_vars    = mag_vort sumRhoYdot mass_fractions enthalpy
 #amr.grid_log            = grdlog       # name of grid logging file
 
 #----------------------- PROBLEM PARAMETERS---------------------
-prob.P_mean = 2.93E6
-prob.ref_T = 440.
-prob.init_N2 = 1.
-prob.init_O2 = 0.
+prob.P_mean = 6079500. # or 60 bar
 # Properties of injected particles
 prob.part_temp = 363.
 # Log-normal distribution of particle diameters
 # Mean particle diameter
-prob.part_mean_dia = 4.5E-6
+prob.part_mean_dia = 5E-6
 # Standard deviation of the particle diameter
 prob.part_stdev_dia = 0.
 # Jet properties
-prob.jet_dia = 9.E-5
+prob.gas_jet_dia = 2.82E-5
+prob.jet_dia = 4e-5
 prob.spray_angle_deg = 21.
-prob.jets_per_dir = 2 1 2
+prob.jets_per_dir = 1
 prob.jet_start_time = 0.
-prob.jet_end_time = 2.
-prob.jet_vel = 60.
+prob.jet_end_time = .5E-3
+prob.jet_vel = 30.
 prob.jet_dx_mod = 42.
-prob.mass_flow_rate = 2.3E-5
+#prob.mass_flow_rate = 2.0349e-5
+prob.mass_flow_rate = 1.0174e-7
+#prob.jet_end_time = 0.00052
 
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.init_function = 1 # Sprays are initialized using SprayParticleInitInsert.cpp
-particles.write_spray_ascii_files = 0
-particles.parcel_size = 1. # Number of particles per parcel
-particles.fuel_species = NC10H22
+particles.particle_init_function = 1 # Sprays are initialized using SprayParticleInitInsert.cpp
+#particles.write_spray_ascii_files = 1
+particles.parcel_size = 5. # Number of particles per parcel
+particles.fuel_species = NC12H26
 # Properties for liquid decane
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
+particles.fuel_crit_temp = 658.2 # K (at Pc = 1.8170 MPa)
+particles.fuel_boil_temp = 489. # K (at atmospheric conditions)
 particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E5
-particles.fuel_cp = 2.1921E3 # Cp at 298
-particles.fuel_rho = 640.
-# Coefficients for saturation pressure using Antoine equation
-# These are from the NIST website
-# Last coefficient converts units, in this case bar, to Pa
-particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
-
+particles.fuel_latent = 3.0299E5
+particles.fuel_cp = 2.207E3 # Cp at 298
+#particles.fuel_latent = 3.0294e9
+particles.fuel_rho = 669.43
 particles.use_splash_model = false
-
+particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
+#
 #--------------------REFINEMENT CONTROL------------------------
-
-# Refinement according to temperature and gradient of temperature
-amr.refinement_indicators = gradT
-
-amr.gradT.max_level = 0
-amr.gradT.adjacent_difference_greater = 20.
+amr.refinement_indicators = gradT magvort
+amr.gradT.max_level = 3
+amr.gradT.adjacent_difference_greater = 10.
 amr.gradT.field_name = temp
 
-# Refinement according to the vorticity, no field_name needed
-#amr.refinement_indicators = magvort
-#amr.magvort.max_level = 3
-#amr.magvort.vorticity_greater = 300
+amr.magvort.max_level = 2
+amr.magvort.vorticity_greater = 1e4
 
 #---------------------PHYSICS CONTROL------------------------
-ns.fuelName          = NC10H22         # Fuel species name
+ns.fuelName          = NC12H26         # Fuel species name
 ns.unity_Le          = 0               # Use unity Le number transport ?
-ns.hack_nochem       = 1               # Bypass chemistry ? 0: no, 1: yes
+ns.hack_nochem       = 0               # Bypass chemistry ? 0: no, 1: yes
 ns.gravity           = 0               # body force  (gravity in MKS units)
-ns.use_wbar          = 0
+ns.htt_tempmax       = 19000.
+peleLM.mixtureFraction.format = Cantera
+peleLM.mixtureFraction.type   = mole
+peleLM.mixtureFraction.oxidTank = O2:0.21 N2:0.79
+peleLM.mixtureFraction.fuelTank = NC12H26:1.
 
 #--------------------NUMERICS CONTROL------------------------
-ns.init_iter         = 0               # Number of initial iterations to def pressure
+ns.init_iter         = 3               # Number of initial iterations to def pressure
 ns.num_divu_iters    = 1               # Number of DivU iteration at initialization
-ns.sdc_iterMAX       = 1               # Number of SDC iterations
+ns.sdc_iterMAX       = 2               # Number of SDC iterations
 ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
-peleLM.chem_integrator = "ReactorNull"
-#peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
-#ode.atol = 1.E-8
-#ode.rtol = 1.E-6
-cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction)
+#cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
+ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
+cvode.solve_type = GMRES
+cvode.max_order = 4
+peleLM.chem_integrator = "ReactorCvode"
+peleLM.use_typ_vals_chem = 1
+ode.atol = 1.E-8
+ode.rtol = 1.E-6
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?
 active_control.use_temp = 1            # Default in fuel mass, rather use iso-T position ?
-active_control.temperature = 1300.0    # Value of iso-T ?
-active_control.tau = 1.0e-4            # Control tau (should ~ 10 dt)
-active_control.height = 0.0070         # Where is the flame held ? Default assumes coordinate along Y in 2D or Z in 3D.
+active_control.temperature = 800.0    # Value of iso-T ?
+active_control.tau = 1.0e-7            # Control tau (should ~ 10 dt)
+active_control.height = 1.000         # Where is the flame held ? Default assumes coordinate along Y in 2D or Z in 3D.
 active_control.v = 1                   # verbose
-active_control.velMax = 1.5            # Optional: limit inlet velocity
+active_control.velMax = 50.            # Optional: limit inlet velocity
 active_control.changeMax = 0.2         # Optional: limit inlet velocity changes (absolute)
-active_control.flameDir  = 1           # Optional: flame main direction. Default: AMREX_SPACEDIM-1
+active_control.flameDir  = 2           # Optional: flame main direction. Default: AMREX_SPACEDIM-1
 
 # ---------------------------------------------------------------
 # ------------------  ADVANCED USER INPUTS ----------------------
 # ---------------------------------------------------------------
 
 #----------------  ADV ALGORITHM CONTROL  -------------------
-ns.sum_interval      = 5               # timesteps between computing mass
+ns.sum_interval      = 1               # timesteps between computing mass
 ns.do_reflux         = 1               # 1 => do refluxing
 ns.do_mac_proj       = 1               # 1 => do MAC projection
 ns.do_sync_proj      = 1               # 1 => do Sync Project
@@ -143,7 +147,7 @@ ns.do_temp           = 1
 ns.do_diffuse_sync   = 1
 ns.do_reflux_visc    = 1
 ns.zeroBndryVisc     = 1
-#ns.v                 = 0
+ns.v                 = 0
 
 # 
 ns.divu_ceiling         = 1
@@ -184,3 +188,8 @@ amrex.regtest_reduction=1
 amrex.fpe_trap_invalid = 1
 amrex.fpe_trap_zero = 1
 amrex.fpe_trap_overflow = 1
+
+#ns.fixed_dt         = 1e-7
+
+#amr.restart         = chk03045
+amr.regrid_on_restart = 1
