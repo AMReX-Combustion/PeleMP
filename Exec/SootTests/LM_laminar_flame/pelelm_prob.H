@@ -39,7 +39,7 @@ pelelm_initdata(
   amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
   amrex::Real x1 = (x - prob_parm.standoff - 0.5 * dx[0]) * 100.;
   amrex::Real x2 = (x - prob_parm.standoff + 0.5 * dx[0]) * 100.;
-  PMF::pmf(pmf_data, x1, x2, pmf_vals);
+  pele::physics::PMF::pmf(pmf_data, x1, x2, pmf_vals);
   state(i, j, k, DEF_Temp) = pmf_vals[1];
   amrex::Real norm = 0.;
   for (int n = 0; n < NUM_SPECIES; n++) {
@@ -88,7 +88,7 @@ bcnormal(
   amrex::GpuArray<amrex::Real, NUM_SPECIES + 4> pmf_vals = {{0.0}};
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   if (sgn == 1) {
-    PMF::pmf(pmf_data, prob_lo[idir], prob_lo[idir], pmf_vals);
+    pele::physics::PMF::pmf(pmf_data, prob_lo[idir], prob_lo[idir], pmf_vals);
 
     if (!ac_parm.ctrl_active || time <= 0.0) {
       AMREX_D_TERM(s_ext[Xvel] = pmf_vals[0] * 1.E-2;, s_ext[Yvel] = 0.0;
