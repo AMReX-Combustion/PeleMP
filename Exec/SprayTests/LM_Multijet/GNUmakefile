@@ -20,9 +20,6 @@ Chemistry_Model := decane_3sp
 # This sets the EOS directory in $(PELE_PHYSICS_HOME)/Eos
 Eos_Model     := Fuego
 
-# This sets the network directory in $(PELE_PHYSICS_HOME)/Reactions
-Reactor_dir := cvode
-
 # This sets the transport directory in $(PELE_PHYSICS_HOME)/Transport
 Transport_Model := Simple
 

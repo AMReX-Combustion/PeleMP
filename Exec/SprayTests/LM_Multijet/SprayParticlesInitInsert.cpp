@@ -68,18 +68,21 @@ SprayParticleContainer::injectParticles(
   int finest_level,
   ProbParm const& prob_parm)
 {
-  if (lev != 0)
+  if (lev != 0) {
     return false;
-  if (time < prob_parm.jet_start_time || time > prob_parm.jet_end_time)
+  }
+  if (time < prob_parm.jet_start_time || time > prob_parm.jet_end_time) {
     return false;
+  }
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateY = m_sprayIndx.pstateY;
   const SprayData* fdat = m_sprayData;
   Real rho_part = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
     rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];
+  }
   rho_part = 1. / rho_part;
   // Number of particles per parcel
   const Real num_ppp = m_parcelSize;
@@ -87,6 +90,26 @@ SprayParticleContainer::injectParticles(
   const auto plo = geom.ProbLoArray();
   const auto phi = geom.ProbHiArray();
   const auto dx = geom.CellSize();
+  amrex::Vector<amrex::RealVect> jet_cents(prob_parm.num_jets);
+  amrex::Real div_lenx =
+    (phi[0] - plo[0]) / (amrex::Real(prob_parm.jets_per_dir[0]));
+  int jetz = 1;
+  amrex::Real div_lenz = 0.;
+#if AMREX_SPACEDIM == 3
+  div_lenz = (phi[2] - plo[2]) / (amrex::Real(prob_parm.jets_per_dir[2]));
+  jetz = prob_parm.jets_per_dir[2];
+#endif
+  amrex::Real yloc = plo[1];
+  int jindx = 0;
+  for (int i = 0; i < prob_parm.jets_per_dir[0]; ++i) {
+    amrex::Real xloc = div_lenx * (amrex::Real(i) + 0.5);
+    for (int k = 0; k < jetz; ++k) {
+      amrex::Real zloc = div_lenz * (amrex::Real(k) + 0.5);
+      jet_cents[jindx] =
+        amrex::RealVect(AMREX_D_DECL(xloc, yloc, zloc));
+      jindx++;
+    }
+  }
   RealVect dom_len(
     AMREX_D_DECL(geom.ProbLength(0), geom.ProbLength(1), geom.ProbLength(2)));
   Real mass_flow_rate = prob_parm.mass_flow_rate;
@@ -103,7 +126,7 @@ SprayParticleContainer::injectParticles(
   Real part_temp = prob_parm.part_temp;
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
-  if (jet_vel * dt / dx[0] > 0.5) {
+  if (std::abs(jet_vel * dt / dx[0] - 0.5) > 1.E-5) {
     Real max_vel = dx[0] * 0.5 / dt;
     if (ParallelDescriptor::IOProcessor()) {
       std::string warn_msg =
@@ -136,7 +159,7 @@ SprayParticleContainer::injectParticles(
 #endif
       // Loop over all jets
       for (int jindx = 0; jindx < prob_parm.num_jets; ++jindx) {
-        RealVect cur_jet_cent = prob_parm.jet_cents[jindx];
+        RealVect cur_jet_cent = jet_cents[jindx];
         RealVect xlo;
         RealVect xhi;
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {

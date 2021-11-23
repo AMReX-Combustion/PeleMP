@@ -24,6 +24,7 @@ pelec.diffuse_spec = 1
 pelec.do_react = 0
 pelec.do_grav = 0
 pelec.allow_negative_energy = 1
+pelec.chem_integrator = "ReactorNull"
 
 # TIME STEP CONTROL
 pelec.cfl            = 0.8    # cfl number for hyperbolic system

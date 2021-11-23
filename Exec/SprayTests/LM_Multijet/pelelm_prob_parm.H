@@ -24,8 +24,8 @@ struct ProbParm
   amrex::Real spray_angle = 20.;
   amrex::Real jet_dx_mod = 50.;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};
+  amrex::GpuArray<int, AMREX_SPACEDIM> jets_per_dir = {{0}};
   unsigned int num_jets = 0;
-  amrex::Real* jet_cents;
 };
 
 #endif

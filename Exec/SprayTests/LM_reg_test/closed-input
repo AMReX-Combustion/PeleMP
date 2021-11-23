@@ -22,18 +22,11 @@ amr.regrid_int      = 2                # how often to regrid
 # Box size: 32
 amr.blocking_factor = 32               # block factor in grid generation (min box size)
 amr.max_grid_size   = 32               # max box size
-# Ref ratio: 4
-amr.ref_ratio       = 4 4              # refinement ratio
-amr.initial_grid_file = two_d_gridfiles/ref4/gridfile_32
-amr.regrid_file     = two_d_gridfiles/ref4/gridfile_32_2
-# Refinement ratios of 4 with sprays have shown instabilities
-# It is recommended to lower the linear operation order to help with this
-mac_proj.maxorder   = 3
 
 # Ref ratio: 2
-# amr.ref_ratio       = 2 2              # refinement ratio
-# amr.initial_grid_file = two_d_gridfiles/ref2/gridfile_32
-# amr.regrid_file     = two_d_gridfiles/ref2/gridfile_32_2
+amr.ref_ratio       = 2 2              # refinement ratio
+amr.initial_grid_file = two_d_gridfiles/ref2/gridfile_32
+amr.regrid_file     = two_d_gridfiles/ref2/gridfile_32_2
 
 # Box size: 64
 # amr.blocking_factor = 64               # block factor in grid generation (min box size)
@@ -43,12 +36,6 @@ mac_proj.maxorder   = 3
 # amr.ref_ratio       = 2 2              # refinement ratio
 # amr.initial_grid_file = two_d_gridfiles/ref2/gridfile_64
 # amr.regrid_file     = two_d_gridfiles/ref2/gridfile_64_2
-
-# Ref ratio: 4
-# amr.ref_ratio       = 4 4              # refinement ratio
-# amr.initial_grid_file = two_d_gridfiles/ref4/gridfile_64
-# amr.regrid_file     = two_d_gridfiles/ref4/gridfile_64_2
-# mac_proj.maxorder   = 3
 
 #----------------------TIME STEPPING CONTROL----------------------
 max_step            = 10               # maximum number of time steps
@@ -157,23 +144,22 @@ diffuse.tensor_max_order = 4
 diffuse.v                = 0
 
 # ------------------  INPUTS TO PROJECTION CLASS -------------------
-proj.proj_tol            = 1.0e-12     # tolerence for projections
-proj.proj_abs_tol        = 1.0e-12 
-proj.sync_tol            = 1.0e-12     # tolerence for projections
-proj.rho_wgt_vel_proj    = 0           # 0 => const den proj, 1 => rho weighted
-proj.do_outflow_bcs      = 0
-proj.divu_minus_s_factor = .5
-proj.divu_minus_s_factor = 0.
-proj.proj_2              = 1
-nodal_proj.verbose       = 0
-proj.v                   = 0
+nodal_proj.proj_tol            = 1.0e-12     # tolerence for projections
+nodal_proj.proj_abs_tol        = 1.0e-12 
+nodal_proj.sync_tol            = 1.0e-12     # tolerence for projections
+nodal_proj.rho_wgt_vel_proj    = 0           # 0 => const den proj, 1 => rho weighted
+nodal_proj.do_outflow_bcs      = 0
+nodal_proj.divu_minus_s_factor = .5
+nodal_proj.divu_minus_s_factor = 0.
+nodal_proj.proj_2              = 1
+nodal_proj.verbose             = 0
 
 # ------------------  INPUTS TO MACPROJ CLASS -------------------
-mac.mac_tol              = 1.0e-12     # tolerence for mac projections
-mac.mac_sync_tol         = 1.0e-12     # tolerence for mac SYNC projection
-mac.mac_abs_tol          = 1.0e-12
-mac.do_outflow_bcs       = 0
-mac.v                    = 0
+mac_proj.mac_tol              = 1.0e-12     # tolerence for mac projections
+mac_proj.mac_sync_tol         = 1.0e-12     # tolerence for mac SYNC projection
+mac_proj.mac_abs_tol          = 1.0e-12
+mac_proj.do_outflow_bcs       = 0
+mac_proj.verbose              = 0
 
 #--------------------------OMP TILE INPUTS-----------------------------
 #fabarray.mfiter_tile_size = 8 8 8

@@ -42,7 +42,7 @@ amrex_probinit(
   // Convert to radians
   PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
   // Total number of jets
-  unsigned int total_jets = AMREX_DTERM(jets_per_dir[0], , *jets_per_dir[2]);
+  unsigned int total_jets = AMREX_D_TERM(jets_per_dir[0], , *jets_per_dir[2]);
   PeleC::prob_parm_host->num_jets = total_jets;
   PeleC::prob_parm_host->jet_cents.resize(total_jets);
   amrex::Real div_lenx =

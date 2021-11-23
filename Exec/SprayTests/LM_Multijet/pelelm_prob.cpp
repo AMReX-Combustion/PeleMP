@@ -30,6 +30,9 @@ amrex_probinit(
   pp.get("spray_angle_deg", PeleLM::prob_parm->spray_angle);
   std::vector<int> jets_per_dir(AMREX_SPACEDIM);
   pp.getarr("jets_per_dir", jets_per_dir);
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    PeleLM::prob_parm->jets_per_dir[dir] = jets_per_dir[dir];
+  }
   std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
   in_Y_jet[0] = 1.;
   pp.queryarr("jet_mass_fracs", in_Y_jet);
@@ -46,25 +49,5 @@ amrex_probinit(
   // Total number of jets
   unsigned int total_jets = AMREX_D_TERM(jets_per_dir[0], *1, *jets_per_dir[2]);
   PeleLM::prob_parm->num_jets = total_jets;
-  PeleLM::prob_parm->jet_cents.resize(total_jets);
-  amrex::Real div_lenx =
-    (probhi[0] - problo[0]) / (amrex::Real(jets_per_dir[0]));
-  int jetz = 1;
-  amrex::Real div_lenz = 0.;
-#if AMREX_SPACEDIM == 3
-  div_lenz = (probhi[2] - problo[2]) / (amrex::Real(jets_per_dir[2]));
-  jetz = jets_per_dir[2];
-#endif
-  amrex::Real yloc = problo[1];
-  int jindx = 0;
-  for (int i = 0; i < jets_per_dir[0]; ++i) {
-    amrex::Real xloc = div_lenx * (amrex::Real(i) + 0.5);
-    for (int k = 0; k < jetz; ++k) {
-      amrex::Real zloc = div_lenz * (amrex::Real(k) + 0.5);
-      PeleLM::prob_parm->jet_cents[jindx] =
-        amrex::RealVect(AMREX_D_DECL(xloc, yloc, zloc));
-      jindx++;
-    }
-  }
 }
 }

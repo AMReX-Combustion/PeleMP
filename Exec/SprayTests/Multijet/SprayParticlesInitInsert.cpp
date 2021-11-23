@@ -256,7 +256,7 @@ SprayParticleContainer::InitSprayParticles(
   ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
 {
   // This ensures the initial time step size stays reasonable
-  m_injectVel = jet_vel;
+  m_injectVel = prob_parm.jet_vel;
   // Start without any particles
   return;
 }

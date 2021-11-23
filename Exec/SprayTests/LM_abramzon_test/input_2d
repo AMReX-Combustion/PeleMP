@@ -1,6 +1,6 @@
 #----------------------------TOP LEVEL INPUTS----------------------
 max_step = 1000000
-stop_time = 0.01
+stop_time = 0.008
 
 # ----------------  PROBLEM DEPENDENT INPUTS
 geometry.is_periodic = 1 0 1
@@ -50,7 +50,7 @@ amr.check_int       = 10000       # number of timesteps between checkpoints
 
 amr.plot_file = plt
 amr.plot_per = 1.6E-4
-amr.derive_plot_vars= avg_pressure mass_fractions
+amr.derive_plot_vars= mass_fractions
 
 # ------------------  INPUTS TO PHYSICS CLASS -------------------
 ns.dt_cutoff       = 5.e-10   # level 0 timestep below which we halt
@@ -119,30 +119,29 @@ diffuse.tensor_max_order = 4
 diffuse.v = 0
 
 # ------------------  INPUTS TO PROJECTION CLASS -------------------
-proj.proj_tol       = 1.0e-12  # tolerence for projections
-proj.proj_abs_tol   = 1.0e-12
-proj.sync_tol       = 1.0e-12  # tolerence for projections
-proj.rho_wgt_vel_proj = 0      # 0 => const den proj, 1 => rho weighted
+nodal_proj.proj_tol       = 1.0e-12  # tolerence for projections
+nodal_proj.proj_abs_tol   = 1.0e-12
+nodal_proj.sync_tol       = 1.0e-12  # tolerence for projections
+nodal_proj.rho_wgt_vel_proj = 0      # 0 => const den proj, 1 => rho weighted
 nodal_proj.verbose          = 0
-proj.filter_factor  = 0.0
-proj.do_outflow_bcs = 0
-proj.divu_minus_s_factor = .5
-proj.divu_minus_s_factor = 0.
-proj.proj_2 = 1
+nodal_proj.filter_factor    = 0.0
+nodal_proj.do_outflow_bcs   = 0
+nodal_proj.divu_minus_s_factor = .5
+nodal_proj.divu_minus_s_factor = 0.
+nodal_proj.proj_2 = 1
 
 # ------------------  INPUTS TO MACPROJ CLASS -------------------
-mac.mac_tol        = 1.0e-12  # tolerence for mac projections
-mac.mac_sync_tol   = 1.0e-12  # tolerence for mac SYNC projection
-mac.mac_abs_tol    = 1.0e-12
-mac.do_outflow_bcs = 0
+mac_proj.mac_tol        = 1.0e-12  # tolerence for mac projections
+mac_proj.mac_sync_tol   = 1.0e-12  # tolerence for mac SYNC projection
+mac_proj.mac_abs_tol    = 1.0e-12
+mac_proj.do_outflow_bcs = 0
 
 #--------------------------MISC/UNSORTED INPUTS-----------------------------
 
 ns.htt_tempmin=1.0
 ns.htt_tempmax=2.5
-#ns.v = 0
-mac.v = 0
-proj.v = 0
+ns.v = 0
+mac_proj.verbose = 0
 #ns.do_group_bndry_fills = 1
 
 #
