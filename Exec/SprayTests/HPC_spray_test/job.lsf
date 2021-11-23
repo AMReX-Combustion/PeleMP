@@ -1,0 +1,28 @@
+#!/bin/bash -l
+
+# Notes: PeleC Perlmutter weak scaling study
+#SBATCH -J spray_pelec_weak_scaling
+#SBATCH -o %x.o%j
+#SBATCH -t 0:10:00
+#SBATCH -q early_science
+#SBATCH --ntasks=1024
+#SBATCH --ntasks-per-node=4
+#SBATCH --gpus-per-task=1
+#SBATCH -c 32
+###SBATCH --gpu-bind=map_gpu:0,1,2,3
+###SBATCH --mail-user=ldowen@sandia.gov
+###SBATCH --mail-type=END
+#SBATCH -C gpu
+
+set -e
+
+cmd() {
+  echo "+ $@"
+  eval "$@"
+}
+export SLURM_CPU_BIND="cores"
+
+EXEC=./PeleC3d.gnu.TPROF.MPI.CUDA.ex
+INPUT_FILE=node-input
+
+srun $EXEC $INPUT_FILE

@@ -44,6 +44,7 @@ SprayParticleContainer::InitSprayParticles(
   const int lev = 0;
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
+  const auto strttime = amrex::second();
   int NRedist = prob_parm.numRedist; // Number of times to redistribute
   // TODO: This might be overkill but issues persisted at high Summit node
   // counts
@@ -215,5 +216,11 @@ SprayParticleContainer::InitSprayParticles(
     }
     Redistribute();
   } // for (int which ...
+  if (m_verbose) {
+    ByteSpread();
+    auto runtime = amrex::second() - strttime;
+    ParallelDescriptor::ReduceRealMax(runtime, ParallelDescriptor::IOProcessorNumber());
+    amrex::Print() << "InitSprayParticles() time: " << runtime << '\n';
+  }
   Gpu::streamSynchronize();
 }
