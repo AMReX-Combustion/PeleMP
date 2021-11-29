@@ -49,15 +49,13 @@ amrex_probinit(
     wbar);
   amrex::Real refL = PeleC::h_prob_parm_device->L;
   PeleC::h_prob_parm_device->v0 = PeleC::h_prob_parm_device->mach * cs;
-  pele::physics::transport::TransParm const* ltransparm =
-    pele::physics::transport::trans_parm_g;
   amrex::Real rho, mu, xi, lambda;
   amrex::Real Ddiag[NUM_SPECIES]; // Should be unused
   auto trans = pele::physics::PhysicsType::transport();
   trans.transport(
     get_xi, get_mu, get_lambda, get_Ddiag, PeleC::h_prob_parm_device->T0,
     rho, // Should be unused
-    massfrac, Ddiag, mu, xi, lambda, pele::physics::transport::trans_parm_g);
+    massfrac, Ddiag, mu, xi, lambda, &(PeleC::trans_parms.host_trans_parm()));
   // Compute the density from the Reynolds number
   PeleC::h_prob_parm_device->rho0 = PeleC::h_prob_parm_device->reynolds * mu /
                                     (refL * PeleC::h_prob_parm_device->v0);
