@@ -6,7 +6,7 @@
 
 using namespace amrex::literals;
 
-struct ProbParm : amrex::Gpu::Managed
+struct ProbParm
 {
   amrex::Real equil_start_time = 0.;
   amrex::Real equil_end_time = 0.;
