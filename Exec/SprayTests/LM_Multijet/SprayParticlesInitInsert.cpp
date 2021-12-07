@@ -126,7 +126,7 @@ SprayParticleContainer::injectParticles(
   Real part_temp = prob_parm.part_temp;
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
-  if (std::abs(jet_vel * dt / dx[0] - 0.5) > 1.E-5) {
+  if (jet_vel * dt / dx[0] > 0.5) {
     Real max_vel = dx[0] * 0.5 / dt;
     if (ParallelDescriptor::IOProcessor()) {
       std::string warn_msg =
