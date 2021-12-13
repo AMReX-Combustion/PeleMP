@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 1
+max_step = 100000
 stop_time = 0.022
 
 # PROBLEM SIZE & GEOMETRY
@@ -10,13 +10,13 @@ geometry.prob_lo     = 0. 0. 0.
 # amr.n_cell           = 256 8 8
 geometry.prob_hi     = 4. 0.25 0.25
 amr.n_cell           = 128 8 8
-# prob.pmf_datafile = "datafile_init/mueller_burner.dat"
-# prob.pamb = 1.E6
+prob.pmf_datafile = "datafile_init/mueller_burner.dat"
+prob.pamb = 1.E6
 
 # geometry.prob_hi      = 8. 0.25 0.25
 # amr.n_cell            = 256 8 8
-prob.pmf_datafile = "datafile_init/50_bar_burner.dat"
-prob.pamb = 50.E6
+# prob.pmf_datafile = "datafile_init/50_bar_burner.dat"
+# prob.pamb = 50.E6
 
 #prob.pmf_datafile = "datafile_init/burner_profile.dat"
 
@@ -53,8 +53,8 @@ amr.v                = 1       # verbosity in Amr.cpp
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
-amr.max_grid_size   = 32
+amr.blocking_factor = 8       # block factor in grid generation
+amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
@@ -64,13 +64,14 @@ amr.check_int       = 1000
 
 # PLOTFILES
 amr.plot_file       = plt # root name of plotfile
-amr.plot_int = 1
-#amr.plot_per        = 8.E-5
+#amr.plot_int = 1
+amr.plot_per        = 1.E-4
 
 # SOOT MODELING
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
 soot.max_dt_rate = 0.01
+soot.max_subcycles = 1
 soot.num_subcycles = 1
 soot.temp_cutoff = 350.
 soot.conserve_mass = false
