@@ -48,7 +48,7 @@ amr.derive_plot_vars    = rhoRT mag_vort mass_fractions mole_fractions enthalpy 
 #prob.P_mean = 1.E5
 prob.P_mean = 98700.
 prob.standoff = 0.0
-pmf.datafile = "datafile_init/burner_profile.dat"
+pmf.datafile = "datafile_init/mueller_burner.dat"
 
 #--------------------SOOT MODELING------------------------
 peleLM.do_soot_solve = 1
@@ -85,8 +85,8 @@ ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1           # Use species/temp typical values in CVODE
 ns.reset_typical_vals_int = 8
-#cvode.solve_type = GMRES
-cvode.solve_type = denseAJ_direct      # CVODE Linear solve type (for Newton direction)
+cvode.solve_type = GMRES
+#cvode.solve_type = denseAJ_direct      # CVODE Linear solve type (for Newton direction)
 ode.atol = 1.E-5
 #ode.atol = 1.E-2
 

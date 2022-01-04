@@ -1,65 +1,66 @@
 
-#include <SprayParticles.H>
-#include <AMReX_Particles.H>
+#include "SprayParticles.H"
+#ifdef SPRAY_PELE_LM
+#include <pelelm_prob.H>
+#else
 #include <PeleC.H>
 #include "prob.H"
-
+#endif
 using namespace amrex;
 
 IntVect
-unflatten_particles(const int idx, const IntVect& max_parts)
+unflatten_particles(const ULong idx, const IntVect& max_parts)
 {
   IntVect indx;
-  int cidx = idx;
+  ULong cidx = idx;
+  ULong d1 = max_parts[0];
+  ULong d2 = max_parts[1];
 #if AMREX_SPACEDIM > 1
 #if AMREX_SPACEDIM > 2
-  indx[2] = cidx / (max_parts[0] * max_parts[1]);
-  cidx -= indx[2] * max_parts[0] * max_parts[1];
+  indx[2] = int(cidx / (d1 * d2));
+  cidx -= ULong(indx[2]) * d1 * d2;
 #endif
-  indx[1] = cidx / max_parts[0];
+  indx[1] = int(cidx / d1);
 #endif
-  indx[0] = cidx % max_parts[0];
+  indx[0] = int(cidx % d1);
   return indx;
 }
 
 bool
 SprayParticleContainer::injectParticles(
-  Real time,
-  Real dt,
-  int nstep,
-  int lev,
-  int finest_level,
-  ProbParmHost const& prob_parm,
-  ProbParmDevice const& prob_parm_d)
+  Real /*time*/,
+  Real /*dt*/,
+  int /*nstep*/,
+  int /*lev*/,
+  int /*finest_level*/,
+  ProbParmHost const& /*prob_parm*/,
+  ProbParmDevice const& /*prob_parm_d*/)
 {
   return false;
 }
 
 void
 SprayParticleContainer::InitSprayParticles(
-  ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
+  ProbParmHost const& prob_parm, ProbParmDevice const& /*prob_parm_d*/)
 {
   const int lev = 0;
   const int MyProc = ParallelDescriptor::MyProc();
   const int NProcs = ParallelDescriptor::NProcs();
-  const int IOProc = ParallelDescriptor::IOProcessorNumber();
+  const ULong NProcsL = ULong(NProcs);
+  const auto strttime = amrex::second();
   int NRedist = prob_parm.numRedist; // Number of times to redistribute
   // TODO: This might be overkill but issues persisted at high Summit node
   // counts
   if (NRedist < 0) {
     NRedist = 1;
-    if (NProcs <= 512) {
+    if (NProcs <= 1024) {
       NRedist = 2;
-    } else if (NProcs <= 1024) {
-      NRedist = 4;
-    } else if (NProcs <= 2048) {
-      NRedist = 32;
     } else if (NProcs <= 4096) {
-      NRedist = 48;
+      NRedist = 4;
+    } else if (NProcs <= 8192) {
+      NRedist = 8;
     }
   }
-  const SprayData* fdat = m_sprayData;
-  Real part_rho = fdat->rho[0];
   Real part_dia = prob_parm.partDia;
   Real T_ref = prob_parm.partTemp;
   const int pstateVel = m_sprayIndx.pstateVel;
@@ -74,39 +75,42 @@ SprayParticleContainer::InitSprayParticles(
   }
   part_vals[pstateT] = T_ref;
   part_vals[pstateDia] = part_dia;
-  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
+  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp) {
     part_vals[pstateY + sp] = 0.;
+  }
   part_vals[pstateY] = 1.; // Only use the first fuel species
-  const auto dx = Geom(lev).CellSizeArray();
-  const auto plo = Geom(lev).ProbLoArray();
-  const auto phi = Geom(lev).ProbHiArray();
-  const Long total_part_num =
-    AMREX_D_TERM(num_part[0], *num_part[1], *num_part[2]);
-  const Box& boxDom = Geom(lev).Domain();
+  AMREX_D_TERM(ULong np0 = num_part[0];,
+               ULong np1 = num_part[1];,
+               ULong np2 = num_part[2];);
+  const ULong total_part_num =
+    AMREX_D_TERM(np0, *np1, *np2);
   const RealVect dx_part(AMREX_D_DECL(
-    (phi[0] - plo[0]) / Real(num_part[0]),
-    (phi[1] - plo[1]) / Real(num_part[1]),
-    (phi[2] - plo[2]) / Real(num_part[2])));
-  Long parts_pp = total_part_num / NProcs;
+    Geom(lev).ProbLength(0) / Real(num_part[0]),
+    Geom(lev).ProbLength(1) / Real(num_part[1]),
+    Geom(lev).ProbLength(2) / Real(num_part[2])));
+  ULong parts_pp = total_part_num / NProcsL;
   // Number of particles per processor to be initialized
-  Long cur_parts_pp = parts_pp;
+  ULong cur_parts_pp = parts_pp;
   // Give any remaining particles to the last processor
-  if (MyProc == NProcs - 1)
-    cur_parts_pp += (total_part_num % NProcs);
+  if (MyProc == NProcs - 1) {
+    cur_parts_pp += (total_part_num % NProcsL);
+  }
   // Starting particle for this processor
-  const Long first_part = MyProc * parts_pp;
+  const ULong first_part = ULong(MyProc) * parts_pp;
   Gpu::HostVector<ParticleType> nparticles;
   Vector<Gpu::HostVector<Real>> nreals;
-  if (NAR_SPR > 0)
+  if (NAR_SPR > 0) {
     nreals.resize(NAR_SPR);
-  for (int prc = 0; prc < cur_parts_pp; ++prc) {
-    Long cur_part = first_part + prc;
+  }
+  for (ULong prc = 0; prc < cur_parts_pp; ++prc) {
+    ULong cur_part = first_part + prc;
     IntVect indx = unflatten_particles(cur_part, num_part);
     ParticleType p;
     p.id() = ParticleType::NextID();
     p.cpu() = ParallelDescriptor::MyProc();
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       p.pos(dir) = (Real(indx[dir]) + 0.5) * dx_part[dir];
+    }
     for (int n = 0; n < NSR_SPR; ++n) {
       p.rdata(n) = part_vals[n];
     }
@@ -217,5 +221,11 @@ SprayParticleContainer::InitSprayParticles(
     }
     Redistribute();
   } // for (int which ...
+  if (m_verbose) {
+    ByteSpread();
+    auto runtime = amrex::second() - strttime;
+    ParallelDescriptor::ReduceRealMax(runtime, ParallelDescriptor::IOProcessorNumber());
+    amrex::Print() << "InitSprayParticles() time: " << runtime << '\n';
+  }
   Gpu::streamSynchronize();
 }

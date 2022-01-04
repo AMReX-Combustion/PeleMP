@@ -4,18 +4,18 @@
 #include <pelelm_prob.H>
 
 IntVect
-unflatten_particles(const Long idx, const IntVect& max_parts)
+unflatten_particles(const ULong idx, const IntVect& max_parts)
 {
   IntVect indx;
-  Long cidx = idx;
-#if AMREX_SPACEDIM > 1
+  ULong cidx = idx;
+  ULong d1 = max_parts[0];
+  ULong d2 = max_parts[1];
 #if AMREX_SPACEDIM > 2
-  indx[2] = cidx / (max_parts[0] * max_parts[1]);
-  cidx -= indx[2] * max_parts[0] * max_parts[1];
+  indx[2] = int(cidx / (d1 * d2));
+  cidx -= ULong(indx[2]) * d1 * d2;
 #endif
-  indx[1] = cidx / max_parts[0];
-#endif
-  indx[0] = cidx % max_parts[0];
+  indx[1] = int(cidx / d1);
+  indx[0] = int(cidx % d1);
   return indx;
 }
 
@@ -71,31 +71,30 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
   for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
     part_vals[pstateY + sp] = 0.;
   part_vals[pstateY] = 1.; // Only use the first fuel species
-  const auto dx = Geom(lev).CellSizeArray();
-  const auto plo = Geom(lev).ProbLoArray();
-  const auto phi = Geom(lev).ProbHiArray();
-  const Long total_part_num =
-    AMREX_D_TERM(num_part[0], *num_part[1], *num_part[2]);
-  const Box& boxDom = Geom(lev).Domain();
-
   const RealVect dx_part(AMREX_D_DECL(
-    (phi[0] - plo[0]) / Real(num_part[0]),
-    (phi[1] - plo[1]) / Real(num_part[1]),
-    (phi[2] - plo[2]) / Real(num_part[2])));
-  Long parts_pp = total_part_num / NProcs;
+    Geom(lev).ProbLength(0) / Real(num_part[0]),
+    Geom(lev).ProbLength(1) / Real(num_part[1]),
+    Geom(lev).ProbLength(2) / Real(num_part[2])));
+  AMREX_D_TERM(ULong np0 = num_part[0];,
+               ULong np1 = num_part[1];,
+               ULong np2 = num_part[2];);
+  const ULong total_part_num =
+    AMREX_D_TERM(np0, *np1, *np2);
+  ULong parts_pp = total_part_num / ULong(NProcs);
   // Number of particles per processor to be initialized
-  Long cur_parts_pp = parts_pp;
+  ULong cur_parts_pp = parts_pp;
   // Give any remaining particles to the last processor
-  if (MyProc == NProcs - 1)
-    cur_parts_pp += (total_part_num % NProcs);
+  if (MyProc == NProcs - 1) {
+    cur_parts_pp += (total_part_num % ULong(NProcs));
+  }
   // Starting particle for this processor
-  const Long first_part = MyProc * parts_pp;
+  const ULong first_part = ULong(MyProc) * parts_pp;
   Gpu::HostVector<ParticleType> nparticles;
   Vector<Gpu::HostVector<Real>> nreals;
   if (NAR_SPR > 0)
     nreals.resize(NAR_SPR);
-  for (int prc = 0; prc < cur_parts_pp; ++prc) {
-    Long cur_part = first_part + prc;
+  for (ULong prc = 0; prc < cur_parts_pp; ++prc) {
+    ULong cur_part = first_part + prc;
     IntVect indx = unflatten_particles(cur_part, num_part);
     ParticleType p;
     p.id() = ParticleType::NextID();
