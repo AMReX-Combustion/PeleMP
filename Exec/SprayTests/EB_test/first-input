@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 9
-stop_time = 0.008
+max_step = 100000
+stop_time = 0.000273365690540257
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 1
@@ -11,8 +11,10 @@ amr.n_cell           = 64 64 8
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-pelec.lo_bc = "FOExtrap" "NoSlipWall" "Interior"
-pelec.hi_bc = "FOExtrap" "FOExtrap" "Interior"
+# pelec.lo_bc = "FOExtrap" "NoSlipWall" "Interior"
+# pelec.hi_bc = "FOExtrap" "FOExtrap" "Interior"
+pelec.lo_bc = "NoSlipWall" "NoSlipWall" "Interior"
+pelec.hi_bc = "NoSlipWall" "NoSlipWall" "Interior"
 
 amrex.fpe_trap_invalid = 1
 amrex.fpe_trap_zero = 1
@@ -90,11 +92,11 @@ particles.NC7H16_psat = 4.02832 1268.636 -56.199 1.E6
 particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E6
 
 
-particles.fuel_mu = 0.00236 0.004428 # Estimated viscosity at 350 K and 10 atm
-particles.fuel_lambda = 1.291E4 1.3078E4
+#particles.fuel_mu = 0.00236 0.004428 # Estimated viscosity at 350 K and 10 atm
+#particles.fuel_lambda = 1.291E4 1.3078E4
 # TODO: Make separate sigmas for each fuel
-particles.fuel_sigma = 19.
-particles.wall_temp = 430.
+#particles.fuel_sigma = 19.
+#particles.wall_temp = 430.
 particles.use_splash_model = false
 #particles.wall_temp = 1500.
 
@@ -106,7 +108,7 @@ amr.check_int       = -1   # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file       = plt
-amr.plot_int        = 1
+amr.plot_int        = 77
 #amr.plot_per = 1.6E-4
 amr.plot_vars = density Temp rho_E xmom ymom zmom eden rho_O2 rho_N2 rho_NC10H22
 amr.derive_plot_vars = Mach x_velocity y_velocity pressure vfrac z_velocity
