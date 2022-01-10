@@ -74,7 +74,7 @@ bcnormal(
   AMREX_D_TERM(s_ext[Xvel] = prob_parm.vel;, s_ext[Yvel] = 0.;
                , s_ext[Zvel] = 0.;);
 
-  amrex::GpuArray<amrex::Real, NUM_SPECIES> = {{0.0}};
+  amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
   massfrac[N2_ID] = prob_parm.Y_N2;
   massfrac[O2_ID] = prob_parm.Y_O2;
   s_ext[DEF_Temp] = prob_parm.T0;
