@@ -69,7 +69,7 @@ bcnormal(
   amrex::GeometryData const& geomdata,
   ProbParm const& prob_parm,
   ACParm const& ac_parm,
-  PmfData const* pmf_data)
+  pele::physics::PMF::PmfData::DataContainer const* /*pmf_data*/)
 {
   AMREX_D_TERM(s_ext[Xvel] = prob_parm.vel;, s_ext[Yvel] = 0.;
                , s_ext[Zvel] = 0.;);
