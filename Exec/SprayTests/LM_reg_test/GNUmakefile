@@ -9,7 +9,7 @@ USE_MPI         = FALSE
 USE_OMP         = FALSE
 PRECISION       = DOUBLE
 
-#BL_NO_FORT = TRUE
+BL_NO_FORT = TRUE
 #WARN_ALL = TRUE
 
 USE_CUDA        = FALSE
@@ -20,6 +20,7 @@ USE_EB = FALSE
 
 VERBOSE = FALSE
 
+USE_SUNDIALS = TRUE
 Chemistry_Model := decane_3sp
 
 # This sets the EOS directory in $(PELE_PHYSICS_HOME)/Eos

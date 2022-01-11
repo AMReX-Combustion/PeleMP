@@ -52,7 +52,8 @@ amr.check_file          = chk          # root name of checkpoint file
 amr.check_int           = 5            # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
 amr.plot_int            = 100000       # number of timesteps between plot files
-amr.plot_vars           = rho_NC10H22 rho_O2 rho_N2 x_velocity y_velocity density RhoRT divu rhoh
+amr.plot_vars           = x_velocity y_velocity density RhoRT divu rhoh
+amr.derive_plot_vars    = rhoY
 
 #----------------------- PROBLEM PARAMETERS---------------------
 # Gas phase parameters, always used
@@ -92,7 +93,7 @@ particles.mom_transfer  = 1
 particles.mass_transfer = 1
 particles.cfl           = 0.5
 particles.write_spray_ascii_files = 0
-particles.parcel_size   = 1.
+particles.parcel_size   = 10.
 
 #---------------------PHYSICS CONTROL------------------------
 ns.fuelName          = NC10H22         # Fuel species name
@@ -103,15 +104,16 @@ ns.gravity           = 0               # body force  (gravity in MKS units)
 #--------------------NUMERICS CONTROL------------------------
 ns.init_iter         = 3               # Number of initial iterations to def pressure
 ns.num_divu_iters    = 1               # Number of DivU iteration at initialization
-ns.sdc_iterMAX       = 1               # Number of SDC iterations
+ns.sdc_iterMAX       = 2               # Number of SDC iterations
 ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
+peleLM.chem_integrator = "ReactorNull"
 #peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
 #peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance
-cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
-ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
+# cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
+# ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?
@@ -135,6 +137,7 @@ ns.zeroBndryVisc     = 1
 ns.divu_ceiling         = 1
 ns.divu_dt_factor       = .4
 ns.min_rho_divu_ceiling = .01
+ns.v                    = 0
 
 # ------------------  INPUTS TO DIFFUSION CLASS --------------------
 ns.visc_tol              = 1.0e-12     # tolerence for viscous solves
@@ -149,9 +152,6 @@ nodal_proj.proj_abs_tol        = 1.0e-12
 nodal_proj.sync_tol            = 1.0e-12     # tolerence for projections
 nodal_proj.rho_wgt_vel_proj    = 0           # 0 => const den proj, 1 => rho weighted
 nodal_proj.do_outflow_bcs      = 0
-nodal_proj.divu_minus_s_factor = .5
-nodal_proj.divu_minus_s_factor = 0.
-nodal_proj.proj_2              = 1
 nodal_proj.verbose             = 0
 
 # ------------------  INPUTS TO MACPROJ CLASS -------------------
