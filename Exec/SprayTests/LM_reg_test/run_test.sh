@@ -14,10 +14,6 @@ gridsizes=(32 64)
 bsize=(32 64)
 mkdir -p ${TPD}
 refratio=2
-macorder=4
-# If refratio is 4, suggest doing
-#macorder=3
-
 
 GRIDLOCS="two_d_gridfiles/ref"${refratio}
 # Number of iterations, should have 6 digits
@@ -43,8 +39,7 @@ for gsi in "${!gridsizes[@]}"; do
             amr.initial_grid_file = $gridfile \
             amr.regrid_file = $regridfile \
             amr.regrid_int = 4 4 4 4 \
-            amr.ref_ratio = $refratio $refratio $refratio \
-            mac_proj.maxorder = $macorder
+            amr.ref_ratio = $refratio $refratio $refratio
     # Run from restart
     ${RUN} ${EXEC} $INPUT_FILE \
             amr.plot_file = $outloc/plt \
@@ -56,8 +51,7 @@ for gsi in "${!gridsizes[@]}"; do
             amr.initial_grid_file = $gridfile \
             amr.regrid_file = $regridfile \
             amr.regrid_int = 4 4 4 4 \
-            amr.ref_ratio = $refratio $refratio $refratio \
-            mac_proj.maxorder = $macorder
+            amr.ref_ratio = $refratio $refratio $refratio
 done
 cd ${TPD}
 # Must fill in the path to fcompare here

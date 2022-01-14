@@ -108,11 +108,12 @@ ns.sdc_iterMAX       = 1               # Number of SDC iterations
 ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
+peleLM.chem_integrator = "ReactorNull"
 #peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE   
 #peleLM.relative_tol_chem = 1.0e-8     # CVODE relative tolerance
 #peleLM.absolute_tol_chem = 1.0e-6     # CVODE absolute tolerance
-cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
-ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
+# cvode.solve_type = GMRES               # CVODE Linear solve type (for Newton direction) 
+# ode.analytical_jacobian = 0            # Provide analytical jacobian (from Fuego) ?
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?
