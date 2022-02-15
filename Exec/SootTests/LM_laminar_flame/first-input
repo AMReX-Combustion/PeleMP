@@ -55,8 +55,6 @@ peleLM.do_soot_solve = 1
 peleLM.plot_soot_src = 0
 soot.incept_pah = A2 # Soot inception species
 soot.v = 0
-soot.max_dt_rate = 0.01
-soot.num_subcycles = 5
 soot.temp_cutoff = 290.
 soot.conserve_mass = false
 
