@@ -94,7 +94,7 @@ SprayParticleContainer::injectParticles(
     rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];
   rho_part = 1. / rho_part;
   // Number of particles per parcel
-  const Real num_ppp = m_parcelSize;
+  const Real num_ppp = fdat->num_ppp;
   const Geometry& geom = this->m_gdb->Geom(lev);
   const auto plo = geom.ProbLoArray();
   const auto phi = geom.ProbHiArray();
