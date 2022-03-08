@@ -34,18 +34,6 @@ Transport_Model := Simple
 
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
-CEXE_sources += SprayParticlesInitInsert.cpp
-
-Blocs   := .
-
-CEXE_sources +=
-F90EXE_sources +=
-CEXE_headers += 
-FEXE_headers += 
 
 include $(PELELM_HOME)/Tools/Make/Make.PeleLM
-
-ifeq ($(USE_CUDA),TRUE)
-CXXFLAGS += -Xptxas --disable-optimizer-constants
-endif
 

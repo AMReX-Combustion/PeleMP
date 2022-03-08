@@ -25,7 +25,6 @@ Transport_Model := Simple
 
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
-CEXE_sources += SprayParticlesInitInsert.cpp
 
 Blocs   := .
 
