@@ -26,11 +26,12 @@ amr.blocking_factor = 8
 amr.max_grid_size   = 64
 
 #----------------------TIME STEPING CONTROL----------------------
-max_step            = 100000
+#max_step            = 100000
+max_step = 100
 stop_time           = 0.022
 ns.cfl              = 0.3              # cfl number for hyperbolic system
 ns.init_dt          = 5.e-6
-ns.init_shrink      = 0.1            # scale back initial timestep
+ns.init_shrink      = 0.001            # scale back initial timestep
 ns.change_max       = 1.1              # max timestep size increase
 ns.dt_cutoff        = 1.e-12           # level 0 timestep below which we halt
 
@@ -40,7 +41,8 @@ amr.check_file          = chk          # root name of checkpoint file
 amr.check_int           = 10           # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
 #amr.plot_int = 5
-amr.plot_per            = 8.E-4
+#amr.plot_per            = 8.E-4
+amr.plot_int = 10
 amr.derive_plot_vars    = rhoRT mag_vort mass_fractions mole_fractions enthalpy soot_vars rhominsumrhoY
 #amr.grid_log            = grdlog       # name of grid logging file
 
@@ -81,11 +83,11 @@ ns.num_mac_sync_iter = 1               # Number of mac_sync iterations
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
 peleLM.chem_integrator = "ReactorCvode"
-peleLM.use_typ_vals_chem = 1           # Use species/temp typical values in CVODE
-ns.reset_typical_vals_int = 8
-cvode.solve_type = GMRES
-#cvode.solve_type = denseAJ_direct      # CVODE Linear solve type (for Newton direction)
-ode.atol = 1.E-5
+peleLM.use_typ_vals_chem = 0           # Use species/temp typical values in CVODE
+#ns.reset_typical_vals_int = 8
+#cvode.solve_type = GMRES
+cvode.solve_type = denseAJ_direct      # CVODE Linear solve type (for Newton direction)
+#ode.atol = 1.E-5
 #ode.atol = 1.E-2
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
