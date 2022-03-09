@@ -33,13 +33,13 @@ soot.incept_pah = A2 # Soot inception species
 soot.v = 0
 soot.temp_cutoff = 290.
 soot.conserve_mass = false
-soot.num_subcycles = 30
+soot.num_subcycles = 10
 soot.max_subcycles = 1000
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
 peleLM.incompressible = 0
-peleLM.use_wbar = 1
+peleLM.use_wbar = 0
 peleLM.sdc_iterMax = 1
 peleLM.floor_species = 0
 peleLM.advection_scheme = Godunov_BDS
@@ -47,16 +47,15 @@ peleLM.advection_scheme = Godunov_BDS
 peleLM.do_temporals = 0
 peleLM.temporal_int = 2
 peleLM.mass_balance = 1
-peleLM.num_init_iter = 3
+peleLM.num_init_iter = 1
 peleLM.plot_react = 0
 
 #amr.restart = chk00005
 #amr.check_int = 2000
 amr.plot_per = 1.E-3
-amr.dt_shrink = 0.001
-amr.max_step = 10
+amr.dt_shrink = 0.1
+amr.max_step = 10000
 amr.stop_time = 0.022
-#amr.stop_time = 1.00
 amr.cfl = 0.3
 amr.derive_plot_vars = rhoRT mass_fractions rhominsumrhoY
 #amr.fixed_dt = 0.008
@@ -73,15 +72,16 @@ cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton dire
 #ode.atol = 1.E-12
 
 mac_proj.verbose = 0
-nodal_proj.verbose = 2
-nodal_proj.proj_tol            = 6.0e-10     # tolerence for projections
-nodal_proj.proj_abs_tol        = 6.0e-10
-nodal_proj.sync_tol            = 6.0e-10     # tolerence for projections
+mac_proj.atol = 1.E-14
+mac_proj.rtol = 1.E-11
+nodal_proj.verbose = 0
+nodal_proj.atol        = 6.0e-14     # tolerence for projections
+nodal_proj.rtol        = 6.0e-11
 
 #--------------------REFINEMENT CONTROL------------------------
 amr.refinement_indicators = gradT
 amr.gradT.max_level     = 2
-amr.gradT.adjacent_difference_greater = 40.
+amr.gradT.adjacent_difference_greater = 30.
 amr.gradT.field_name    = temp
 
 amrex.regtest_reduction = 1
