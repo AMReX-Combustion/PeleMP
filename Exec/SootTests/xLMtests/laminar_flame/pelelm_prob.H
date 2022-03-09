@@ -69,9 +69,6 @@ pelelm_initdata(
   for (int is = 0; is < NUM_SOOT_MOMENTS + 1; ++is) {
     state(i, j, k, FIRSTSOOT + is) = prob_parm.soot_vals[is];
   }
-  if (i == 0 && j == 0) {
-    printf("%g %g\n", state(i,j,k,FIRSTSOOT+NUM_SOOT_MOMENTS), prob_parm.soot_vals[3]);
-  }
 }
 
 AMREX_GPU_DEVICE
