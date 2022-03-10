@@ -31,11 +31,9 @@ Eos_Model := GammaLaw
 Chemistry_Model := Null
 Transport_Model := Constant
 
-# PeleC-MP
+# PeleMP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
-# Set to true if we want to use StructOfArray particles data
-#USE_SPRAY_SOA = TRUE
 
 # GNU Make
 Bpack := ./Make.package

@@ -29,10 +29,9 @@ Chemistry_Model := decane_3sp
 #Chemistry_Model := dodecane_lu
 Transport_Model := Simple
 
-# PeleC-MP
+# PeleMP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
-#USE_SPRAY_SOA = TRUE
 
 # GNU Make
 Bpack := ./Make.package

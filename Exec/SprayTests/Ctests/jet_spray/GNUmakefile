@@ -29,10 +29,9 @@ Eos_Model := Fuego
 Chemistry_Model := decane_3sp
 Transport_Model := Simple
 
-# PeleC-MP
+# PeleMP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
-#USE_SPRAY_SOA = TRUE
 
 # GNU Make
 Bpack := ./Make.package
