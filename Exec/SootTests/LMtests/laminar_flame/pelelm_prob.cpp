@@ -1,5 +1,6 @@
 #include <PeleLM.H>
 #include <pelelm_prob.H>
+#include "SootModel.H"
 
 extern "C" {
 void
