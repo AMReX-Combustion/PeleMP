@@ -3,6 +3,8 @@
 #include <AMReX_Particles.H>
 #include <pelelm_prob.H>
 
+using namespace amrex;
+
 bool
 SprayParticleContainer::injectParticles(
   Real time,

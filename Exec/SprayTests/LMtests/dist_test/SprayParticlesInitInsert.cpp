@@ -3,6 +3,8 @@
 #include <AMReX_Particles.H>
 #include <pelelm_prob.H>
 
+using namespace amrex;
+
 IntVect
 unflatten_particles(const ULong idx, const IntVect& max_parts)
 {
