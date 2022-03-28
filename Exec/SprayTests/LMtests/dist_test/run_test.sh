@@ -15,7 +15,7 @@ bsize=(32 64)
 mkdir -p ${TPD}
 refratio=2
 
-GRIDLOCS="two_d_gridfiles/ref"${refratio}
+GRIDLOCS="two_d_gridfiles"
 # Number of iterations, should have 6 digits
 NUM_ITER_1=00005
 NUM_ITER=00010

@@ -7,37 +7,49 @@ geometry.prob_hi     = 10. 10. 10.        # x_hi y_hi (z_hi)
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
-peleLM.lo_bc = Interior Inflow
-peleLM.hi_bc = Interior Outflow
+# peleLM.lo_bc = Interior Interior
+# peleLM.hi_bc = Interior Interior
+peleLM.lo_bc = Interior SlipWallAdiab
+peleLM.hi_bc = Interior SlipWallAdiab
 
+particles.cfl = 0.5
 
+#amr.restart = chk00005
+#amr.check_int = 10
+amr.plot_int = 10
+amr.dt_shrink = 1.
+amr.max_step = 1
+amr.stop_time = 1.00
 #-------------------------AMR CONTROL----------------------------
-amr.n_cell          = 64 64 64      # Level 0 number of cells in each direction   
+amr.n_cell          = 64 64 64      # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
-amr.max_level       = 2                # maximum level number allowed
-amr.regrid_int      = 1                # how often to regrid
+amr.max_level       = 1                # maximum level number allowed
+amr.regrid_int      = 4 8                # how often to regrid
 amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
 amr.ref_ratio = 2 2 2
 
 amr.blocking_factor = 32               # block factor in grid generation (min box size)
 amr.max_grid_size   = 32               # max box size
-amr.initial_grid_file = two_d_gridfiles/gridfile_32
-amr.regrid_file = two_d_gridfiles/gridfile_32_2
+amr.initial_grid_file = two_d_gridfiles/gridfile_32_3
+amr.regrid_file = two_d_gridfiles/gridfile_32_3
 
 # amr.blocking_factor = 64               # block factor in grid generation (min box size)
 # amr.max_grid_size   = 64               # max box size
-# amr.initial_grid_file = two_d_gridfiles/gridfile_64
-# amr.regrid_file = two_d_gridfiles/gridfile_64_2
+# amr.initial_grid_file = two_d_gridfiles/gridfile_64_3
+# amr.regrid_file = two_d_gridfiles/gridfile_64_3
 
 #--------------------------- Problem -------------------------------
 prob.P_mean = 101325.0
 prob.init_redist = 1
 prob.init_T              = 500.
-prob.init_vel           = 1.E-3 # Small velocity helps stability for open domain
+#prob.init_vel           = 1.E-3 # Small velocity helps stability for open domain
+prob.init_vel = 0.0
 # Particle parameters, only used if particles.init_function = 1
-prob.num_particles      = (150,150,150)
-#prob.num_particles = (16, 16, 16)
+#prob.num_particles      = (150,150,150)
+#prob.num_particles       = (64,64,64)
+prob.num_particles = (256, 256, 256)
+#prob.num_particles       = (128,128,128)
 prob.part_temp          = 300.
 prob.part_dia           = 1.E-3
 prob.part_vel           = 15. 0. 0.
@@ -45,8 +57,8 @@ prob.part_vel           = 15. 0. 0.
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
 peleLM.incompressible = 0
-peleLM.use_wbar = 1
-peleLM.sdc_iterMax = 2
+peleLM.use_wbar = 0
+peleLM.sdc_iterMax = 1
 peleLM.floor_species = 0
 
 peleLM.do_temporals = 0
@@ -54,17 +66,9 @@ peleLM.temporal_int = 2
 peleLM.mass_balance = 1
 peleLM.num_init_iter = 0
 
-#amr.restart = chk00005
-#amr.check_int = 2000
-amr.plot_int = 4
-amr.dt_shrink = 1.
-amr.max_step = 4
-amr.stop_time = 0.06208916175
-#amr.stop_time = 1.00
+
 amr.cfl = 0.5
-amr.derive_plot_vars = avg_pressure mag_vort mass_fractions
-#amr.fixed_dt = 0.008
-#amr.fixed_dt = 1.E-6
+amr.plot_speciesState = 1
 
 # --------------- INPUTS TO CHEMISTRY REACTOR ---------------
 peleLM.chem_integrator = "ReactorNull"
@@ -121,9 +125,8 @@ particles.init_function = 1
 particles.v             = 2
 particles.mom_transfer  = 1
 particles.mass_transfer = 1
-particles.cfl           = 0.5
 particles.write_spray_ascii_files = 0
-particles.parcel_size = 5.
+particles.parcel_size = 10.
 
 amrex.regtest_reduction=1
 amrex.fpe_trap_invalid = 1

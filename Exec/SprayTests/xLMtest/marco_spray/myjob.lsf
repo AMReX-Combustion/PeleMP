@@ -1,0 +1,24 @@
+#!/bin/bash
+### Set account to charge here
+##BSUB -P CMB138
+#BSUB -P CSC340
+#BSUB -W 2:00
+#BSUB -nnodes 16
+
+# BSUB parameters
+# -nnodes = number of nodes
+
+# JSRUN parameters
+# -n: number of resource sets
+#   (alternatively,
+# -r: number of resource sets per node)
+# -a: number of MPI tasks/ranks per resource set
+# -c: number of CPU cores per resource set
+# -g: number of GPUs per resource set
+
+module load cuda
+date
+EXEC="./PeleLMeX3d.gnu.MPI.CUDA.ex"
+INPUT="inputs.3d.cuda"
+JSRUN="jsrun -r6 -a1 -g1 -c7 --bind=packed:7"
+${JSRUN} ${EXEC} ${INPUT} >& out.lmmj
