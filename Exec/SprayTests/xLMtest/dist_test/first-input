@@ -12,18 +12,18 @@ geometry.prob_hi     = 10. 10. 10.        # x_hi y_hi (z_hi)
 peleLM.lo_bc = Interior SlipWallAdiab
 peleLM.hi_bc = Interior SlipWallAdiab
 
-particles.cfl = 0.5
+particles.cfl = 4.
 
 #amr.restart = chk00005
 #amr.check_int = 10
-amr.plot_int = 10
+#amr.plot_int = 10
 amr.dt_shrink = 1.
-amr.max_step = 1000
-amr.stop_time = 
+amr.max_step = 1
+amr.stop_time = 10.
 #-------------------------AMR CONTROL----------------------------
 amr.n_cell          = 64 64 64      # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
-amr.max_level       = 1                # maximum level number allowed
+amr.max_level       = 2                # maximum level number allowed
 amr.regrid_int      = 4 8                # how often to regrid
 amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
 amr.grid_eff        = 0.7              # what constitutes an efficient grid
@@ -32,12 +32,12 @@ amr.ref_ratio = 2 2 2
 amr.blocking_factor = 32               # block factor in grid generation (min box size)
 amr.max_grid_size   = 32               # max box size
 amr.initial_grid_file = two_d_gridfiles/gridfile_32
-amr.regrid_file = two_d_gridfiles/gridfile_32_3
+amr.regrid_file = two_d_gridfiles/gridfile_32_2
 
 # amr.blocking_factor = 64               # block factor in grid generation (min box size)
 # amr.max_grid_size   = 64               # max box size
-# amr.initial_grid_file = two_d_gridfiles/gridfile_64_3
-# amr.regrid_file = two_d_gridfiles/gridfile_64_3
+# amr.initial_grid_file = two_d_gridfiles/gridfile_64
+# amr.regrid_file = two_d_gridfiles/gridfile_64_2
 
 #--------------------------- Problem -------------------------------
 prob.P_mean = 101325.0

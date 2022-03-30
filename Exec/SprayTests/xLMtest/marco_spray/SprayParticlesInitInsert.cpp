@@ -115,8 +115,11 @@ SprayParticleContainer::injectParticles(
   Real part_temp = prob_parm.part_temp;
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
-  if (jet_vel * dt / dx[0] > 0.5) {
-    Real max_vel = dx[0] * 0.5 / dt;
+  // m_partCFL is the CFL on the finest level
+  // The CFL on the current level is (assuming ref ratio of 2)
+  Real cfl_lev = m_partCFL / std::pow(2., finest_level);
+  if (jet_vel * dt / dx[0] > cfl_lev) {
+    Real max_vel = dx[0] * cfl_lev / dt;
     if (ParallelDescriptor::IOProcessor()) {
       std::string warn_msg =
         "Injection velocity of " + std::to_string(jet_vel) +

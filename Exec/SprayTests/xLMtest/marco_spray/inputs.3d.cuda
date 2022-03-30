@@ -106,10 +106,10 @@ amr.magvort.vorticity_greater = 1e4
 
 # ------------------  INPUTS TO CVODE CHEMISTRY ----------------------
 #cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
-#cvode.solve_type = GMRES
+cvode.solve_type = GMRES
 #cvode.solve_type = precGMRES
 #cvode.precond_type = cuSparse_simplified_AJacobian
-cvode.solve_type = sparse_direct
+#cvode.solve_type = sparse_direct
 cvode.max_order = 4
 peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1
