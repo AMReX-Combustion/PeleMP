@@ -28,7 +28,7 @@ peleLM.v = 1
 peleLM.incompressible = 0
 peleLM.use_wbar = 1
 peleLM.sdc_iterMax = 2
-peleLM.floor_species = 0
+peleLM.floor_species = 1
 
 peleLM.do_temporals = 0
 peleLM.temporal_int = 2
@@ -112,7 +112,7 @@ cvode.solve_type = GMRES
 #cvode.solve_type = sparse_direct
 cvode.max_order = 4
 peleLM.chem_integrator = "ReactorCvode"
-peleLM.use_typ_vals_chem = 1
-ode.atol = 1.E-8
-ode.rtol = 1.E-6
+peleLM.use_typ_vals_chem = 0
+# ode.atol = 1.E-8
+# ode.rtol = 1.E-6
 

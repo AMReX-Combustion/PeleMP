@@ -117,7 +117,11 @@ SprayParticleContainer::injectParticles(
   // function or significant issues will arise
   // m_partCFL is the CFL on the finest level
   // The CFL on the current level is (assuming ref ratio of 2)
-  Real cfl_lev = m_partCFL / std::pow(2., finest_level);
+  Real denom = 1.;
+  if (finest_level > 0) {
+    denom = std::pow(2., finest_level);
+  }
+  Real cfl_lev = m_partCFL / denom;
   if (jet_vel * dt / dx[0] > cfl_lev) {
     Real max_vel = dx[0] * cfl_lev / dt;
     if (ParallelDescriptor::IOProcessor()) {
