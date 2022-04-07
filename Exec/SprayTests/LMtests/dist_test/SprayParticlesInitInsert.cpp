@@ -1,20 +1,17 @@
 
 #include "SprayParticles.H"
-#include <AMReX_Particles.H>
-#include <pelelm_prob.H>
+#include "pelelm_prob.H"
 
-using namespace amrex;
-
-IntVect
-unflatten_particles(const ULong idx, const IntVect& max_parts)
+amrex::IntVect
+unflatten_particles(const amrex::ULong idx, const amrex::IntVect& max_parts)
 {
-  IntVect indx;
-  ULong cidx = idx;
-  ULong d1 = max_parts[0];
-  ULong d2 = max_parts[1];
+  amrex::IntVect indx;
+  amrex::ULong cidx = idx;
+  amrex::ULong d1 = max_parts[0];
+  amrex::ULong d2 = max_parts[1];
 #if AMREX_SPACEDIM > 2
   indx[2] = int(cidx / (d1 * d2));
-  cidx -= ULong(indx[2]) * d1 * d2;
+  cidx -= amrex::ULong(indx[2]) * d1 * d2;
 #endif
   indx[1] = int(cidx / d1);
   indx[0] = int(cidx % d1);
@@ -23,12 +20,12 @@ unflatten_particles(const ULong idx, const IntVect& max_parts)
 
 bool
 SprayParticleContainer::injectParticles(
-  Real time,
-  Real dt,
-  int nstep,
-  int lev,
-  int finest_level,
-  ProbParm const& prob_parm)
+  amrex::Real /*time*/,
+  amrex::Real /*dt*/,
+  int /*nstep*/,
+  int /*lev*/,
+  int /*finest_level*/,
+  ProbParm const& /*prob_parm*/)
 {
   return false;
 }
@@ -37,9 +34,8 @@ void
 SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
 {
   const int lev = 0;
-  const int MyProc = ParallelDescriptor::MyProc();
-  const int NProcs = ParallelDescriptor::NProcs();
-  const int IOProc = ParallelDescriptor::IOProcessorNumber();
+  const int MyProc = amrex::ParallelDescriptor::MyProc();
+  const int NProcs = amrex::ParallelDescriptor::NProcs();
   int NRedist = prob_parm.numRedist; // Number of times to redistribute
   // TODO: This might be overkill but issues persisted at high Summit node
   // counts
@@ -53,56 +49,55 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
       NRedist = 8;
     }
   }
-  const SprayData* fdat = m_sprayData;
-  Real part_rho = fdat->rho[0];
-  Real part_dia = prob_parm.partDia;
-  Real T_ref = prob_parm.partTemp;
+  amrex::Real part_dia = prob_parm.partDia;
+  amrex::Real T_ref = prob_parm.partTemp;
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateY = m_sprayIndx.pstateY;
-  const IntVect num_part = prob_parm.partNum;
-  const RealVect part_vel = prob_parm.partVel;
+  const amrex::IntVect num_part = prob_parm.partNum;
+  const amrex::RealVect part_vel = prob_parm.partVel;
   // Reference values for the particles
-  Real part_vals[NAR_SPR + NSR_SPR];
+  amrex::Real part_vals[NAR_SPR + NSR_SPR];
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     part_vals[pstateVel + dir] = part_vel[dir];
   }
   part_vals[pstateT] = T_ref;
   part_vals[pstateDia] = part_dia;
-  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp)
+  for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp) {
     part_vals[pstateY + sp] = 0.;
+  }
   part_vals[pstateY] = 1.; // Only use the first fuel species
-  const RealVect dx_part(AMREX_D_DECL(
-    Geom(lev).ProbLength(0) / Real(num_part[0]),
-    Geom(lev).ProbLength(1) / Real(num_part[1]),
-    Geom(lev).ProbLength(2) / Real(num_part[2])));
-  AMREX_D_TERM(ULong np0 = num_part[0];,
-               ULong np1 = num_part[1];,
-               ULong np2 = num_part[2];);
-  const ULong total_part_num =
-    AMREX_D_TERM(np0, *np1, *np2);
-  ULong parts_pp = total_part_num / ULong(NProcs);
+  const amrex::RealVect dx_part(AMREX_D_DECL(
+    Geom(lev).ProbLength(0) / amrex::Real(num_part[0]),
+    Geom(lev).ProbLength(1) / amrex::Real(num_part[1]),
+    Geom(lev).ProbLength(2) / amrex::Real(num_part[2])));
+  AMREX_D_TERM(amrex::ULong np0 = num_part[0];, amrex::ULong np1 = num_part[1];
+               , amrex::ULong np2 = num_part[2];);
+  const amrex::ULong total_part_num = AMREX_D_TERM(np0, *np1, *np2);
+  amrex::ULong parts_pp = total_part_num / amrex::ULong(NProcs);
   // Number of particles per processor to be initialized
-  ULong cur_parts_pp = parts_pp;
+  amrex::ULong cur_parts_pp = parts_pp;
   // Give any remaining particles to the last processor
   if (MyProc == NProcs - 1) {
-    cur_parts_pp += (total_part_num % ULong(NProcs));
+    cur_parts_pp += (total_part_num % amrex::ULong(NProcs));
   }
   // Starting particle for this processor
-  const ULong first_part = ULong(MyProc) * parts_pp;
-  Gpu::HostVector<ParticleType> nparticles;
-  Vector<Gpu::HostVector<Real>> nreals;
-  if (NAR_SPR > 0)
+  const amrex::ULong first_part = amrex::ULong(MyProc) * parts_pp;
+  amrex::Gpu::HostVector<ParticleType> nparticles;
+  amrex::Vector<amrex::Gpu::HostVector<amrex::Real>> nreals;
+  if (NAR_SPR > 0) {
     nreals.resize(NAR_SPR);
-  for (ULong prc = 0; prc < cur_parts_pp; ++prc) {
-    ULong cur_part = first_part + prc;
-    IntVect indx = unflatten_particles(cur_part, num_part);
+  }
+  for (amrex::ULong prc = 0; prc < cur_parts_pp; ++prc) {
+    amrex::ULong cur_part = first_part + prc;
+    amrex::IntVect indx = unflatten_particles(cur_part, num_part);
     ParticleType p;
     p.id() = ParticleType::NextID();
-    p.cpu() = ParallelDescriptor::MyProc();
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-      p.pos(dir) = (Real(indx[dir]) + 0.5) * dx_part[dir];
+    p.cpu() = amrex::ParallelDescriptor::MyProc();
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+      p.pos(dir) = (amrex::Real(indx[dir]) + 0.5) * dx_part[dir];
+    }
     for (int n = 0; n < NSR_SPR; ++n) {
       p.rdata(n) = part_vals[n];
     }
@@ -111,12 +106,15 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
     }
     nparticles.push_back(p);
   }
-  ParticleLocData pld;
+  amrex::ParticleLocData pld;
   // Only copy particle data for certain processors at a time
   int NRchunk = NProcs / NRedist;
   for (int nr = 0; nr < NRedist; ++nr) {
-    std::map<std::pair<int, int>, Gpu::HostVector<ParticleType>> host_particles;
-    std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
+    std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
+      host_particles;
+    std::map<
+      std::pair<int, int>,
+      std::array<amrex::Gpu::HostVector<amrex::Real>, NAR_SPR>>
       host_real_attribs;
     if (m_verbose > 0) {
       amrex::Print() << "Redistributing from processor " << nr * NRchunk
@@ -128,8 +126,9 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
           // Retrieve the last particle entry and add it to host_particles
           ParticleType& p = nparticles.back();
           bool where = Where(p, pld);
-          if (!where)
-            Abort("Bad particle");
+          if (!where) {
+            amrex::Abort("Bad particle");
+          }
           std::pair<int, int> ind(pld.m_grid, pld.m_tile);
           host_particles[ind].push_back(p);
           for (int n = 0; n < NAR_SPR; ++n) {
@@ -153,12 +152,12 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
       dst_tile.resize(new_size);
 
       // Copy the AoS part of the host particles to the GPU
-      Gpu::copy(
-        Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
+      amrex::Gpu::copy(
+        amrex::Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
         dst_tile.GetArrayOfStructs().begin() + old_size);
       for (int i = 0; i < NAR_SPR; ++i) {
-        Gpu::copy(
-          Gpu::hostToDevice,
+        amrex::Gpu::copy(
+          amrex::Gpu::hostToDevice,
           host_real_attribs[std::make_pair(grid, tile)][i].begin(),
           host_real_attribs[std::make_pair(grid, tile)][i].end(),
           dst_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
@@ -168,8 +167,11 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
   } // for (int nr ...
   // Now copy over any remaining processors
   for (int which = NRedist * NRchunk; which < NProcs; ++which) {
-    std::map<std::pair<int, int>, Gpu::HostVector<ParticleType>> host_particles;
-    std::map<std::pair<int, int>, std::array<Gpu::HostVector<Real>, NAR_SPR>>
+    std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
+      host_particles;
+    std::map<
+      std::pair<int, int>,
+      std::array<amrex::Gpu::HostVector<amrex::Real>, NAR_SPR>>
       host_real_attribs;
     if (m_verbose > 0) {
       amrex::Print() << "Redistributing from processor " << NRedist * NRchunk
@@ -202,12 +204,12 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
       dst_tile.resize(new_size);
 
       // Copy the AoS part of the host particles to the GPU
-      Gpu::copy(
-        Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
+      amrex::Gpu::copy(
+        amrex::Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
         dst_tile.GetArrayOfStructs().begin() + old_size);
       for (int i = 0; i < NAR_SPR; ++i) {
-        Gpu::copy(
-          Gpu::hostToDevice,
+        amrex::Gpu::copy(
+          amrex::Gpu::hostToDevice,
           host_real_attribs[std::make_pair(grid, tile)][i].begin(),
           host_real_attribs[std::make_pair(grid, tile)][i].end(),
           dst_tile.GetStructOfArrays().GetRealData(i).begin() + old_size);
@@ -215,5 +217,5 @@ SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
     }
     Redistribute();
   } // for (int which ...
-  Gpu::streamSynchronize();
+  amrex::Gpu::streamSynchronize();
 }

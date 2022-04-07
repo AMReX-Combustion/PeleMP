@@ -3,8 +3,6 @@
 #include <AMReX_Particles.H>
 #include <pelelm_prob.H>
 
-using namespace amrex;
-
 bool
 SprayParticleContainer::injectParticles(
   Real time,
@@ -14,10 +12,12 @@ SprayParticleContainer::injectParticles(
   int finest_level,
   ProbParm const& prob_parm)
 {
+  amrex::ignore_unused(time, dt, nstep, lev, finest_level, prob_parm);
   return false;
 }
 
 void
 SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
 {
+  amrex::ignore_unused(prob_parm);
 }
