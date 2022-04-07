@@ -58,10 +58,12 @@ pc_initdata(
   state(i, j, k, UEDEN) =
     rho * (eint + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
   state(i, j, k, UTEMP) = Tval;
-  for (int n = 0; n < NUM_SPECIES; n++)
+  for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, UFS + n) = rho * massfrac[n];
-  for (int is = 0; is < NUM_SOOT_VARS; ++is)
-    state(i, j, k, UFSOOT + is) = prob_parm.soot_vals[is];
+  }
+  for (int n = 0; n < NUM_SOOT_MOMENTS + 1; n++) {
+    state(i, j, k, UFSOOT + n) = prob_parm.soot_vals[n];
+  }
 }
 
 AMREX_GPU_DEVICE
@@ -77,10 +79,11 @@ bcnormal(
   amrex::GeometryData const& geomdata,
   ProbParmDevice const& prob_parm)
 {
+  amrex::ignore_unused(x, idir, sgn, time, geomdata, prob_parm);
   // This sets the values at the boundary equal to the
   // adjacent interior values
-  for (int i = 0; i != NVAR; ++i) {
-    s_ext[i] = s_int[i];
+  for (int n = 0; n < NVAR; n++) {
+    s_ext[n] = s_int[n];
   }
 }
 
