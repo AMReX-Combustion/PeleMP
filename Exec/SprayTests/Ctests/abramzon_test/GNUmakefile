@@ -22,8 +22,6 @@ DEBUG = FALSE
 FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
-#DEFINES += -DCONVERGENCE
-
 # PeleC
 USE_REACT = FALSE
 USE_EB = FALSE
@@ -31,7 +29,7 @@ Eos_Model := Fuego
 Chemistry_Model := decane_3sp
 Transport_Model := Simple
 
-# PeleC-MP
+# PeleMP
 USE_PARTICLES = TRUE
 SPRAY_FUEL_NUM = 1
 

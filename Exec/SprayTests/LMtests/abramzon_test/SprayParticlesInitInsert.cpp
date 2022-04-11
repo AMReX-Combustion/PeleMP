@@ -5,8 +5,8 @@
 
 bool
 SprayParticleContainer::injectParticles(
-  Real time,
-  Real dt,
+  amrex::Real time,
+  amrex::Real dt,
   int nstep,
   int lev,
   int finest_level,
