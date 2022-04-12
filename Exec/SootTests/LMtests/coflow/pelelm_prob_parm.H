@@ -8,9 +8,7 @@ using namespace amrex::literals;
 
 struct ProbParm
 {
-#ifdef SOOT_MODEL
   amrex::GpuArray<amrex::Real, NUM_SOOT_MOMENTS + 1> soot_vals;
-#endif
   amrex::Real init_vel = 0.;
   amrex::Real P_mean = 101325.0;
   amrex::Real T_ref = 300.;

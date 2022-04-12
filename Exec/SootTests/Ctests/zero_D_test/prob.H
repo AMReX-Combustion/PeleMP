@@ -15,7 +15,7 @@
 #include "Transport.H"
 #include "ProblemDerive.H"
 #include "prob_parm.H"
-#include "Constants_Soot.H"
+#include "SootModel.H"
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE

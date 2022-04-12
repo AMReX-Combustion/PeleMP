@@ -12,9 +12,7 @@
 
 #include <IndexDefines.H>
 #include <PelePhysics.H>
-#ifdef SOOT_MODEL
 #include "SootModel.H"
-#endif
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
@@ -85,11 +83,9 @@ pelelm_initdata(
   for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, DEF_first_spec + n) = massfrac[n] * state(i, j, k, Density);
   }
-#ifdef SOOT_MODEL
   for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
     state(i, j, k, DEF_first_soot + is) = prob_parm.soot_vals[is];
   }
-#endif
 }
 
 AMREX_GPU_DEVICE
@@ -178,11 +174,9 @@ bcnormal(
     for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[DEF_first_spec + n] = massfrac[n] * s_ext[Density];
     }
-#ifdef SOOT_MODEL
     for (int is = 0; is < DEF_NUM_SOOT_VARS; ++is) {
       s_ext[DEF_first_soot + is] = prob_parm.soot_vals[is];
     }
-#endif
   }
 }
 

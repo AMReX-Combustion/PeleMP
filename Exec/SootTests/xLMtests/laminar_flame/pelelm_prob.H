@@ -11,9 +11,8 @@
 
 #include <PeleLM_Index.H>
 #include <PelePhysics.H>
-#ifdef SOOT_MODEL
 #include "SootModel.H"
-#endif
+
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
