@@ -92,6 +92,7 @@ particles.fuel_cp = 2.207E3 # Cp at 298
 particles.fuel_rho = 669.43
 particles.use_splash_model = false
 particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
+particles.NC12H26_rho = 1569.56432408 -5.48793654915 0.0121644670893 -6.00307025807e-05
 #
 #--------------------REFINEMENT CONTROL------------------------
 amr.refinement_indicators = gradT magvort

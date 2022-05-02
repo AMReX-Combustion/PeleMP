@@ -69,6 +69,7 @@ peleLM.num_init_iter = 0
 
 amr.cfl = 0.5
 amr.plot_speciesState = 1
+amr.plot_grad_p = 0
 
 # --------------- INPUTS TO CHEMISTRY REACTOR ---------------
 peleLM.chem_integrator = "ReactorNull"

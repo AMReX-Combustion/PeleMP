@@ -117,8 +117,8 @@ SprayParticleContainer::injectParticles(
   amrex::Real part_temp = prob_parm.part_temp;
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
-  if (jet_vel * dt / dx[0] > 0.5) {
-    amrex::Real max_vel = dx[0] * 0.5 / dt;
+  if (jet_vel * dt / dx[0] > m_partCFL) {
+    amrex::Real max_vel = dx[0] * m_partCFL / dt;
     if (amrex::ParallelDescriptor::IOProcessor()) {
       std::string warn_msg =
         "Injection velocity of " + std::to_string(jet_vel) +
