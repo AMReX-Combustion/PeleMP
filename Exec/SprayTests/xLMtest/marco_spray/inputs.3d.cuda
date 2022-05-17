@@ -2,7 +2,8 @@
 geometry.is_periodic = 0 0 0              # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
 geometry.prob_lo   = 0.0 0.0 0.
-geometry.prob_hi   =   .00256  0.00256 0.01024
+#geometry.prob_hi   =   .00256  0.00256 0.01024
+geometry.prob_hi   =   .00256  0.00256 0.00256
 
 #amr.restart = chk00700
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -12,7 +13,7 @@ peleLM.lo_bc = SlipWallAdiab  SlipWallAdiab Inflow
 peleLM.hi_bc = SlipWallAdiab  SlipWallAdiab Outflow
 
 #-------------------------AMR CONTROL----------------------------
-amr.n_cell         = 64 64 256        # Level 0 number of cells in each direction
+amr.n_cell         = 64 64 64        # Level 0 number of cells in each direction
 #amr.n_cell          = 128 128 512
 amr.v               = 1                # AMR verbose
 amr.max_level       = 2                # maximum level number allowed
@@ -75,6 +76,7 @@ prob.mass_flow_rate = 1.0174e-7
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.v = 0
+particles.plot_derive_vars = 1
 particles.cfl = 0.5
 particles.mom_transfer = 1
 particles.mass_transfer = 1
@@ -92,7 +94,7 @@ particles.fuel_cp = 2.207E3 # Cp at 298
 particles.fuel_rho = 669.43
 particles.use_splash_model = false
 particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
-particles.NC12H26_rho = 1569.56432408 -5.48793654915 0.0121644670893 -6.00307025807e-05
+#particles.NC12H26_rho = 1569.56432408 -5.48793654915 0.0121644670893 -6.00307025807e-05
 #
 #--------------------REFINEMENT CONTROL------------------------
 amr.refinement_indicators = gradT magvort
