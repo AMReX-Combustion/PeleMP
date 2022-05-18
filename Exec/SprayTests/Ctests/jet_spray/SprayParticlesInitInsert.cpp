@@ -211,22 +211,21 @@ SprayParticleContainer::injectParticles(
           }
         }
       }
-    }
-    if (host_particles.size() > 0) {
-      auto& particle_tile =
-        GetParticles(lev)[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
-      auto old_size = particle_tile.GetArrayOfStructs().size();
-      auto new_size = old_size + host_particles.size();
-      particle_tile.resize(new_size);
+      if (host_particles.size() > 0) {
+        auto& particle_tile =
+          GetParticles(lev)[std::make_pair(mfi.index(), mfi.LocalTileIndex())];
+        auto old_size = particle_tile.GetArrayOfStructs().size();
+        auto new_size = old_size + host_particles.size();
+        particle_tile.resize(new_size);
 
-      amrex::Gpu::copy(
-        amrex::Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
-        particle_tile.GetArrayOfStructs().begin() + old_size);
+        amrex::Gpu::copy(
+          amrex::Gpu::hostToDevice, host_particles.begin(), host_particles.end(),
+          particle_tile.GetArrayOfStructs().begin() + old_size);
+      }
     }
   }
-}
-// Redistribute is done outside of this function
-return true;
+  // Redistribute is done outside of this function
+  return true;
 }
 
 void

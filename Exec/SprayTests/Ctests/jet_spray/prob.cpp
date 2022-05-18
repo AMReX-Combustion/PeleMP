@@ -84,8 +84,9 @@ amrex_probinit(
     PeleC::prob_parm_host->Y_jet[spf] = in_Y_jet[spf];
     sumY += in_Y_jet[spf];
   }
-  if (std::abs(sumY - 1.) > 1.E-8)
+  if (std::abs(sumY - 1.) > 1.E-8) {
     amrex::Abort("'jet_mass_fracs' must sum to 1");
+  }
   // Convert to radians
   PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
 
