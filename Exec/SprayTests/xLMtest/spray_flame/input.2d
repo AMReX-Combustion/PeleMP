@@ -1,0 +1,124 @@
+#----------------------DOMAIN DEFINITION------------------------
+geometry.is_periodic = 0 0 0
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
+geometry.prob_lo     = -1.28E-3 -1.28E-3 -1.28E-3
+geometry.prob_hi     =  1.28E-3  1.28E-3  1.28E-3
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# Interior, Inflow, Outflow, Symmetry,
+# SlipWallAdiab, NoSlipWallAdiab, # SlipWallIsotherm, NoSlipWallIsotherm
+peleLM.lo_bc = SlipWallAdiab Inflow
+peleLM.hi_bc = SlipWallAdiab Outflow
+
+#-------------------------AMR CONTROL----------------------------
+amr.n_cell = 64 64 64
+amr.v               = 1                # AMR verbose
+amr.max_level       = 0                # maximum level number allowed
+amr.regrid_int      = 4 4 4            # how often to regrid
+amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
+amr.grid_eff        = 0.7              # what constitutes an efficient grid
+amr.ref_ratio = 2 2 2
+
+amr.blocking_factor = 8               # block factor in grid generation (min box size)
+amr.max_grid_size   = 64              # max box size
+
+#--------------------------- Problem -------------------------------
+# Gas phase parameters
+prob.P_mean = 101325.
+prob.T_init   = 900.
+prob.vel_init = 0. 0. 0.
+
+# Jet parameters
+prob.jet_cent = 0. 0. 0.
+prob.part_temp  = 363.
+# NC10H22
+prob.Y_jet  = 1.
+# Log-normal distribution of particle diameters
+# Mean particle diameter
+prob.part_mean_dia = 1.E-5
+# Standard deviation of the particle diameter
+prob.part_stdev_dia = 0.
+# Jet properties
+prob.jet_dia = 4.E-5
+# The polar angle in degrees relative to the Z axis
+prob.jet_angle = 30.
+# The spreading angle in degrees
+prob.spread_angle = 21.
+# The bounds on the azimuthal angle in degrees
+prob.jet_azi_lo = 0.
+prob.jet_azi_hi = 360.
+# Magnitude of the jet velocity
+prob.jet_vel = 30.
+prob.mass_flow_rate = 2.0349e-5
+#prob.mass_flow_rate = 2.E-4
+
+prob.jet_start_time = 0.
+prob.jet_end_time = 0.5E-3
+
+#-------------------------PeleLM CONTROL----------------------------
+peleLM.v = 1
+peleLM.incompressible = 0
+peleLM.use_wbar = 1
+peleLM.sdc_iterMax = 1
+peleLM.floor_species = 1
+peleLM.deltaT_verbose = 0
+#peleLM.advection_scheme = Godunov_BDS
+
+peleLM.do_temporals = 0
+peleLM.temporal_int = 2
+peleLM.mass_balance = 1
+peleLM.num_init_iter = 0
+
+#amr.plot_per = 5.E-5
+amr.plot_int = 1
+
+amr.dt_shrink = 1.
+amr.max_step = 10
+amr.stop_time = 2.3
+amr.cfl = 0.8
+amr.derive_plot_vars = avg_pressure mag_vort mass_fractions
+
+#--------------------REFINEMENT CONTROL------------------------
+amr.refinement_indicators = gradT magvort
+amr.gradT.max_level = 3
+amr.gradT.adjacent_difference_greater = 30.
+amr.gradT.field_name = temp
+
+amr.magvort.max_level = 2
+amr.magvort.vorticity_greater = 1e4
+
+# --------------- INPUTS TO CHEMISTRY REACTOR ---------------
+peleLM.chem_integrator = "ReactorNull"
+
+mac_proj.verbose = 0
+nodal_proj.verbose = 0
+
+#--------------------SPRAY PARTICLE DATA-----------------------
+peleLM.do_spray_particles = 1
+particles.derive_plot_vars = 1
+particles.derive_plot_species = 0
+
+particles.fuel_species = NC10H22
+particles.fuel_crit_temp = 617.8
+particles.fuel_boil_temp = 447.27
+particles.fuel_latent = 3.5899E5
+particles.fuel_cp = 2192.1
+particles.fuel_rho = 640.
+particles.fuel_ref_temp = 298.15
+particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
+
+particles.use_splash_model = false
+
+particles.init_function = 1
+
+particles.v             = 0
+particles.mom_transfer  = 1
+particles.mass_transfer = 1
+particles.cfl           = 1.
+particles.write_spray_ascii_files = 0
+particles.parcel_size = 1.
+
+amrex.regtest_reduction=1
+amrex.fpe_trap_invalid = 1
+amrex.fpe_trap_zero = 1
+amrex.fpe_trap_overflow = 1

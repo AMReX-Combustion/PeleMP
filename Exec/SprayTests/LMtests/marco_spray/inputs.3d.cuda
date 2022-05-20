@@ -68,6 +68,7 @@ prob.mass_flow_rate = 1.0174e-7
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.v = 0
+particles.derive_plot_vars = 1
 particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.init_function = 1 # Sprays are initialized using SprayParticleInitInsert.cpp

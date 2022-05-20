@@ -160,6 +160,7 @@ amrex.regtest_reduction=1
 # Particles
 peleLM.do_spray_particles = 1
 particles.v = 0
+particles.derive_plot_vars = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.heat_transfer = 1

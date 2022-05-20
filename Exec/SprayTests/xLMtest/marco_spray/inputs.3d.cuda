@@ -76,7 +76,8 @@ prob.mass_flow_rate = 1.0174e-7
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.v = 0
-particles.plot_derive_vars = 1
+particles.derive_plot_vars = 1
+particles.derive_plot_species = 0
 particles.cfl = 0.5
 particles.mom_transfer = 1
 particles.mass_transfer = 1

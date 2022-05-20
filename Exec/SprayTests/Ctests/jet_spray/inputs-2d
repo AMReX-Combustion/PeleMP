@@ -61,6 +61,7 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # PARTICLES / SPRAY
 pelec.do_spray_particles = 1
 particles.v = 0
+particles.derive_plot_vars = 1
 particles.mom_transfer = 1
 particles.mass_transfer = 1
 # Set so that SprayParticleInitInsert.cpp is used to initialize
@@ -82,7 +83,6 @@ particles.fuel_rho = 0.640
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to dyne/cm^2
-particles.NC7H16_psat = 4.02832 1268.636 -56.199 1.E6
 particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E6
 
 # particles.fuel_sigma = 19.
