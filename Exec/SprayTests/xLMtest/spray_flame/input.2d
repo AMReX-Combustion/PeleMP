@@ -25,7 +25,7 @@ amr.max_grid_size   = 64              # max box size
 #--------------------------- Problem -------------------------------
 # Gas phase parameters
 prob.P_mean = 101325.
-prob.T_init   = 900.
+prob.T_init = 440.
 prob.vel_init = 0. 0. 0.
 
 # Jet parameters
@@ -69,8 +69,8 @@ peleLM.temporal_int = 2
 peleLM.mass_balance = 1
 peleLM.num_init_iter = 0
 
-#amr.plot_per = 5.E-5
-amr.plot_int = 1
+amr.plot_per = 5.E-5
+#amr.plot_int = 1
 
 amr.dt_shrink = 1.
 amr.max_step = 10

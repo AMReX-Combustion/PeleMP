@@ -25,7 +25,7 @@ amr.max_grid_size   = 64              # max box size
 #--------------------------- Problem -------------------------------
 # Gas phase parameters
 prob.P_mean = 101325.
-prob.T_init   = 900.
+prob.T_init = 440.
 prob.vel_init = 0. 0. 0.
 
 # Jet parameters
