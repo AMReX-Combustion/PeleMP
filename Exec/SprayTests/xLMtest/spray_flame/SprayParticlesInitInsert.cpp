@@ -177,12 +177,13 @@ SprayParticleContainer::injectParticles(
       amrex::RealBox(bx, geom.CellSize(), geom.ProbLo());
     const amrex::Real* xloB = temp.lo();
     const amrex::Real* xhiB = temp.hi();
-    if (xloB[lowD] == plo[lowD]) {
+    amrex::RealVect cur_jet_cent;
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+      cur_jet_cent[dir] = prob_parm.jet_cent[dir];
+    }
+    const amrex::Real jet_norm = cur_jet_cent[lowD];
+    if (xloB[lowD] <= jet_norm && xhiB[lowD] > jet_norm) {
       amrex::Gpu::HostVector<ParticleType> host_particles;
-      amrex::RealVect cur_jet_cent;
-      for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        cur_jet_cent[dir] = prob_parm.jet_cent[dir];
-      }
       amrex::RealVect xlo;
       amrex::RealVect xhi;
       for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -196,8 +197,8 @@ SprayParticleContainer::injectParticles(
         xhiJ[dir] = xhi[dir] - cur_jet_cent[dir];
       }
       // Set jet to lower Y domain for 2D and lower Z domain for 3D
-      xloJ[lowD] = plo[lowD];
-      xhiJ[lowD] = plo[lowD];
+      xloJ[lowD] = cur_jet_cent[lowD];
+      xhiJ[lowD] = cur_jet_cent[lowD];
       amrex::Real lox, hix;
 #if AMREX_SPACEDIM == 3
       amrex::Real loy, hiy;
@@ -218,9 +219,9 @@ SprayParticleContainer::injectParticles(
         while (total_mass < perc_mass) {
           amrex::RealVect part_loc;
           part_loc[0] = lox + amrex::Random() * xlen;
-          AMREX_D_PICK(, part_loc[1] = plo[1];
+          AMREX_D_PICK(, part_loc[1] = jet_norm;
                        , part_loc[1] = loy + amrex::Random() * ylen;
-                       part_loc[2] = plo[2];)
+                       part_loc[2] = jet_norm;)
           amrex::Real r2 = AMREX_D_TERM(
             std::pow(part_loc[0] - cur_jet_cent[0], 2), ,
             +std::pow(part_loc[1] - cur_jet_cent[1], 2));
