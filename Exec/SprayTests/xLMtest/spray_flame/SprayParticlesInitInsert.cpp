@@ -254,7 +254,7 @@ SprayParticleContainer::injectParticles(
             // dt
             amrex::Real pmov = amrex::Random();
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-              p.pos(dir) = part_loc[dir] + pmov * dt * part_vel[dir];
+              p.pos(dir) = part_loc[dir] + pmov * dt * p.rdata(pstateVel + dir);
             }
             p.rdata(pstateT) = part_temp;
             p.rdata(pstateDia) = cur_dia;
