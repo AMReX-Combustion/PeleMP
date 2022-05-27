@@ -115,6 +115,7 @@ SprayParticleContainer::readSprayParams(
       sprayData.lambda[i] = lambda[i];
       getInpCoef(sprayData.psat_coef.data(), pp, fuel_names[i], "psat", i);
       getInpCoef(sprayData.rho_coef.data(), pp, fuel_names[i], "rho", i);
+      getInpCoef(sprayData.lambda_coef.data(), pp, fuel_names[i], "lambda", i);
     }
   }
 

@@ -73,6 +73,18 @@ rhoL(const SprayData& fdat, const amrex::Real& T, const int spf)
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 amrex::Real
+lambdaL(const SprayData& fdat, const amrex::Real& T, const int spf)
+{
+  amrex::Real a = fdat.lambda_coef[4 * spf];
+  amrex::Real b = fdat.lambda_coef[4 * spf + 1];
+  amrex::Real c = fdat.lambda_coef[4 * spf + 2];
+  amrex::Real d = fdat.lambda_coef[4 * spf + 3];
+  return a + T * (b + T * (c + T * d));
+}
+
+AMREX_GPU_DEVICE
+AMREX_FORCE_INLINE
+amrex::Real
 psat(const SprayData& fdat, const amrex::Real& T, const int spf)
 {
   amrex::Real a = fdat.psat_coef[4 * spf];
@@ -152,6 +164,67 @@ calcBoilT(const SprayData& fdat, const GasPhaseVals& gpv, amrex::Real* cBoilT)
             1. / boilT_ref);
     cBoilT[spf] = amrex::min(critT, cBoilT[spf]);
   }
+}
+
+// Compute the state in the vapor and skin phase
+AMREX_GPU_DEVICE
+AMREX_FORCE_INLINE
+void
+calcBM(
+  const SprayData& fdat,
+  const GasPhaseVals& gpv,
+  const amrex::Real& T_in,
+  const amrex::Real& C_eps,
+  const amrex::Real* Y_l,
+  const amrex::Real* h_part,
+  const amrex::Real* cBoilT,
+  amrex::Real* Psat,
+  amrex::Real* L_fuel,
+  amrex::Real& B_M)
+{
+  SprayUnits SPU;
+  amrex::Real RU = pele::physics::Constants::RU * SPU.ru_conv;
+  amrex::Real PATM = pele::physics::Constants::PATM * SPU.pres_conv;
+
+  amrex::Real sum1 = 0.;
+  amrex::Real sum2 = 0.;
+  amrex::Real sum3 = 0.;
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    const int fspec = fdat.indx[spf];
+    const amrex::Real boilT_ref = fdat.boilT[spf];
+    const amrex::Real mw_fuel = gpv.mw_fluid[fspec];
+    amrex::Real T_part = amrex::min(T_in, 0.999 * cBoilT[spf]);
+    // Compute latent heat
+    amrex::Real part_latent =
+      h_part[fspec] + fdat.latent[spf] - fdat.cp[spf] * (T_part - fdat.ref_T);
+    L_fuel[spf] = part_latent;
+    amrex::Real pres_sat = 0.;
+    // Using the Clasius-Clapeyron relation
+    if (fdat.psat_coef[4 * spf + 3] == 0.) {
+      pres_sat =
+        PATM *
+        std::exp(part_latent * mw_fuel / RU * (1. / boilT_ref - 1. / T_part));
+      // Using the Antoine equation
+    } else {
+      pres_sat = psat(fdat, T_part, spf);
+    }
+    Psat[spf] = pres_sat;
+    sum1 += Y_l[spf] * pres_sat / mw_fuel;
+    sum2 += Y_l[spf] * pres_sat;
+    sum3 += Y_l[spf] / mw_fuel;
+  }
+  amrex::Real totalmwx = gpv.mw_mix * (sum3 * gpv.p_fluid - sum1) + sum2;
+  amrex::Real sumYfFluid = 0.; // Mass fraction of fuel in the gas phase
+  amrex::Real sumYVap = 0.;    // Mass fraction of fuel in the vapor phase
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    const int fspec = fdat.indx[spf];
+    const amrex::Real mw_fuel = gpv.mw_fluid[fspec];
+    amrex::Real Yfv = Y_l[spf] * Psat[spf] / totalmwx;
+    sumYVap += Yfv;
+    sumYfFluid += gpv.Y_fluid[fspec];
+  }
+  B_M = (sumYVap - sumYfFluid) / amrex::max(C_eps, (1. - sumYVap));
+  B_M = amrex::min(20., B_M);
 }
 
 // Compute the state in the vapor and skin phase
@@ -242,6 +315,77 @@ calcVaporState(
   B_M = amrex::min(20., B_M);
 }
 
+// Compute surface temperature
+AMREX_GPU_DEVICE
+AMREX_FORCE_INLINE
+amrex::Real funcT(amrex::Real Ts,
+                  const SprayData& fdat,
+                  const GasPhaseVals& gpv,
+                  amrex::Real* cBoilT,
+                  amrex::Real* Y_part,
+                  amrex::Real* h_part,
+                  amrex::Real* mi_dot,
+                  amrex::Real* Psat,
+                  amrex::Real* L_fuel,
+                  amrex::Real dia_part,
+                  amrex::Real T_part,
+                  amrex::Real cp_part,
+                  amrex::Real rho_part,
+                  amrex::Real lambda_part,
+                  amrex::Real ratio1,
+                  amrex::Real lambda_skin,
+                  amrex::Real Sc_skin,
+                  amrex::Real Pr_skin,
+                  amrex::Real Reyn,
+                  amrex::Real* Ddiag)
+{
+  auto eos = pele::physics::PhysicsType::eos();
+  SprayUnits SPU;
+  const amrex::Real pmass = M_PI / 6. * rho_part * std::pow(dia_part, 3);
+  const amrex::Real inv_pm_cp = 1. / (pmass * cp_part);
+  const amrex::Real C_eps = 1.E-15;
+  const amrex::Real B_eps = 1.E-7;
+  const amrex::Real vt = 0.707;
+  const amrex::Real phit = (6. * vt - 5.) / (60. * (vt - 1.));
+  eos.T2Hi(Ts, h_part);
+  amrex::Real delT = amrex::max(gpv.T_fluid - T_part, 0.);
+  for (int n = 0; n < NUM_SPECIES; ++n) {
+    h_part[n] *= SPU.eng_conv;
+  }
+  amrex::Real B_M;
+  calcBM(fdat, gpv, Ts, C_eps, Y_part, h_part, cBoilT, Psat, L_fuel, B_M);
+  amrex::Real powR = amrex::max(std::pow(Reyn, 0.077), 1.);
+  amrex::Real logB = std::log(1. + B_M);
+  amrex::Real invFM = B_M / (logB * std::pow(1. + B_M, 0.7));
+  amrex::Real Sh_0 = 1. + powR * std::cbrt(1. + Reyn * Sc_skin);
+  amrex::Real Sh_num = 2. + (Sh_0 - 2.) * invFM;
+  amrex::Real mdotcoeff = M_PI * dia_part * Sh_num * logB;
+  amrex::Real m_dot = 0.;
+  amrex::Real sumL = 0.;
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    const int fspec = fdat.indx[spf];
+    if (
+        Y_part[spf] > 0. && Psat[spf] > gpv.X_fluid[fspec] * gpv.p_fluid) {
+      mi_dot[spf] = -amrex::max(Ddiag[fspec] * mdotcoeff, 0.);
+      m_dot += mi_dot[spf];
+      sumL += mi_dot[spf] * L_fuel[spf];
+    }
+  }
+  amrex::Real ratio = ratio1 * Sh_num;
+  amrex::Real Nu_0 = 1. + powR * std::cbrt(1. + Reyn * Pr_skin);
+  amrex::Real Nu_num = Nu_0;
+  if (std::abs(m_dot) > 0.) {
+    Nu_num = calcHeatCoeff(ratio, B_M, B_eps, C_eps, Nu_0);
+  }
+  amrex::Real hi = M_PI * dia_part * dia_part * lambda_part;
+  amrex::Real ho = M_PI * dia_part * lambda_skin * Nu_num;
+  amrex::Real denom2 = 1. + phit * dia_part * ho / hi;
+  amrex::Real Tsnew = (T_part + phit * dia_part / hi * (sumL + ho * gpv.T_fluid)) / denom2;
+  /* amrex::Real ho = lambda_skin * Nu_num / dia_part; */
+  /* amrex::Real c1 = dia_part / (2. * lambda_part) * phit; */
+  /* amrex::Real Tsnew = (sumL * c1 / (M_PI * std::pow(dia_part, 2)) + T_part + gpv.T_fluid * c1 * ho) / (c1 * ho + 1.); */
+  return std::abs(Ts - Tsnew) / Tsnew;
+}
 // Compute source terms and update particles
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
@@ -307,10 +451,12 @@ calculateSpraySource(
     amrex::Real cp_part = 0.; // Cp of the liquid state
     amrex::Real Tcrit = 0.;   // Liquid mixture critical temperature
     amrex::Real Tboil = 0.;
+    amrex::Real lambda_part = 0.;
     for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
       Tcrit += Y_part[spf] * fdat.critT[spf];
       Tboil += Y_part[spf] * fdat.boilT[spf];
       cp_part += Y_part[spf] * fdat.cp[spf];
+      lambda_part += Y_part[spf] * lambdaL(fdat, T_part, spf);
     }
     T_part = amrex::min(0.999 * Tcrit, T_part);
     // Model the fuel vapor using the one-third rule
@@ -341,6 +487,7 @@ calculateSpraySource(
         cp_skin += gpv.Y_fluid[n] * cp_n[n];
       }
       mw_skin = gpv.mw_mix;
+      sumXVap = 1.;
     }
     amrex::Real lambda_skin = 0.;
     amrex::Real mu_skin = 0.;
@@ -355,11 +502,26 @@ calculateSpraySource(
       Ddiag.data(), mu_skin, xi_skin, lambda_skin, trans_parm);
     mu_skin *= SPU.mu_conv;
     lambda_skin *= SPU.lambda_conv;
+    amrex::Real rhoDtotal = 0.;
+    for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+      const int fspec = fdat.indx[spf];
+      // Convert mass diffusion coefficient from mixture average
+      // to binary for fuel only, not concerned with other species
+      Ddiag[fspec] *= mw_skin * gpv.invmw[fspec] * SPU.rhod_conv;
+      // Get normalized vapor molar fraction
+      amrex::Real X_norm =
+        Y_part[spf] * gpv.invmw[fspec] * Psat[spf] / sumXVap;
+      Ddiag[fspec] *= X_norm;
+      rhoDtotal += Ddiag[fspec];
+    }
     amrex::RealVect diff_vel = gpv.vel_fluid - vel_part;
     amrex::Real diff_vel_mag = diff_vel.vectorLength();
     // Local Reynolds number
     amrex::Real Reyn = rho_skin * diff_vel_mag * dia_part / mu_skin;
     Reyn = amrex::min(Reyn, 1000.);
+    amrex::Real Pr_skin = mu_skin * cp_skin / lambda_skin;
+    amrex::Real Sc_skin = mu_skin / rhoDtotal;
+    amrex::Real powR = amrex::max(std::pow(Reyn, 0.077), 1.);
 
     // Solve momentum source terms
     const amrex::Real inv_pmass = 1. / pmass;
@@ -386,34 +548,37 @@ calculateSpraySource(
           amrex::min(amrex::max(nsub, int(flow_dt * inv_tau_var) + 1), nSubMax);
       }
     }
-
+    amrex::Real ratio1 = cp_skin * rhoDtotal / lambda_skin;
+    amrex::Real Told = 1.2 * T_part;
+    amrex::Real ftold = funcT(Told, fdat, gpv, cBoilT.data(), Y_part.data(), h_part.data(), mi_dot.data(),
+                              Psat.data(), L_fuel.data(),
+                              dia_part, T_part, cp_part, rho_part, lambda_part, ratio1, lambda_skin, Sc_skin, Pr_skin,
+                              Reyn, Ddiag.data());
+    amrex::Real Tnew = Told + ftold;
+    amrex::Real T_eps = 1.E-7;
+    amrex::Real Ttol = std::abs(Told - Tnew) / Tnew;
+    int k = 0;
+    while (Ttol > T_eps) {
+      amrex::Real ftnew = funcT(Tnew, fdat, gpv, cBoilT.data(), Y_part.data(), h_part.data(), mi_dot.data(),
+                                Psat.data(), L_fuel.data(),
+                                dia_part, T_part, cp_part, rho_part, lambda_part, ratio1, lambda_skin, Sc_skin, Pr_skin,
+                                Reyn, Ddiag.data());
+      amrex::Real Tup = Tnew - ftnew * (Tnew - Told) / (ftnew - ftold);
+      Ttol = std::abs(Tup - Tnew) / Tup;
+      Told = Tnew;
+      Tnew = Tup;
+      ftold = ftnew;
+      k++;
+    }
+    amrex::Real T_surf = Tnew;
+    printf("new T %g %d\n", T_surf, k);
+    delT = (gpv.T_fluid - T_surf);
+    calcBM(fdat, gpv, T_surf, C_eps, Y_part.data(), h_part.data(), cBoilT.data(), Psat.data(), L_fuel.data(), B_M);
     // Solve mass and energy transfer source terms
     amrex::Real part_temp_src = 0.;
     amrex::Real m_dot = 0.;
     if (SPI.mass_tran) {
-      amrex::Real Pr_skin = mu_skin * cp_skin / lambda_skin;
-      amrex::Real powR = amrex::max(std::pow(Reyn, 0.077), 1.);
-      amrex::Real rhoDtotal = 0.;
-      amrex::Real Psat_total = 0.;
-      amrex::Real maxPsat = 0.;
-      int maxY = -1;
-      for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-        const int fspec = fdat.indx[spf];
-        // Convert mass diffusion coefficient from mixture average
-        // to binary for fuel only, not concerned with other species
-        Ddiag[fspec] *= mw_skin * gpv.invmw[fspec] * SPU.rhod_conv;
-        // Get normalized vapor molar fraction
-        amrex::Real X_norm =
-          Y_part[spf] * gpv.invmw[fspec] * Psat[spf] / sumXVap;
-        Ddiag[fspec] *= X_norm;
-        rhoDtotal += Ddiag[fspec];
-        Psat_total += Psat[spf];
-        if (Psat[spf] > maxPsat) {
-          maxY = spf;
-          maxPsat = Psat[spf];
-        }
-      }
-      amrex::Real Sc_skin = mu_skin / rhoDtotal;
+      amrex::Real sumL = 0.;
       amrex::Real logB = std::log(1. + B_M);
       amrex::Real invFM = B_M / (logB * std::pow(1. + B_M, 0.7));
       amrex::Real Sh_0 = 1. + powR * std::cbrt(1. + Reyn * Sc_skin);
@@ -422,36 +587,25 @@ calculateSpraySource(
       // Check if flash boiling is occuring, if so, only the species
       // with the higher saturation pressure is assumed to evaporate
       // TODO: determine best way for multi-component flash boiling
-      if (Psat_total > 0.999 * gpv.p_fluid && T_part > Tboil) {
-        // Max operation necessary for LLVM compiler
-        amrex::Real delTb = amrex::max(0., T_part - Tboil);
-        amrex::Real alpha = calcAlpha(delTb);
-        amrex::Real Gf =
-          M_PI * dia_part * dia_part * alpha * delTb / L_fuel[maxY];
-        amrex::Real dh = (hg_g - hg_s) / L_fuel[maxY];
-        amrex::Real coeff = M_PI * lambda_skin / cp_skin * dia_part * Sh_num;
-        amrex::Real G = calcFlashVaporRate(dh, coeff, Gf);
-        mi_dot[maxY] = -amrex::max(G + Gf, 0.);
-        m_dot += mi_dot[maxY];
-      } else {
+      {
         for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
           const int fspec = fdat.indx[spf];
           if (
             Y_part[spf] > 0. && Psat[spf] > gpv.X_fluid[fspec] * gpv.p_fluid) {
             mi_dot[spf] = -amrex::max(Ddiag[fspec] * mdotcoeff, 0.);
             m_dot += mi_dot[spf];
+            sumL += mi_dot[spf] * L_fuel[spf];
           }
         }
       }
 
       const amrex::Real inv_pm_cp = inv_pmass / cp_part;
-      amrex::Real sumL = 0.;
-      for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-        sumL += mi_dot[spf] * L_fuel[spf];
-      }
       amrex::Real Nu_0 = 1. + powR * std::cbrt(1. + Reyn * Pr_skin);
       amrex::Real ratio = cp_skin * Sh_num * rhoDtotal / lambda_skin;
-      amrex::Real Nu_num = calcHeatCoeff(ratio, B_M, B_eps, C_eps, Nu_0);
+      amrex::Real Nu_num = Nu_0;
+      if (std::abs(m_dot) > 0.) {
+        Nu_num = calcHeatCoeff(ratio, B_M, B_eps, C_eps, Nu_0);
+      }
       amrex::Real conv_src = M_PI * lambda_skin * dia_part * delT * Nu_num;
       gpv.fluid_eng_src += conv_src;
       part_temp_src = (sumL + conv_src) * inv_pm_cp;
@@ -475,7 +629,6 @@ calculateSpraySource(
                  , vel_part[2] += part_dt * part_mom_src[2] * inv_pmass;);
     if (SPI.mass_tran) {
       T_part += part_dt * part_temp_src;
-      T_part = amrex::min(Tcrit, T_part);
       amrex::Real new_mass = pmass + m_dot * part_dt;
       if (new_mass > mass_eps) {
         rho_part = 0.;
