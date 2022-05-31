@@ -384,7 +384,7 @@ amrex::Real funcT(amrex::Real Ts,
   /* amrex::Real ho = lambda_skin * Nu_num / dia_part; */
   /* amrex::Real c1 = dia_part / (2. * lambda_part) * phit; */
   /* amrex::Real Tsnew = (sumL * c1 / (M_PI * std::pow(dia_part, 2)) + T_part + gpv.T_fluid * c1 * ho) / (c1 * ho + 1.); */
-  return std::abs(Ts - Tsnew) / Tsnew;
+  return Ts - Tsnew;
 }
 // Compute source terms and update particles
 AMREX_GPU_DEVICE
@@ -549,7 +549,7 @@ calculateSpraySource(
       }
     }
     amrex::Real ratio1 = cp_skin * rhoDtotal / lambda_skin;
-    amrex::Real Told = 1.2 * T_part;
+    amrex::Real Told = amrex::min(1.2 * T_part, Tboil);
     amrex::Real ftold = funcT(Told, fdat, gpv, cBoilT.data(), Y_part.data(), h_part.data(), mi_dot.data(),
                               Psat.data(), L_fuel.data(),
                               dia_part, T_part, cp_part, rho_part, lambda_part, ratio1, lambda_skin, Sc_skin, Pr_skin,
@@ -608,7 +608,7 @@ calculateSpraySource(
       }
       amrex::Real conv_src = M_PI * lambda_skin * dia_part * delT * Nu_num;
       gpv.fluid_eng_src += conv_src;
-      part_temp_src = (sumL + conv_src) * inv_pm_cp;
+      part_temp_src = (sumL + conv_src) * inv_pm_cp + m_dot / pmass * (T_surf - T_part);
       if (isub == 1 && delT > C_eps) {
         amrex::Real inv_tau_d = -m_dot / (3. * pmass);
         amrex::Real inv_tau_T = conv_src * inv_pm_cp / delT;
@@ -631,6 +631,7 @@ calculateSpraySource(
       T_part += part_dt * part_temp_src;
       amrex::Real new_mass = pmass + m_dot * part_dt;
       if (new_mass > mass_eps) {
+        if (SPRAY_FUEL_NUM > 1) {
         rho_part = 0.;
         for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
           Y_part[spf] = amrex::min(
@@ -641,6 +642,7 @@ calculateSpraySource(
             Y_part[spf] / rhoL(fdat, amrex::min(T_part, cBoilT[spf]), spf);
         }
         rho_part = 1. / rho_part;
+        }
         pmass = new_mass;
         dia_part = std::cbrt(6. * pmass / (M_PI * rho_part));
       } else {
