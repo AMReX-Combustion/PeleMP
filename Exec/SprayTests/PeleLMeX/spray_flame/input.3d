@@ -1,8 +1,8 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo     = -1.28E-3 -1.28E-3 -1.28E-3
-geometry.prob_hi     =  1.28E-3  1.28E-3  1.28E-3
+geometry.prob_lo     = -1.28E-3 -1.28E-3 0.
+geometry.prob_hi     =  1.28E-3  1.28E-3 2.56E-3
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
