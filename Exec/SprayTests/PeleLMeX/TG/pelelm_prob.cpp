@@ -86,21 +86,23 @@ void PeleLM::readProbParm()
   PeleLM::prob_parm->partDia = dia;
   PeleLM::prob_parm->partTemp = T;
   if (amrex::ParallelDescriptor::IOProcessor()) {
-    amrex::Print() << "number of particles: "
+    std::ofstream ofs("ic.txt", std::ofstream::out);
+    amrex::Print(ofs) << "number of particles: "
                       << PeleLM::prob_parm->partNum[0];
     for (int dir = 1; dir != AMREX_SPACEDIM; ++dir) {
-      amrex::Print() << ", " << PeleLM::prob_parm->partNum[dir];
+      amrex::Print(ofs) << ", " << PeleLM::prob_parm->partNum[dir];
     }
-    amrex::Print() << std::endl;
-    amrex::Print() << "rho0: " << rho << std::endl;
-    amrex::Print() << "cs: " << cs << std::endl;
-    amrex::Print() << "U: " << Ugas << std::endl;
-    amrex::Print() << "mu: " << mu << std::endl;
-    amrex::Print() << "Re: " << reyn << std::endl;
-    amrex::Print() << "Stokes number: " << Stmod << "*Stc " << std::endl;
-    amrex::Print() << "particle diameter: " << dia << std::endl;
-    amrex::Print() << "tau_d: " << tau_d << std::endl;
-    amrex::Print() << "Re_d: " << Re_d << std::endl;
-    amrex::Print() << "final time (72 tau_g): " << 72. * tau_g << std::endl;
+    amrex::Print(ofs) << std::endl;
+    amrex::Print(ofs) << "rho0: " << rho << std::endl;
+    amrex::Print(ofs) << "cs: " << cs << std::endl;
+    amrex::Print(ofs) << "U: " << Ugas << std::endl;
+    amrex::Print(ofs) << "mu: " << mu << std::endl;
+    amrex::Print(ofs) << "Re: " << reyn << std::endl;
+    amrex::Print(ofs) << "Stokes number: " << Stmod << "*Stc " << std::endl;
+    amrex::Print(ofs) << "particle diameter: " << dia << std::endl;
+    amrex::Print(ofs) << "tau_d: " << tau_d << std::endl;
+    amrex::Print(ofs) << "Re_d: " << Re_d << std::endl;
+    amrex::Print(ofs) << "final time (7.2 tau_g): " << 7.2 * tau_g << std::endl;
+    ofs.close();
   }
 }

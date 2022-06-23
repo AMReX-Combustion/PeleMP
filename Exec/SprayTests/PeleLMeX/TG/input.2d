@@ -2,7 +2,7 @@
 geometry.is_periodic = 1 1               # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
 geometry.prob_lo     = 0.0 0.0 0.0        # x_lo y_lo (z_lo)
-geometry.prob_hi     = 2. 2. 2.        # x_hi y_hi (z_hi)
+geometry.prob_hi     = 1. 1. 1.        # x_hi y_hi (z_hi)
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
@@ -17,7 +17,7 @@ particles.cfl = 4.
 amr.plot_per = 0.5
 amr.dt_shrink = 1.
 amr.max_step = 1000000
-amr.stop_time = 32.
+amr.stop_time = 0.204
 #-------------------------AMR CONTROL----------------------------
 amr.n_cell          = 64 64 64      # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
@@ -29,13 +29,13 @@ amr.ref_ratio = 2 2 2
 
 #--------------------------- Problem -------------------------------
 prob.P_mean = 101325.0
-prob.init_T = 500.
+prob.init_T = 300.
 prob.reynolds = 1600.
-prob.mach = 0.01
-prob.density_ratio = 1000.
+prob.mach = 0.1
+prob.density_ratio = 10000.
 prob.st_mod = 20.
 # Particle parameters, only used if particles.init_function = 1
-prob.num_particles = (64, 64, 64)
+prob.num_particles = (128, 128, 128)
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
@@ -74,7 +74,7 @@ particles.fuel_boil_temp = 447.27 # K
 particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E5
 particles.fuel_cp = 2.1921E3 # Cp at 298 K
-particles.fuel_rho = 682.790622
+particles.fuel_rho = 11379.8
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to Pa
