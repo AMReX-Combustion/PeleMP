@@ -18,6 +18,14 @@ void PeleLM::readProbParm()
   pp.get("jet_dia", PeleLM::prob_parm->jet_dia);
   pp.get("part_mean_dia", PeleLM::prob_parm->part_mean_dia);
   pp.query("part_stdev_dia", PeleLM::prob_parm->part_stdev_dia);
+  if (PeleLM::prob_parm->part_stdev_dia < 0.) {
+    // If no standard deviation is specified, assume we are using Weibull distribution
+    if (!pp.contains("part_k_dia")) {
+      amrex::Abort("Must specify either standard deviation or Weibull k value");
+    } else {
+      pp.get("part_k_dia", PeleLM::prob_parm->part_weibull_k);
+    }
+  }
   pp.get("part_temp", PeleLM::prob_parm->part_temp);
   pp.query("mass_flow_rate", PeleLM::prob_parm->mass_flow_rate);
   // All angles must be in degrees

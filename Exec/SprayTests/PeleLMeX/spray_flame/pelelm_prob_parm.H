@@ -22,7 +22,8 @@ struct ProbParm
   amrex::Real spread_angle = 20.;
 
   amrex::Real part_mean_dia = 1.E-6;
-  amrex::Real part_stdev_dia = 0.;
+  amrex::Real part_stdev_dia = -1.;
+  amrex::Real part_weibull_k = 3.;
   amrex::Real mass_flow_rate = 2.3E-3;
   amrex::Real part_temp = 300.;
   // This is the polar angle of the jet from the Z axis

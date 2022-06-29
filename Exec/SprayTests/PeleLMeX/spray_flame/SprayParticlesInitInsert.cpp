@@ -154,6 +154,13 @@ SprayParticleContainer::injectParticles(
   }
   amrex::Real part_dia = prob_parm.part_mean_dia;
   amrex::Real part_stdev = prob_parm.part_stdev_dia;
+  amrex::Real weibull_k = prob_parm.part_weibull_k;
+  // Set standard deviation > 0 to use log normal distribution
+  // Otherwise, a Weibull distribution is used
+  bool log_norm = false;
+  if (part_stdev > 0.) {
+    log_norm = true;
+  }
   amrex::Real stdsq = part_stdev * part_stdev;
   amrex::Real meansq = part_dia * part_dia;
   amrex::Real log_mean =
@@ -247,9 +254,15 @@ SprayParticleContainer::injectParticles(
             AMREX_D_TERM(p.rdata(pstateVel) = jet_vel * part_vel[0];
                          , p.rdata(pstateVel + 1) = jet_vel * part_vel[1];
                          , p.rdata(pstateVel + 2) = jet_vel * part_vel[2];);
-            amrex::Real cur_dia = amrex::RandomNormal(log_mean, log_stdev);
-            // Use a log normal distribution
-            cur_dia = std::exp(cur_dia);
+            amrex::Real cur_dia;
+            if (log_norm) {
+              // If we want to use an log normal distribution
+              cur_dia = std::exp(amrex::RandomNormal(log_mean, log_stdev));
+            } else {
+              amrex::Real rand = amrex::Random();
+              amrex::Real fact = -std::log(0.5 * (1. - std::erf(rand / std::sqrt(2.))));
+              cur_dia = part_dia * std::pow(fact, 1. / weibull_k);
+            }
             // Add particles as if they have advanced some random portion of
             // dt
             amrex::Real pmov = amrex::Random();
