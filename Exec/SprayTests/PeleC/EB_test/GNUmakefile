@@ -25,10 +25,8 @@ THREAD_SANITIZER = FALSE
 #DEFINES += -DCONVERGENCE
 
 # PeleC
-USE_REACT = FALSE
-USE_EB = TRUE
 Eos_Model := Fuego
-Chemistry_Model := multi_dechep
+Chemistry_Model := decane_3sp
 Transport_Model := Simple
 
 # PeleMP

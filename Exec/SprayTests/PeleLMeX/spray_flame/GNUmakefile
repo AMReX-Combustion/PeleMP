@@ -8,7 +8,7 @@ VERBOSE         = TRUE
 TINY_PROFILE    = TRUE
 
 # Compilation
-COMP            = gnu
+COMP            = llvm
 USE_MPI         = TRUE
 USE_OMP         = FALSE
 USE_CUDA        = FALSE
@@ -18,7 +18,8 @@ USE_HIP         = FALSE
 USE_EFIELD      = FALSE
 
 # PelePhysics
-Chemistry_Model = dodecane_lu
+Chemistry_Model = decane_3sp
+#dodecane_lu
 Eos_Model	= Fuego
 Transport_Model = Simple
 

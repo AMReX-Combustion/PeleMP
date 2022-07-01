@@ -20,10 +20,10 @@ void PeleLM::readProbParm()
   pp.query("part_stdev_dia", PeleLM::prob_parm->part_stdev_dia);
   if (PeleLM::prob_parm->part_stdev_dia < 0.) {
     // If no standard deviation is specified, assume we are using Weibull distribution
-    if (!pp.contains("part_k_dia")) {
+    if (!pp.contains("part_weibull_k")) {
       amrex::Abort("Must specify either standard deviation or Weibull k value");
     } else {
-      pp.get("part_k_dia", PeleLM::prob_parm->part_weibull_k);
+      pp.get("part_weibull_k", PeleLM::prob_parm->part_weibull_k);
     }
   }
   pp.get("part_temp", PeleLM::prob_parm->part_temp);

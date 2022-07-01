@@ -1,8 +1,8 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo     = -1.28E-3 -1.28E-3 0.
-geometry.prob_hi     =  1.28E-3  1.28E-3 2.56E-3
+geometry.prob_lo     = -0.027 0.027 0.
+geometry.prob_hi     =  0.027 0.027 0.054
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
@@ -25,21 +25,21 @@ amr.max_grid_size   = 64              # max box size
 #--------------------------- Problem -------------------------------
 # Gas phase parameters
 prob.P_mean = 101325.
-prob.T_init = 440.
+prob.T_init = 900.
 prob.vel_init = 0. 0. 0.
 
 # Jet parameters
 prob.jet_cent = 0. 0. 0.
-prob.part_temp  = 363.
+prob.part_temp  = 300.
 # NC10H22
 prob.Y_jet  = 1.
 # Log-normal distribution of particle diameters
 # Mean particle diameter
-prob.part_mean_dia = 1.E-5
+prob.part_mean_dia = 4.E-5
 # Standard deviation of the particle diameter
 prob.part_stdev_dia = 0.
 # Jet properties
-prob.jet_dia = 4.E-5
+prob.jet_dia = 0.004
 # The polar angle in degrees relative to the Z axis
 prob.jet_angle = 30.
 # The spreading angle in degrees
@@ -49,11 +49,7 @@ prob.jet_azi_lo = 0.
 prob.jet_azi_hi = 360.
 # Magnitude of the jet velocity
 prob.jet_vel = 30.
-prob.mass_flow_rate = 2.0349e-5
-#prob.mass_flow_rate = 2.E-4
-
-prob.jet_start_time = 0.
-prob.jet_end_time = 0.5E-3
+prob.mass_flow_rate = 1.E-3
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
@@ -96,16 +92,16 @@ nodal_proj.verbose = 0
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.derive_plot_vars = 1
-particles.derive_plot_species = 0
 # decane
-particles.fuel_species = NC10H22
-particles.fuel_crit_temp = 617.8
-particles.fuel_boil_temp = 447.27
-particles.fuel_latent = 3.5899E5
-particles.fuel_cp = 2192.1
-particles.fuel_rho = 640.
+particles.fuel_species = NC12H26
+# Properties for liquid dodecane
+particles.fuel_crit_temp = 658.2 # K (at Pc = 1.8170 MPa)
+particles.fuel_boil_temp = 489. # K (at atmospheric conditions)
 particles.fuel_ref_temp = 298.15
-particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
+particles.fuel_latent = 3.0299E5 # Latent heat at reference temperature
+particles.fuel_cp = 2.207E3 # Cp at 298
+particles.fuel_rho = 669.43
+particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
 
 particles.use_splash_model = false
 
@@ -116,7 +112,7 @@ particles.mom_transfer  = 1
 particles.mass_transfer = 1
 particles.cfl           = 1.
 particles.write_spray_ascii_files = 0
-particles.parcel_size = 1.
+particles.parcel_size = 10.
 
 amrex.regtest_reduction=1
 amrex.fpe_trap_invalid = 1

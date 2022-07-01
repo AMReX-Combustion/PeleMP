@@ -80,9 +80,10 @@ SprayParticleContainer::injectParticles(
   const int pstateDia = m_sprayIndx.pstateDia;
   const int pstateY = m_sprayIndx.pstateY;
   const SprayData* fdat = m_sprayData;
+  amrex::Real part_temp = prob_parm.part_temp;
   amrex::Real rho_part = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    rho_part += prob_parm.Y_jet[spf] / fdat->rho[spf];
+    rho_part += prob_parm.Y_jet[spf] / fdat->rhoL(part_temp, spf);
   }
   rho_part = 1. / rho_part;
   // Number of particles per parcel
@@ -104,7 +105,6 @@ SprayParticleContainer::injectParticles(
 #else
   amrex::Real jet_area = jet_dia;
 #endif
-  amrex::Real part_temp = prob_parm.part_temp;
   // This absolutely must be included with any injection or insertion
   // function or significant issues will arise
   if (jet_vel * dt / dx[0] > 0.5) {
