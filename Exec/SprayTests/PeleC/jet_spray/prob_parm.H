@@ -26,7 +26,6 @@ struct ProbParmHost
   amrex::Real jet_start_time = 0.;
   amrex::Real jet_end_time = 10000.;
   amrex::Real spray_angle = 20.;
-  amrex::Real jet_dx_mod = 50.;
   amrex::RealVect jet_cent = amrex::RealVect::TheZeroVector();
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};
   unsigned int inject_N = 0;

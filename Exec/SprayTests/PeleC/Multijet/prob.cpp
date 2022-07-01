@@ -20,7 +20,6 @@ amrex_probinit(
   pp.query("jet_start_time", PeleC::prob_parm_host->jet_start_time);
   pp.query("jet_end_time", PeleC::prob_parm_host->jet_end_time);
   // The cells are divided by this value when prescribing the jet inlet
-  pp.query("jet_dx_mod", PeleC::prob_parm_host->jet_dx_mod);
   pp.get("jet_dia", PeleC::prob_parm_host->jet_dia);
   pp.get("part_mean_dia", PeleC::prob_parm_host->part_mean_dia);
   pp.query("part_stdev_dia", PeleC::prob_parm_host->part_stdev_dia);

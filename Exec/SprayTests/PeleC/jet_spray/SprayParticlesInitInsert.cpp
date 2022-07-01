@@ -1,7 +1,6 @@
 
 #include "SprayParticles.H"
 #include "SprayInjectTemplate.H"
-#include <AMReX_Particles.H>
 #include <PeleC.H>
 #include "prob.H"
 
