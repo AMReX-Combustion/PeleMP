@@ -35,14 +35,10 @@ extern "C" {
         }
         // Convert to radians
         PeleLM::prob_parm->spray_angle *= M_PI / 180.;
-        // Total number of jets
-        //unsigned int total_jets = std::pow(jets_per_dir, AMREX_SPACEDIM - 1);
-	amrex::Real dom_len = probhi[0] - problo[0];
-        amrex::Real yloc = (probhi[1] - problo[1]) * .5;
-        amrex::Real xloc = dom_len * .5;
-        amrex::Real zloc = problo[2];
-	AMREX_D_TERM(PeleLM::prob_parm->jet_cents[0] = xloc;,
-		     PeleLM::prob_parm->jet_cents[1] = yloc;,
-		     PeleLM::prob_parm->jet_cents[2] = zloc;)
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+          PeleLM::prob_parm->jet_cent[dir] = problo[dir] + 0.5 * (probhi[dir] - problo[dir]);
+        }
+        int lowD = AMREX_SPACEDIM - 1;
+        PeleLM::prob_parm->jet_cent[lowD] = problo[lowD];
     }
 }

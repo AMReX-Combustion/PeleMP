@@ -27,22 +27,22 @@ SprayParticleContainer::injectParticles(
     (phi[0] - plo[0]) / (amrex::Real(prob_parm.jets_per_dir[0]));
   int jetz = 1;
   amrex::Real div_lenz = 0.;
+  amrex::Real zlo = 0.;
 #if AMREX_SPACEDIM == 3
   div_lenz = (phi[2] - plo[2]) / (amrex::Real(prob_parm.jets_per_dir[2]));
+  zlo = plo[2];
   jetz = prob_parm.jets_per_dir[2];
 #endif
   amrex::Real yloc = plo[1];
   int jindx = 0;
   for (int i = 0; i < prob_parm.jets_per_dir[0]; ++i) {
-    amrex::Real xloc = div_lenx * (amrex::Real(i) + 0.5);
+    amrex::Real xloc = plo[0] + div_lenx * (amrex::Real(i) + 0.5);
     for (int k = 0; k < jetz; ++k) {
-      amrex::Real zloc = div_lenz * (amrex::Real(k) + 0.5);
+      amrex::Real zloc = zlo + div_lenz * (amrex::Real(k) + 0.5);
       jet_cents[jindx] = amrex::RealVect(AMREX_D_DECL(xloc, yloc, zloc));
       jindx++;
     }
   }
-  amrex::RealVect dom_len(
-    AMREX_D_DECL(geom.ProbLength(0), geom.ProbLength(1), geom.ProbLength(2)));
   amrex::Real mass_flow_rate = prob_parm.mass_flow_rate;
   amrex::Real jet_vel = prob_parm.jet_vel;
   amrex::Real jet_dia = prob_parm.jet_dia;
