@@ -1,7 +1,7 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo     = -0.027 0.027 0.
+geometry.prob_lo     = -0.027 -0.027 0.
 geometry.prob_hi     =  0.027 0.027 0.054
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
