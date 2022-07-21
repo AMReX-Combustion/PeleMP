@@ -126,5 +126,4 @@ prob.jet_start_time = 0.
 prob.jet_end_time = 1.54E-3
 prob.jet_vel = 6.E4
 # This divides the cells into smaller squares for injecting particles
-prob.jet_dx_mod = 42.
 prob.mass_flow_rate = 2.3

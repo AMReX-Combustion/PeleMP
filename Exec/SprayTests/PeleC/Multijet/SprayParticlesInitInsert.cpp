@@ -39,17 +39,20 @@ SprayParticleContainer::injectParticles(
     m_injectVel = jet_vel;
     jet_vel = max_vel;
   }
+  int curProc = amrex::ParallelDescripter::MyProc();
   amrex::Real part_dia = prob_parm.part_mean_dia;
   amrex::Real part_stdev = prob_parm.part_stdev_dia;
   LogNormDist log_dist(part_dia, part_stdev);
-  amrex::Real jet_angle = 0.;
   const int norm_dir = 1;
+  amrex::RealVect jet_norm(amrex::RealVect::TheZeroVector());
+  jet_norm[norm_dir] = 1.;
   for (int jindx = 0; jindx < prob_parm.num_jets; ++jindx) {
-    amrex::RealVect cur_jet_cent = prob_parm.jet_cents[jindx];
-    sprayInjection<LogNormDist>(
-      log_dist, cur_jet_cent, jet_dia, prob_parm.part_temp, mass_flow_rate,
-      jet_vel, prob_parm.spray_angle, dt, prob_parm.Y_jet.data(), lev,
-      jet_angle, 0., 360., norm_dir);
+    if (curProc == jindx) {
+      amrex::RealVect cur_jet_cent = prob_parm.jet_cents[jindx];
+      sprayInjection<LogNormDist>(
+        log_dist, cur_jet_cent, jet_norm, jet_dia, prob_parm.part_temp, mass_flow_rate,
+        jet_vel, prob_parm.spray_angle, dt, prob_parm.Y_jet.data(), lev, curProc);
+    }
   }
   // Redistribute is done outside of this function
   return true;

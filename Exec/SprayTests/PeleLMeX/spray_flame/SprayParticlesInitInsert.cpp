@@ -37,17 +37,15 @@ SprayParticleContainer::injectParticles(
   if (prob_parm.part_stdev_dia >= 0.) {
     LogNormDist log_dist(prob_parm.part_mean_dia, prob_parm.part_stdev_dia);
     sprayInjection<LogNormDist>(
-      log_dist, prob_parm.jet_cent, prob_parm.jet_dia, prob_parm.part_temp,
+      log_dist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia, prob_parm.part_temp,
       prob_parm.mass_flow_rate, jet_vel, prob_parm.spread_angle, dt,
-      prob_parm.Y_jet.data(), lev, prob_parm.jet_angle, prob_parm.jet_azi_lo,
-      prob_parm.jet_azi_hi);
+      prob_parm.Y_jet.data(), lev, prob_parm.num_inj_procs);
   } else {
     WeibullDist w_dist(prob_parm.part_mean_dia, prob_parm.part_weibull_k);
     sprayInjection<WeibullDist>(
-      w_dist, prob_parm.jet_cent, prob_parm.jet_dia, prob_parm.part_temp,
+      w_dist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia, prob_parm.part_temp,
       prob_parm.mass_flow_rate, jet_vel, prob_parm.spread_angle, dt,
-      prob_parm.Y_jet.data(), lev, prob_parm.jet_angle, prob_parm.jet_azi_lo,
-      prob_parm.jet_azi_hi);
+      prob_parm.Y_jet.data(), lev, prob_parm.num_inj_procs);
   }
   // Redistribute is done outside of this function
   return true;

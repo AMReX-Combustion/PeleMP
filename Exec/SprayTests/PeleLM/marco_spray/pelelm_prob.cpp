@@ -16,7 +16,6 @@ extern "C" {
 
       	pp.query("jet_vel", PeleLM::prob_parm->jet_vel);
         // The cells are divided by this value when prescribing the jet inlet
-        pp.query("jet_dx_mod", PeleLM::prob_parm->jet_dx_mod);
         pp.get("jet_dia", PeleLM::prob_parm->jet_dia);
         pp.get("part_mean_dia", PeleLM::prob_parm->part_mean_dia);
         pp.query("part_stdev_dia", PeleLM::prob_parm->part_stdev_dia);
