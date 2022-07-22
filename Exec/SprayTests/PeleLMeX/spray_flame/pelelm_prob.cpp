@@ -17,9 +17,12 @@ void PeleLM::readProbParm()
     PeleLM::prob_parm->jet_cent[dir] = jcent[dir];
     PeleLM::prob_parm->jet_norm[dir] = jnorm[dir];
   }
+  PeleLM::prob_parm->start_inj_proc = 0;
   PeleLM::prob_parm->num_inj_procs = 1;
   // Number of processors to do the injection
   pp.query("num_inj_procs", PeleLM::prob_parm->num_inj_procs);
+  pp.query("start_inj_proc", PeleLM::prob_parm->start_inj_proc);
+  pp.query("hollow_jet", PeleLM::prob_parm->hollow_jet);
   // The cells are divided by this value when prescribing the jet inlet
   pp.get("jet_dia", PeleLM::prob_parm->jet_dia);
   pp.get("part_mean_dia", PeleLM::prob_parm->part_mean_dia);

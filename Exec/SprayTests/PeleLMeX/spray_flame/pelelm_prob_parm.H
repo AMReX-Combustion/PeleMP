@@ -20,6 +20,7 @@ struct ProbParm
   amrex::Real jet_vel = 50.;
   // This is the spread of the jet
   amrex::Real spread_angle = 20.;
+  int start_inj_proc = 0;
   int num_inj_procs = 1;
 
   amrex::Real part_mean_dia = 1.E-6;
@@ -30,5 +31,6 @@ struct ProbParm
   // Center of the jet
   amrex::RealVect jet_cent;
   amrex::RealVect jet_norm;
+  bool hollow_jet = false;
 };
 #endif

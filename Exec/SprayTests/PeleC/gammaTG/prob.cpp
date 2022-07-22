@@ -55,11 +55,6 @@ amrex_probinit(
   trans_parm.const_viscosity = mu;
   trans_parm.const_conductivity = mu * cp / PeleC::h_prob_parm_device->prandtl;
   PeleC::trans_parms.sync_to_device();
-// #ifdef AMREX_USE_GPU
-//   amrex::Gpu::htod_memcpy(trans_parm_g, &trans_parm, sizeof(trans_parm));
-// #else
-//   std::memcpy(trans_parm_g, &trans_parm, sizeof(trans_parm));
-// #endif
 
   const amrex::Real St_num = Stmod / (8. * M_PI);
   amrex::Real refU = PeleC::h_prob_parm_device->v0;

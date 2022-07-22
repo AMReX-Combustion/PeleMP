@@ -50,8 +50,9 @@ SprayParticleContainer::injectParticles(
     if (curProc == jindx) {
       amrex::RealVect cur_jet_cent = prob_parm.jet_cents[jindx];
       sprayInjection<LogNormDist>(
-        log_dist, cur_jet_cent, jet_norm, jet_dia, prob_parm.part_temp, mass_flow_rate,
-        jet_vel, prob_parm.spray_angle, dt, prob_parm.Y_jet.data(), lev, curProc);
+        log_dist, cur_jet_cent, jet_norm, jet_dia, prob_parm.part_temp,
+        mass_flow_rate, jet_vel, prob_parm.spray_angle, dt,
+        prob_parm.Y_jet.data(), lev, curProc);
     }
   }
   // Redistribute is done outside of this function

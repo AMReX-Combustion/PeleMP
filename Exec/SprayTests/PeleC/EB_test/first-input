@@ -111,6 +111,7 @@ prob.init_T = 1500.
 prob.init_p = 1.01325E7
 prob.init_v = 0.
 
+prob.do_injection = 0
 prob.part_temp = 363.
 prob.jet_dia = 9.E-3
 prob.spray_angle_deg = 20.
@@ -119,4 +120,6 @@ prob.part_stdev_dia = 0.
 prob.jet_vel = 60000.
 prob.jet_start_time = 10000.
 prob.jet_end_time = -100.
+prob.jet_cent = 5. 5. 0.
+prob.jet_norm = 0. 0. 1.
 prob.mass_flow_rate = 1.55
