@@ -29,7 +29,8 @@ prob.T_init = 900.
 prob.vel_init = 0. 0. 0.
 
 # Jet parameters
-prob.jet_cent = 0. 0. 0.
+prob.jet_cent = 0.001 0.001 0.004
+prob.jet_norm = 0.5 -0.5 0.707106781186548
 prob.part_temp  = 300.
 # NC10H22
 prob.Y_jet  = 1.

@@ -34,9 +34,10 @@ SprayParticleContainer::injectParticles(
     m_injectVel = jet_vel;
     jet_vel = max_vel;
   }
+  amrex::RealVect jet_norm(0., 0., 1.);
   LogNormDist log_dist(prob_parm.part_mean_dia, prob_parm.part_stdev_dia);
   sprayInjection<LogNormDist>(
-    log_dist, prob_parm.jet_cent, prob_parm.jet_dia, prob_parm.part_temp,
+    log_dist, prob_parm.jet_cent, jet_norm, prob_parm.jet_dia, prob_parm.part_temp,
     prob_parm.mass_flow_rate, jet_vel, prob_parm.spray_angle, dt,
     prob_parm.Y_jet.data(), lev);
   // Redistribute is done outside of this function

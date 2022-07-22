@@ -57,7 +57,6 @@ prob.jets_per_dir = 2 1 2
 prob.jet_start_time = 0.
 prob.jet_end_time = 2.
 prob.jet_vel = 60.
-prob.jet_dx_mod = 42.
 prob.mass_flow_rate = 2.3E-5
 
 #--------------------SPRAY PARTICLE DATA-----------------------

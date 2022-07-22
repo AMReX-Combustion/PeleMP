@@ -60,7 +60,6 @@ prob.jets_per_dir = 1
 prob.jet_start_time = 0.
 prob.jet_end_time = .5E-3
 prob.jet_vel = 30.
-prob.jet_dx_mod = 42.
 #prob.mass_flow_rate = 2.0349e-5
 prob.mass_flow_rate = 1.0174e-7
 #prob.jet_end_time = 0.00052
