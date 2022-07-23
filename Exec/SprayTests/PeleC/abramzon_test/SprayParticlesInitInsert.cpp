@@ -14,7 +14,8 @@ SprayParticleContainer::injectParticles(
   ProbParmHost const& prob_parm,
   ProbParmDevice const& prob_parm_d)
 {
-  amrex::ignore_unused(time, dt, nstep, lev, finest_level, prob_parm, prob_parm_d);
+  amrex::ignore_unused(
+    time, dt, nstep, lev, finest_level, prob_parm, prob_parm_d);
   return false;
 }
 

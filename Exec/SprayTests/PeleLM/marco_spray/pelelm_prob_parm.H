@@ -22,7 +22,6 @@ struct ProbParm
     amrex::Real jet_start_time = 0.;
     amrex::Real jet_end_time = 10000.;
     amrex::Real spray_angle = 0.42;
-    amrex::Real jet_dx_mod = 50.;
     amrex::Real gas_jet_vel = 50.;
     amrex::Real gas_jet_dia = 1.E-5;
     amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};

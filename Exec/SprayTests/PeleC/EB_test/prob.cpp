@@ -21,24 +21,30 @@ amrex_probinit(
   pp.query("init_T", PeleC::h_prob_parm_device->T0);
   pp.query("init_N2", PeleC::h_prob_parm_device->Y_N2);
   pp.query("init_O2", PeleC::h_prob_parm_device->Y_O2);
-  pp.query("jet_vel", PeleC::prob_parm_host->jet_vel);
-  pp.get("jet_dia", PeleC::prob_parm_host->jet_dia);
-  // The cells are divided by this value when prescribing the jet inlet
-  pp.query("jet_dx_mod", PeleC::prob_parm_host->jet_dx_mod);
-  pp.get("part_mean_dia", PeleC::prob_parm_host->part_mean_dia);
-  pp.query("part_stdev_dia", PeleC::prob_parm_host->part_stdev_dia);
-  pp.get("part_temp", PeleC::prob_parm_host->part_temp);
-  pp.query("mass_flow_rate", PeleC::prob_parm_host->mass_flow_rate);
-  pp.get("spray_angle_deg", PeleC::prob_parm_host->spray_angle);
-  pp.query("jet_start_time", PeleC::prob_parm_host->jet_start_time);
-  pp.query("jet_end_time", PeleC::prob_parm_host->jet_end_time);
-  // Convert to radians
-  PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
+  pp.query("do_injection", PeleC::prob_parm_host->do_injection);
+  if (PeleC::prob_parm_host->do_injection) {
+    pp.query("jet_vel", PeleC::prob_parm_host->jet_vel);
+    pp.get("jet_dia", PeleC::prob_parm_host->jet_dia);
+    // The cells are divided by this value when prescribing the jet inlet
+    pp.get("part_mean_dia", PeleC::prob_parm_host->part_mean_dia);
+    pp.query("part_stdev_dia", PeleC::prob_parm_host->part_stdev_dia);
+    pp.get("part_temp", PeleC::prob_parm_host->part_temp);
+    pp.query("mass_flow_rate", PeleC::prob_parm_host->mass_flow_rate);
+    pp.get("spray_angle_deg", PeleC::prob_parm_host->spray_angle);
+    pp.query("jet_start_time", PeleC::prob_parm_host->jet_start_time);
+    pp.query("jet_end_time", PeleC::prob_parm_host->jet_end_time);
+    // Convert to radians
+    PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
 
-  AMREX_D_TERM(
-    PeleC::prob_parm_host->jet_cent[0] = 0.5 * (probhi[0] + problo[0]);
-    , PeleC::prob_parm_host->jet_cent[1] = problo[1];
-    , PeleC::prob_parm_host->jet_cent[2] = 0.5 * (probhi[2] + problo[2]););
+    std::vector<amrex::Real> jcent(AMREX_SPACEDIM);
+    pp.getarr("jet_cent", jcent);
+    std::vector<amrex::Real> jnorm(AMREX_SPACEDIM);
+    pp.getarr("jet_norm", jnorm);
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+      PeleC::prob_parm_host->jet_cent[dir] = jcent[dir];
+      PeleC::prob_parm_host->jet_norm[dir] = jnorm[dir];
+    }
+  }
 
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;

@@ -89,10 +89,11 @@ amrex_probinit(
   // Convert to radians
   PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
 
-  AMREX_D_TERM(
-    PeleC::prob_parm_host->jet_cent[0] = problo[0] + 0.5 * (probhi[0] - problo[0]);
-    , PeleC::prob_parm_host->jet_cent[1] = problo[1];
-    , PeleC::prob_parm_host->jet_cent[2] = problo[2] + 0.5 * (probhi[2] - problo[2]););
+  AMREX_D_TERM(PeleC::prob_parm_host->jet_cent[0] =
+                 problo[0] + 0.5 * (probhi[0] - problo[0]);
+               , PeleC::prob_parm_host->jet_cent[1] = problo[1];
+               , PeleC::prob_parm_host->jet_cent[2] =
+                   problo[2] + 0.5 * (probhi[2] - problo[2]););
 
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;

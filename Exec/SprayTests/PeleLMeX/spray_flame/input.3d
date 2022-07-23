@@ -1,7 +1,7 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo     = -0.027 0.027 0.
+geometry.prob_lo     = -0.027 -0.027 0.
 geometry.prob_hi     =  0.027 0.027 0.054
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -29,7 +29,10 @@ prob.T_init = 900.
 prob.vel_init = 0. 0. 0.
 
 # Jet parameters
+#prob.jet_cent = 0.001 0.001 0.004
+#prob.jet_norm = 0.5 -0.5 0.707106781186548
 prob.jet_cent = 0. 0. 0.
+prob.jet_norm = 0. 0. 1.
 prob.part_temp  = 300.
 # NC10H22
 prob.Y_jet  = 1.
@@ -40,16 +43,13 @@ prob.part_mean_dia = 4.E-5
 prob.part_stdev_dia = 0.
 # Jet properties
 prob.jet_dia = 0.004
-# The polar angle in degrees relative to the Z axis
-prob.jet_angle = 30.
 # The spreading angle in degrees
 prob.spread_angle = 21.
-# The bounds on the azimuthal angle in degrees
-prob.jet_azi_lo = 0.
-prob.jet_azi_hi = 360.
 # Magnitude of the jet velocity
 prob.jet_vel = 30.
 prob.mass_flow_rate = 1.E-3
+prob.start_inj_proc = 0
+prob.num_inj_procs = 3
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1

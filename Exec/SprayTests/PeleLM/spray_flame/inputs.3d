@@ -58,7 +58,6 @@ prob.spray_angle_deg = 21.
 prob.jet_start_time = 0.
 prob.jet_end_time = 0.5E-3
 prob.jet_vel = 30.
-prob.jet_dx_mod = 42.
 prob.mass_flow_rate = 2.0349e-5
 
 #--------------------SPRAY PARTICLE DATA-----------------------
@@ -116,9 +115,6 @@ ns.num_mac_sync_iter = 2               # Number of mac_sync iterations
 peleLM.chem_integrator = "ReactorCvode"
 peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
 cvode.solve_type = GMRES              # CVODE Linear solve type (for Newton direction) 
-ode.analytical_jacobian = 0           # Provide analytical jacobian (from Fuego) ?
-ode.atol = 1.E-8
-ode.rtol = 1.E-6
 
 # ------------------  INPUTS TO ACTIVE CONTROL  ----------------------
 active_control.on = 0                  # Use AC ?

@@ -20,19 +20,17 @@ struct ProbParm
   amrex::Real jet_vel = 50.;
   // This is the spread of the jet
   amrex::Real spread_angle = 20.;
+  int start_inj_proc = 0;
+  int num_inj_procs = 1;
 
   amrex::Real part_mean_dia = 1.E-6;
   amrex::Real part_stdev_dia = -1.;
   amrex::Real part_weibull_k = 3.;
   amrex::Real mass_flow_rate = 2.3E-3;
   amrex::Real part_temp = 300.;
-  // This is the polar angle of the jet from the Z axis
-  // 0 is perpendicular to the lower jet boundary
-  amrex::Real jet_angle = 0.;
-  // These are bounds on the azimuthal angle
-  amrex::Real jet_azi_lo = 0.;
-  amrex::Real jet_azi_hi = 360.;
   // Center of the jet
   amrex::RealVect jet_cent;
+  amrex::RealVect jet_norm;
+  bool hollow_jet = false;
 };
 #endif
