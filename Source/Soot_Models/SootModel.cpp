@@ -25,12 +25,10 @@ using namespace amrex;
 
 // Default constructor
 SootModel::SootModel()
-  : m_sootData(new SootData{}),
-    m_sootReact(new SootReaction{}),
-    d_sootData(
-      static_cast<SootData*>(amrex::The_Arena()->alloc(sizeof(SootData)))),
-    d_sootReact(static_cast<SootReaction*>(
-      amrex::The_Arena()->alloc(sizeof(SootReaction)))),
+  : m_sootData(nullptr),
+    m_sootReact(nullptr),
+    d_sootData(nullptr),
+    d_sootReact(nullptr),
     m_sootVarName(NUM_SOOT_MOMENTS + 1, ""),
     m_gasSpecNames(NUM_SOOT_GS, "")
 {
@@ -52,6 +50,12 @@ SootModel::define()
   const int ngs = NUM_SOOT_GS;
   // This should be called after readSootParams()
   AMREX_ASSERT(m_readSootParams);
+  m_sootData = new SootData{};
+  m_sootReact = new SootReaction{};
+  d_sootData =
+    static_cast<SootData*>(amrex::The_Arena()->alloc(sizeof(SootData)));
+  d_sootReact =
+    static_cast<SootReaction*>(amrex::The_Arena()->alloc(sizeof(SootReaction)));
   // Double check indices are set
   m_setIndx = m_sootIndx.checkIndices();
   if (!m_setIndx) {
@@ -361,28 +365,31 @@ SootModel::computeSootSourceTerm(
       Real RT = pele::physics::Constants::RU * T;
       const Real betaNucl = convT * betaNF;
       int nsub = nsub_init;
+      Real mindt = dt / Real(nsubMAX);
       Real sootdt = dt / Real(nsub);
       int isub = 1;
       Real tstart = 0.;
       // Subcycling
-      while (tstart < dt && isub < nsubMAX) {
+      while (tstart < dt && isub < nsubMAX + 1) {
         sd->computeSrcTerms(
           T, mu, rho, molarMass, convT, betaNucl, colConst, xi_n.data(),
           omega_src.data(), momentsPtr, mom_srcPtr, mom_fvPtr, sr);
         // Estimate subcycling time step size
-        sootdt = amrex::min(sootdt, dt - tstart);
         Real rate = 1.;
         for (int mom = 0; mom < NUM_SOOT_MOMENTS + 1; ++mom) {
           rate = amrex::max(rate, 1.05 * -sootdt * mom_src[mom] / moments[mom]);
+        }
+        if (rate > 1.) {
+          sootdt = amrex::max(sootdt / rate, mindt);
+        }
+        if (tstart + sootdt > dt) {
+          sootdt = dt - tstart;
         }
         // Update species concentrations within subcycle
         for (int sp = 0; sp < NUM_SOOT_GS; ++sp) {
           xi_n[sp] += sootdt * omega_src[sp];
           rho += sootdt * omega_src[sp] * mw_fluid[sp];
           omega_src[sp] = 0.; // Reset omega source
-        }
-        if (rate > 1.) {
-          sootdt = sootdt / rate;
         }
         // Update moments within subcycle
         for (int mom = 0; mom < NUM_SOOT_MOMENTS + 1; ++mom) {
@@ -395,11 +402,17 @@ SootModel::computeSootSourceTerm(
       }
       // If not finished with the time step, add remaining source
       if (tstart < dt) {
+        Real remdt = dt - tstart;
         sd->computeSrcTerms(
           T, mu, rho, molarMass, convT, betaNucl, colConst, xi_n.data(),
           omega_src.data(), momentsPtr, mom_srcPtr, mom_fvPtr, sr);
+        // Update species concentrations within subcycle
+        for (int sp = 0; sp < NUM_SOOT_GS; ++sp) {
+          xi_n[sp] += remdt * omega_src[sp];
+          rho += remdt * omega_src[sp] * mw_fluid[sp];
+        }
         for (int mom = 0; mom < NUM_SOOT_MOMENTS + 1; ++mom) {
-          moments[mom] += (dt - tstart) * mom_src[mom];
+          moments[mom] += remdt * mom_src[mom];
         }
         sd->clipMoments(momentsPtr);
       }

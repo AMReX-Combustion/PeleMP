@@ -49,7 +49,7 @@ amrex_probinit(
     cs);
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
   amrex::Real moments[NUM_SOOT_MOMENTS + 1];
-  SootData* const sd = PeleC::soot_model->getSootData();
+  SootData* const sd = PeleC::soot_model.getSootData();
   sd->initialSmallMomVals(moments);
   for (int n = 0; n < NUM_SOOT_MOMENTS + 1; ++n) {
     PeleC::h_prob_parm_device->soot_vals[n] = moments[n];
