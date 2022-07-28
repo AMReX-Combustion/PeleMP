@@ -35,21 +35,21 @@ SprayParticleContainer::injectParticles(
     jet_vel = max_vel;
   }
   bool hollow_jet = prob_parm.hollow_jet;
-  if (prob_parm.part_stdev_dia >= 0.) {
-    LogNormDist log_dist(prob_parm.part_mean_dia, prob_parm.part_stdev_dia);
-    sprayInjection<LogNormDist>(
-      log_dist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia,
-      prob_parm.part_temp, prob_parm.mass_flow_rate, jet_vel,
-      prob_parm.spread_angle, dt, prob_parm.Y_jet.data(), lev,
-      prob_parm.start_inj_proc, prob_parm.num_inj_procs, hollow_jet);
-  } else {
-    WeibullDist w_dist(prob_parm.part_mean_dia, prob_parm.part_weibull_k);
-    sprayInjection<WeibullDist>(
-      w_dist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia,
-      prob_parm.part_temp, prob_parm.mass_flow_rate, jet_vel,
-      prob_parm.spread_angle, dt, prob_parm.Y_jet.data(), lev,
-      prob_parm.start_inj_proc, prob_parm.num_inj_procs, hollow_jet);
-  }
+
+  // Create distributions
+  std::unique_ptr<DistBase> dropDist; 
+  amrex::ParmParse ps("spray");
+  std::string dist_type;
+  ps.query("dist_type",dist_type);
+  dropDist = DistBase::create(dist_type);
+  dropDist->init("RosinRammler");
+
+  sprayInjection(
+    *dropDist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia,
+    prob_parm.part_temp, prob_parm.mass_flow_rate, jet_vel,
+    prob_parm.spread_angle, dt, prob_parm.Y_jet.data(), lev,
+    prob_parm.start_inj_proc, prob_parm.num_inj_procs, hollow_jet);
+
   // Redistribute is done outside of this function
   return true;
 }
