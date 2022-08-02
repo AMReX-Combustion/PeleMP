@@ -382,7 +382,7 @@ public:
     int level,
     int finest_level,
 #ifdef PELELM_USE_SPRAY
-    ProbParm const& prob_parm
+    ProbParm &prob_parm
 #else
     ProbParmHost const& prob_parm,
     ProbParmDevice const& prob_parm_d

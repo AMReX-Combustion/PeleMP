@@ -412,7 +412,8 @@ eb_interp(
   amrex::Array4<const amrex::Real> const& bnorm,
   amrex::Array4<const amrex::Real> const& vfrac,
   amrex::IntVect* indx_array,
-  amrex::Real* weights)
+  amrex::Real* weights,
+  const bool isVirt)
 {
   bool do_fe_interp = true;
   int i = 0, j = 0, k = 0, ip = 0, jp = 0, kp = 0;
@@ -526,7 +527,16 @@ eb_interp(
     if (
       (flags(ip, jp, kp).isSingleValued() && (par_dot_EB <= tolerance)) ||
       flags(ip, jp, kp).isCovered()) {
-      amrex::Abort("Particle has penetrated EB boundary");
+
+      for (int aindx = 0; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
+        indx_array[aindx] = {AMREX_D_DECL(ip, jp, kp)};
+        weights[aindx] = 0.;
+      }
+      weights[0] = 1.;
+
+      if (!isVirt) {
+         amrex::Abort("Particle has penetrated EB boundary");
+      }
       // The particle is near the EB. It is either
       // 1) between the cell centroid and the EB, or
       // 2) one or more cells in the 2^3 stencil is covered.

@@ -453,7 +453,9 @@ SprayParticleContainer::updateParticles(
 #endif
     ] AMREX_GPU_DEVICE(int pid) noexcept {
         ParticleType& p = pstruct[pid];
+
         if (p.id() > 0) {
+
           bool isActive = !(isGhost || isVirt);
           auto eos = pele::physics::PhysicsType::eos();
           SprayUnits SPU;
@@ -483,11 +485,13 @@ SprayParticleContainer::updateParticles(
               Abort("Particle has incorrectly left the domain");
             }
           }
+
           // Subcycle loop
           Real ctime = 0.;
           Real cur_dt = sub_dt;
           Real cur_cfl = spray_cfl_lev;
           int cur_iter = 0;
+
           while (p.id() > 0 && cur_iter < num_iter) {
             cur_cfl -= sub_cfl;
             // Flag for whether we are near EB boundaries
@@ -497,18 +501,20 @@ SprayParticleContainer::updateParticles(
               do_fe_interp = eb_interp(
                 p.pos(), ijkc, ijk, dx, dxi, lx, plo, bflags, flags_array,
                 ccent_fab, bcent_fab, bnorm_fab, volfrac_fab, indx_array.data(),
-                weights.data());
+                weights.data(), isVirt);
             } else
 #endif
             {
               trilinear_interp(
                 ijk, lx, indx_array.data(), weights.data(), bflags);
             }
+
             // Interpolate fluid state
             gpv.reset();
             InterpolateGasPhase(
               gpv, state_box, rhoarr, rhoYarr, Tarr, momarr, engarr,
               indx_array.data(), weights.data());
+
             // Solve for avg mw and pressure at droplet location
             gpv.define();
             calculateSpraySource(cur_dt, gpv, SPI, *fdat, p, ltransparm);
