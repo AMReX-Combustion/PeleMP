@@ -217,4 +217,5 @@ struct SprayData
     return d * std::pow(10., a - b / (T + c));
   }
 };
+
 #endif
