@@ -501,7 +501,7 @@ SprayParticleContainer::updateParticles(
               do_fe_interp = eb_interp(
                 p.pos(), ijkc, ijk, dx, dxi, lx, plo, bflags, flags_array,
                 ccent_fab, bcent_fab, bnorm_fab, volfrac_fab, indx_array.data(),
-                weights.data(), isVirt);
+                weights.data(), isActive);
             } else
 #endif
             {
@@ -599,6 +599,11 @@ SprayParticleContainer::updateParticles(
                   ijk = lx.floor();
                   lxc = (p.pos() - plo) * dxi;
                   ijkc = lxc.floor(); // New cell center
+                  // Check if particle did cross to another EB
+                  if (flags_array(ijkc[0],ijkc[1],ijkc[2]).isCovered()) {
+                     printf("Particle was reflected into the wall !\n");
+                     p.id() = -1;
+                  }
                 }                     // if (wall_check)
               }                       // if (left_dom)
             }                         // if (at_bounds...

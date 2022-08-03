@@ -413,7 +413,7 @@ eb_interp(
   amrex::Array4<const amrex::Real> const& vfrac,
   amrex::IntVect* indx_array,
   amrex::Real* weights,
-  const bool isVirt)
+  const bool isActive)
 {
   bool do_fe_interp = true;
   int i = 0, j = 0, k = 0, ip = 0, jp = 0, kp = 0;
@@ -431,6 +431,10 @@ eb_interp(
     flags(i, j - 1, k).isRegular() && flags(i - 1, j, k).isRegular() &&
     flags(i, j, k).isRegular()) {
     do_fe_interp = false;
+  }
+
+  if (flags(ip, jp, kp).isCovered()) {
+    printf("How did that happened ??");
   }
   if (!do_fe_interp) {
     trilinear_interp(ijk, lx, indx_array, weights, bflags);
@@ -534,7 +538,9 @@ eb_interp(
       }
       weights[0] = 1.;
 
-      if (!isVirt) {
+      if (isActive) {
+         printf("part dot tol %e \n",par_dot_EB);
+         printf("part dot position %e %e %e \n",pos[0], pos[1], pos[2]);
          amrex::Abort("Particle has penetrated EB boundary");
       }
       // The particle is near the EB. It is either
