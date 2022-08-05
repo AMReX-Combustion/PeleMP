@@ -26,30 +26,30 @@ amr.max_grid_size   = 64              # max box size
 # Gas phase parameters
 prob.P_mean = 101325.
 prob.T_init = 900.
-prob.vel_init = 0. 0. 0.
 
+#--------------------------- Injection -------------------------------
 # Jet parameters
-#prob.jet_cent = 0.001 0.001 0.004
-#prob.jet_norm = 0.5 -0.5 0.707106781186548
-prob.jet_cent = 0. 0. 0.
-prob.jet_norm = 0. 0. 1.
-prob.part_temp  = 300.
+spray.jet1.jet_cent = 0. 0. 0.
+spray.jet1.jet_norm = 0. 0. 1.
+spray.jet1.T  = 300.
 # NC10H22
-prob.Y_jet  = 1.
-# Log-normal distribution of particle diameters
-# Mean particle diameter
-prob.part_mean_dia = 4.E-5
-# Standard deviation of the particle diameter
-prob.part_stdev_dia = 0.
-# Jet properties
-prob.jet_dia = 0.004
+spray.jet1.Y = 1.
+# Set droplet diameter distribution at injection
+# Options: Uniform, Normal, LogNormal, and Weibull
+spray.jet1.dist_type = Weibull
+spray.jet1.mean_diam = 4.E-5
+spray.jet1.k = 3.
+# For LogNormal distribution
+# spray.jet1.dist_type = LogNormal
+# spray.jet1.mean_diam = 4.E-5
+# spray.jet1.std_dev = 4.E-6
+# Jet diameter
+spray.jet1.jet_dia = 0.004
 # The spreading angle in degrees
-prob.spread_angle = 21.
+spray.jet1.spread_angle = 21.
 # Magnitude of the jet velocity
-prob.jet_vel = 30.
-prob.mass_flow_rate = 1.E-3
-prob.start_inj_proc = 0
-prob.num_inj_procs = 3
+spray.jet1.jet_vel = 30.
+spray.jet1.mass_flow_rate = 1.E-3
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1

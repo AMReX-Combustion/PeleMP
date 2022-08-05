@@ -4,7 +4,7 @@
 
 // This provides a function to be called in the SprayParticlesInitInsert.cpp
 // file included is a standard jet injection calls
-
+#if AMREX_SPACEDIM == 3
 amrex::RealVect
 jet_vel_comp(
   amrex::Real theta_1,
@@ -21,17 +21,17 @@ jet_vel_comp(
   amrex::Real sp2 = std::sin(phi_2);
   amrex::Real cp2 = std::cos(phi_2);
   amrex::Real v1 = st1 * ct2 + st2 * cp2 * ct1;
-  amrex::RealVect vel(AMREX_D_DECL(
+  amrex::RealVect vel(
     cp1 * v1 - sp1 * sp2 * st2, sp1 * v1 + sp2 * st2 * cp1,
-    ct1 * ct2 - st1 * st2 * cp2));
+    ct1 * ct2 - st1 * st2 * cp2);
   return vel;
 }
+#endif
 
 amrex::RealVect
 part_loc_trans(
   amrex::Real radius, amrex::Real theta_1, amrex::Real phi_1, amrex::Real phi_2)
 {
-  amrex::Real st1 = std::sin(theta_1);
   amrex::Real ct1 = std::cos(theta_1);
   amrex::Real sp1 = std::sin(phi_1);
   amrex::Real cp1 = std::cos(phi_1);
@@ -39,7 +39,7 @@ part_loc_trans(
   amrex::Real cp2 = std::cos(phi_2);
   amrex::RealVect loc(AMREX_D_DECL(
     radius * (cp1 * cp2 * ct1 - sp1 * sp2),
-    radius * (sp1 * cp2 * ct1 + cp1 * sp2), -radius * st1 * cp2));
+    radius * (sp1 * cp2 * ct1 + cp1 * sp2), -radius * std::sin(theta_1) * cp2));
   return loc;
 }
 
@@ -53,23 +53,13 @@ part_loc_trans(
  Within these coordinates, theta is the inclination angle and phi is
  the azimuthal */
 
-template <class Dist>
 void
 SprayParticleContainer::sprayInjection(
-  Dist& dist_type,
-  const amrex::RealVect jet_cent,
-  const amrex::RealVect jet_norm,
-  const amrex::Real jet_dia,
-  const amrex::Real part_temp,
-  const amrex::Real inj_mass_flow,
-  const amrex::Real jet_vel,
-  const amrex::Real spread_angle,
+  SprayJet* spray_jet,
   const amrex::Real sim_dt,
-  const amrex::Real* Y_jet,
   const int level,
   int startInjProc,
   int numInjProcs,
-  const bool hollow_spray,
   const int min_parcel)
 {
   // Don't try to use more procs than we have
@@ -84,10 +74,6 @@ SprayParticleContainer::sprayInjection(
   if (curProc < startInjProc || curProc >= startInjProc + numInjProcs) {
     return;
   }
-  const amrex::Geometry& geom = this->m_gdb->Geom(level);
-  const auto plo = geom.ProbLoArray();
-  const auto phi = geom.ProbHiArray();
-  const auto dx = geom.CellSize();
   const int pstateVel = m_sprayIndx.pstateVel;
   const int pstateT = m_sprayIndx.pstateT;
   const int pstateDia = m_sprayIndx.pstateDia;
@@ -95,39 +81,40 @@ SprayParticleContainer::sprayInjection(
   const SprayData* fdat = m_sprayData;
   amrex::Real rho_part = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    rho_part += Y_jet[spf] / fdat->rhoL(part_temp, spf);
+    rho_part += spray_jet->Y(spf) / fdat->rhoL(spray_jet->T(), spf);
   }
   rho_part = 1. / rho_part;
   const amrex::Real Pi_six = M_PI / 6.;
   // Number of particles per parcel
   const amrex::Real num_ppp = fdat->num_ppp;
   // Check if mass must be injected across multiple timesteps
-  const amrex::Real avg_dia = dist_type.get_avg_dia();
+  const amrex::Real avg_dia = spray_jet->get_avg_dia();
   const amrex::Real avg_mass = Pi_six * rho_part * std::pow(avg_dia, 3);
   // Minimum number of parcels we want injected at a time
   const amrex::Real min_inj_parcel = static_cast<amrex::Real>(min_parcel);
   amrex::Real dt = sim_dt;
-  amrex::Real inject_mass = inj_mass_flow * sim_dt;
+  amrex::Real inject_mass = spray_jet->mass_flow_rate() * sim_dt;
   // See if there is uninjected mass from previous time steps
-  if (m_sumInjMass > 0.) {
-    dt += m_sumInjTime;
-    inject_mass += m_sumInjMass;
+  if (spray_jet->m_sumInjMass > 0.) {
+    dt += spray_jet->m_sumInjTime;
+    inject_mass += spray_jet->m_sumInjMass;
   }
   if (inject_mass / (num_ppp * avg_mass) < min_inj_parcel) {
-    m_sumInjMass = inject_mass;
-    m_sumInjTime = dt;
+    spray_jet->m_sumInjMass = inject_mass;
+    spray_jet->m_sumInjTime = dt;
     return;
   }
 
-  amrex::RealVect dom_len(
-    AMREX_D_DECL(geom.ProbLength(0), geom.ProbLength(1), geom.ProbLength(2)));
   amrex::ParticleLocData pld;
   std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
     host_particles;
   amrex::Real cur_mass = 0.;
-  amrex::Real norm = jet_norm.vectorLength();
+  amrex::RealVect jet_norm = spray_jet->jet_norm();
+  amrex::RealVect jet_cent = spray_jet->jet_cent();
+  amrex::Real jet_vel = spray_jet->jet_vel();
   amrex::Real injProcs = static_cast<amrex::Real>(numInjProcs);
 #if AMREX_SPACEDIM == 3
+  amrex::Real norm = jet_norm.vectorLength();
   amrex::Real theta_1 = std::acos(jet_norm[2] / norm);
   amrex::Real phi_1 = std::atan2(jet_norm[1] / norm, jet_norm[0] / norm);
   amrex::Real dphi = 2. * M_PI / injProcs;
@@ -140,14 +127,14 @@ SprayParticleContainer::sprayInjection(
     // Pick random percentage from 0 to 1
     amrex::Real radp = amrex::Random();
 #if AMREX_SPACEDIM == 3
-    if (hollow_spray) {
+    if (spray_jet->hollow_spray()) {
       radp = 1.;
     }
     // This determines the radial location of the particle within the jet inlet
-    amrex::Real cur_rad = radp * jet_dia / 2.;
+    amrex::Real cur_rad = radp * spray_jet->jet_dia() / 2.;
     // The closer the particle is to the edge of the injection circle, the
     // greater the spread angle
-    amrex::Real theta_2 = radp * spread_angle / 2.;
+    amrex::Real theta_2 = radp * spray_jet->spread_angle() / 2.;
     // Pick random azimuthal angle relative to jet inlet CS
     // Each processor is only injecting a portion of the circle
     amrex::Real phi_2 = phi_2_lo + amrex::Random() * dphi;
@@ -155,15 +142,15 @@ SprayParticleContainer::sprayInjection(
       jet_cent + part_loc_trans(cur_rad, theta_1, phi_1, phi_2);
     amrex::RealVect part_vel = jet_vel_comp(theta_1, phi_1, theta_2, phi_2);
 #else
-    if (hollow_spray) {
+    if (spray_jet->hollow_spray()) {
       if (radp <= 0.5) {
         radp = 0.;
       } else {
         radp = 1.;
       }
     }
-    amrex::Real cur_rad = (radp - 0.5) * jet_dia;
-    amrex::Real theta_2 = -(radp - 0.5) * spread_angle;
+    amrex::Real cur_rad = (radp - 0.5) * spray_jet->jet_dia();
+    amrex::Real theta_2 = -(radp - 0.5) * spray_jet->spread_angle();
     amrex::Real st1 = std::sin(theta_1);
     amrex::Real ct1 = std::cos(theta_1);
     amrex::Real st2 = std::sin(theta_2);
@@ -178,17 +165,17 @@ SprayParticleContainer::sprayInjection(
     AMREX_D_TERM(p.rdata(pstateVel) = jet_vel * part_vel[0];
                  , p.rdata(pstateVel + 1) = jet_vel * part_vel[1];
                  , p.rdata(pstateVel + 2) = jet_vel * part_vel[2];);
-    amrex::Real cur_dia = dist_type.get_dia();
+    amrex::Real cur_dia = spray_jet->get_dia();
     // Add particles as if they have advanced some random portion of
     // dt
     amrex::Real pmov = amrex::Random();
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       p.pos(dir) = part_loc[dir] + pmov * dt * p.rdata(pstateVel + dir);
     }
-    p.rdata(pstateT) = part_temp;
+    p.rdata(pstateT) = spray_jet->T();
     p.rdata(pstateDia) = cur_dia;
     for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp) {
-      p.rdata(pstateY + sp) = Y_jet[sp];
+      p.rdata(pstateY + sp) = spray_jet->Y(sp);
     }
     bool where = Where(p, pld);
     if (!where) {
@@ -212,8 +199,6 @@ SprayParticleContainer::sprayInjection(
       amrex::Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
       dst_tile.GetArrayOfStructs().begin() + old_size);
   }
-  // Reset total injection mass and time
-  m_sumInjMass = -1.;
-  m_sumInjTime = -1.;
+  spray_jet->reset_sum();
 }
 #endif

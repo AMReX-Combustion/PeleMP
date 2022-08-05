@@ -8,6 +8,7 @@
 #include <AMReX_IntVect.H>
 #include <AMReX_Particles.H>
 #include <memory>
+#include "SprayJet.H"
 
 #ifdef PELELM_USE_SPRAY
 #include "pelelm_prob.H"
@@ -57,9 +58,7 @@ public:
       m_sprayIndx(SPI),
       m_wallT(wall_temp),
       m_partCFL(part_cfl),
-      m_injectVel(0.),
-      m_sumInjMass(-1.),
-      m_sumInjTime(-1.)
+      m_injectVel(0.)
   {
     d_sprayData =
       static_cast<SprayData*>(amrex::The_Arena()->alloc(sizeof(SprayData)));
@@ -75,22 +74,12 @@ public:
     amrex::The_Arena()->free(d_sprayData);
   }
 
-  template <class Dist>
   void sprayInjection(
-    Dist& dist_type,
-    const amrex::RealVect jet_cent,
-    const amrex::RealVect jet_norm,
-    const amrex::Real jet_dia,
-    const amrex::Real part_temp,
-    const amrex::Real inj_mass_flow,
-    const amrex::Real jet_vel,
-    const amrex::Real spread_angle,
+    SprayJet* spray_jet,
     const amrex::Real sim_dt,
-    const amrex::Real* Y_jet,
     const int level,
     int startInjProc = 0,
     int numInjProcs = 1,
-    const bool hollow_spray = false,
     const int min_parcel =
       5); // Minimum number of parcels added during injection
 
@@ -394,10 +383,12 @@ public:
   );
 
   void InitSprayParticles(
+    const bool init_parts,
 #ifdef PELELM_USE_SPRAY
     ProbParm const& prob_parm
 #else
-    ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d
+    ProbParmHost const& prob_parm,
+    ProbParmDevice const& prob_parm_d
 #endif
   );
 
@@ -418,8 +409,7 @@ private:
   // Particle CFL, used for injection cases with LMeX
   amrex::Real m_partCFL;
   amrex::Real m_injectVel;
-  mutable amrex::Real m_sumInjMass;
-  mutable amrex::Real m_sumInjTime;
+  amrex::Vector<std::unique_ptr<SprayJet>> m_sprayJets;
 };
 
 #endif

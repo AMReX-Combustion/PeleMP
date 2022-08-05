@@ -23,19 +23,10 @@ pc_initdata(
   int j,
   int k,
   amrex::Array4<amrex::Real> const& state,
-  amrex::GeometryData const& geomdata,
+  amrex::GeometryData const& /*geomdata*/,
   ProbParmDevice const& prob_parm)
 {
 
-  // Geometry
-  const amrex::Real* prob_lo = geomdata.ProbLo();
-  const amrex::Real* prob_hi = geomdata.ProbHi();
-  const amrex::Real* dx = geomdata.CellSize();
-  const amrex::Real x = prob_lo[0] + (i + 0.5) * dx[0];
-  const amrex::Real y = prob_lo[1] + (j + 0.5) * dx[1];
-  const amrex::Real z = prob_lo[2] + (k + 0.5) * dx[2];
-
-  // TG functions
   amrex::Real u[3] = {0.0};
   u[1] = prob_parm.v0;
   const amrex::Real p = prob_parm.p0;
@@ -56,35 +47,29 @@ pc_initdata(
   state(i, j, k, UEDEN) =
     rho * (eint + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
   state(i, j, k, UTEMP) = Tval;
-  for (int n = 0; n < NUM_SPECIES; n++)
+  for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, UFS + n) = rho * massfrac[n];
+  }
 }
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
 bcnormal(
-  const amrex::Real x[AMREX_SPACEDIM],
+  const amrex::Real* /*x[AMREX_SPACEDIM]*/,
   const amrex::Real s_int[NVAR],
   amrex::Real s_ext[NVAR],
-  const int idir,
-  const int sgn,
-  const amrex::Real time,
-  amrex::GeometryData const& geomdata,
-  ProbParmDevice const& prob_parm)
+  const int /*idir*/,
+  const int /*sgn*/,
+  const amrex::Real /*time*/,
+  amrex::GeometryData const& /*geomdata*/,
+  ProbParmDevice const& /*prob_parm*/)
 {
   // This sets the values at the boundary equal to the
   // adjacent interior values
-  for (int i = 0; i != NVAR; ++i) {
+  for (int i = 0; i < NVAR; ++i) {
     s_ext[i] = s_int[i];
   }
-  //   if (idir == 1 && sgn == -1) {
-  //     amrex::Real rad =
-  //       AMREX_D_TERM(std::pow(x[0] - prob_parm.jet_cent[0], 2),,
-  //                    + std::pow(x[2] - prob_parm.jet_cent[2], 2))
-  //       - prob_parm.jet_dia*prob_parm.jet_dia/4.;
-  //     if (rad <= 0.) s_ext[UMY] = vel*s_ext[URHO];
-  //   }
 }
 
 void pc_prob_close();

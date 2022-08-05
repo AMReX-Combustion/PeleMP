@@ -43,21 +43,20 @@ prob.P_mean = 2.93E6
 prob.ref_T = 440.
 prob.init_N2 = 1.
 prob.init_O2 = 0.
+
+#------------------------Injection------------------------------
 # Properties of injected particles
-prob.part_temp = 363.
-# Log-normal distribution of particle diameters
-# Mean particle diameter
-prob.part_mean_dia = 4.5E-6
-# Standard deviation of the particle diameter
-prob.part_stdev_dia = 0.
+spray.part_temp = 363.
+# Particle diameter
+spray.diameter = 4.5E-6
 # Jet properties
-prob.jet_dia = 9.E-5
-prob.spray_angle_deg = 21.
-prob.jets_per_dir = 2 1 2
-prob.jet_start_time = 0.
-prob.jet_end_time = 2.
-prob.jet_vel = 60.
-prob.mass_flow_rate = 2.3E-5
+spray.jet_dia = 9.E-5
+spray.spread_angle = 21.
+spray.jets_per_dir = 2 1 2
+spray.jet_start = 0.
+spray.jet_end = 2.
+spray.jet_vel = 60.
+spray.mass_flow_rate = 2.3E-5
 
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1

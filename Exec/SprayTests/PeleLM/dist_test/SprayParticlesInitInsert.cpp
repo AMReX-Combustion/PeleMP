@@ -31,23 +31,22 @@ SprayParticleContainer::injectParticles(
 }
 
 void
-SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
+SprayParticleContainer::InitSprayParticles(
+  const bool init_parts, ProbParm const& prob_parm)
 {
+  if (!init_parts) {
+    return;
+  }
   const int lev = 0;
   const int MyProc = amrex::ParallelDescriptor::MyProc();
   const int NProcs = amrex::ParallelDescriptor::NProcs();
-  int NRedist = prob_parm.numRedist; // Number of times to redistribute
-  // TODO: This might be overkill but issues persisted at high Summit node
-  // counts
-  if (NRedist < 0) {
-    NRedist = 1;
-    if (NProcs <= 1024) {
-      NRedist = 2;
-    } else if (NProcs <= 2048) {
-      NRedist = 4;
-    } else if (NProcs <= 4096) {
-      NRedist = 8;
-    }
+  int NRedist = 1;
+  if (NProcs <= 1024) {
+    NRedist = 2;
+  } else if (NProcs <= 2048) {
+    NRedist = 4;
+  } else if (NProcs <= 4096) {
+    NRedist = 8;
   }
   amrex::Real part_dia = prob_parm.partDia;
   amrex::Real T_ref = prob_parm.partTemp;

@@ -66,8 +66,9 @@ bcnormal(
   amrex::GeometryData const& /*geomdata*/,
   ProbParmDevice const& /*prob_parm*/)
 {
-  for (int i = 0; i != NVAR; ++i)
+  for (int i = 0; i != NVAR; ++i) {
     s_ext[i] = s_int[i];
+  }
 }
 
 void pc_prob_close();

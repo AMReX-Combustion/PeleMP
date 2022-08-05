@@ -13,51 +13,29 @@ SprayParticleContainer::injectParticles(
   ProbParm const& prob_parm)
 {
   amrex::ignore_unused(nstep, finest_level);
+  SprayJet* js = m_sprayJets[0].get();
   if (lev != 0) {
     return false;
   }
-  if (time < prob_parm.jet_start_time || time > prob_parm.jet_end_time) {
+  if (!js->jet_active(time)) {
     return false;
   }
-  amrex::Real jet_vel = prob_parm.jet_vel;
-  const auto dx = this->m_gdb->Geom(lev).CellSize();
-  // This absolutely must be included with any injection or insertion
-  // function or significant issues will arise
-  if (jet_vel * dt / dx[0] > m_partCFL) {
-    amrex::Real max_vel = dx[0] * m_partCFL / dt;
-    if (amrex::ParallelDescriptor::IOProcessor()) {
-      std::string warn_msg =
-        "Injection velocity of " + std::to_string(jet_vel) +
-        " is reduced to maximum " + std::to_string(max_vel);
-      amrex::Warning(warn_msg);
-    }
-    m_injectVel = jet_vel;
-    jet_vel = max_vel;
-  }
-  bool hollow_jet = prob_parm.hollow_jet;
-  if (prob_parm.part_stdev_dia >= 0.) {
-    LogNormDist log_dist(prob_parm.part_mean_dia, prob_parm.part_stdev_dia);
-    sprayInjection<LogNormDist>(
-      log_dist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia,
-      prob_parm.part_temp, prob_parm.mass_flow_rate, jet_vel,
-      prob_parm.spread_angle, dt, prob_parm.Y_jet.data(), lev,
-      prob_parm.start_inj_proc, prob_parm.num_inj_procs, hollow_jet);
-  } else {
-    WeibullDist w_dist(prob_parm.part_mean_dia, prob_parm.part_weibull_k);
-    sprayInjection<WeibullDist>(
-      w_dist, prob_parm.jet_cent, prob_parm.jet_norm, prob_parm.jet_dia,
-      prob_parm.part_temp, prob_parm.mass_flow_rate, jet_vel,
-      prob_parm.spread_angle, dt, prob_parm.Y_jet.data(), lev,
-      prob_parm.start_inj_proc, prob_parm.num_inj_procs, hollow_jet);
-  }
+
+  sprayInjection(js, dt, lev);
+
   // Redistribute is done outside of this function
   return true;
 }
 
 void
-SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
+SprayParticleContainer::InitSprayParticles(
+  const bool init_parts, ProbParm const& prob_parm)
 {
+  amrex::ignore_unused(prob_parm);
+  m_sprayJets.resize(1);
+  std::string jet_name = "jet1";
+  m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
   // Start without any particles
-  m_injectVel = prob_parm.jet_vel;
+  m_injectVel = m_sprayJets[0]->jet_vel();
   return;
 }

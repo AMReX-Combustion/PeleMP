@@ -12,47 +12,33 @@ SprayParticleContainer::injectParticles(
   int finest_level,
   ProbParm const& prob_parm)
 {
-  amrex::ignore_unused(nstep, finest_level);
+  amrex::ignore_unused(nstep, finest_level, prob_parm);
   if (lev != 0) {
     return false;
   }
-  if (time < prob_parm.jet_start_time || time > prob_parm.jet_end_time) {
+  SprayJet* js = m_sprayJets[0].get();
+  if (!js->jet_active(time)) {
     return false;
   }
-  const amrex::Geometry& geom = this->m_gdb->Geom(lev);
-  const auto dx = geom.CellSize();
-  amrex::Real mass_flow_rate = prob_parm.mass_flow_rate;
-  amrex::Real jet_vel = prob_parm.jet_vel;
-  amrex::Real jet_dia = prob_parm.jet_dia;
-  amrex::Real part_temp = prob_parm.part_temp;
-  // This absolutely must be included with any injection or insertion
-  // function or significant issues will arise
-  if (jet_vel * dt / dx[0] > 0.5) {
-    amrex::Real max_vel = dx[0] * 0.5 / dt;
-    if (amrex::ParallelDescriptor::IOProcessor()) {
-      std::string warn_msg =
-        "Injection velocity of " + std::to_string(jet_vel) +
-        " is reduced to maximum " + std::to_string(max_vel);
-      amrex::Warning(warn_msg);
-    }
-    m_injectVel = jet_vel;
-    jet_vel = max_vel;
-  }
-  amrex::Real part_dia = prob_parm.part_mean_dia;
-  amrex::Real part_stdev = prob_parm.part_stdev_dia;
-  LogNormDist log_dist(part_dia, part_stdev);
-  sprayInjection<LogNormDist>(
-    log_dist, prob_parm.jet_cent, prob_parm.jet_norm, jet_dia, part_temp,
-    mass_flow_rate, jet_vel, prob_parm.spread_angle, dt, prob_parm.Y_jet.data(),
-    lev);
+  sprayInjection(js, dt, lev);
   // Redistribute is done outside of this function
   return true;
 }
 
 void
-SprayParticleContainer::InitSprayParticles(ProbParm const& prob_parm)
+SprayParticleContainer::InitSprayParticles(
+  const bool init_parts, ProbParm const& prob_parm)
 {
+  m_sprayJets.resize(1);
+  std::string jet_name = "jet1";
+  m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
   // Start without any particles
-  m_injectVel = prob_parm.jet_vel;
+  m_injectVel = m_sprayJets[0]->jet_vel();
+  if (init_parts) {
+    const auto dx = this->m_gdb->Geom(0).CellSize();
+    amrex::Real fakedt = dx[0] * m_partCFL / m_injectVel;
+    sprayInjection(m_sprayJets[0].get(), fakedt, 0);
+    Redistribute();
+  }
   return;
 }

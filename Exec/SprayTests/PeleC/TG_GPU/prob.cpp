@@ -7,10 +7,11 @@ pc_prob_close()
 
 extern "C" {
 void
+void
 amrex_probinit(
-  const int* init,
-  const int* name,
-  const int* namelen,
+  const int* /*init*/,
+  const int* /*name*/,
+  const int* /*namelen*/,
   const amrex_real* problo,
   const amrex_real* probhi)
 {
@@ -31,7 +32,7 @@ amrex_probinit(
   PeleC::h_prob_parm_device->L = probhi[0] - problo[0];
 
   // Initial density, velocity, and material properties
-  amrex::Real cs, cp;
+  amrex::Real cs;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
   massfrac[O2_ID] = PeleC::h_prob_parm_device->Y_O2;
   massfrac[N2_ID] = PeleC::h_prob_parm_device->Y_N2;
