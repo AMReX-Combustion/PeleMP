@@ -1,7 +1,7 @@
 
 #include "SprayParticles.H"
 #include <AMReX_Particles.H>
-#include <pelelm_prob.H>
+#include "pelelm_prob.H"
 
 bool
 SprayParticleContainer::injectParticles(
