@@ -25,7 +25,6 @@ struct ProbParmHost
   amrex::IntVect partNum = amrex::IntVect(AMREX_D_DECL(100, 100, 100));
   amrex::Real partTemp = 300.;
   amrex::Real partDia = 1.E-3;
-  int numRedist = -1;
 };
 
 #endif

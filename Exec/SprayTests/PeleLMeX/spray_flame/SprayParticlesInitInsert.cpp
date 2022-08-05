@@ -37,11 +37,5 @@ SprayParticleContainer::InitSprayParticles(
   m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
   // Start without any particles
   m_injectVel = m_sprayJets[0]->jet_vel();
-  if (init_parts) {
-    const auto dx = this->m_gdb->Geom(0).CellSize();
-    amrex::Real fakedt = dx[0] * m_partCFL / m_injectVel;
-    sprayInjection(m_sprayJets[0].get(), fakedt, 0);
-    Redistribute();
-  }
   return;
 }

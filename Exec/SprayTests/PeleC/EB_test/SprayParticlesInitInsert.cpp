@@ -18,7 +18,7 @@ SprayParticleContainer::injectParticles(
   if (lev != 0) {
     return false;
   }
-  SprayJets* js = m_sprayJets[0].get();
+  SprayJet* js = m_sprayJets[0].get();
 
   sprayInjection(js, dt, lev);
 
@@ -36,8 +36,8 @@ SprayParticleContainer::InitSprayParticles(
   m_sprayJets.resize(1);
   std::string jet_name = "jet1";
   bool do_inject = false;
-  ParmParse ps("spray.jet1");
-  pp.query("do_inject", do_inject);
+  amrex::ParmParse ps("spray.jet1");
+  ps.query("do_inject", do_inject);
   if (do_inject) {
     m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
   }

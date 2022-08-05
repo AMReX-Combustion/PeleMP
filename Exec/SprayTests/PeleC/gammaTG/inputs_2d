@@ -13,10 +13,6 @@ amr.n_cell = 96 96 96
 # Number of particles in each direction
 prob.num_particles = (100,100,100)
 
-amr.max_grid_size_x = 48
-amr.max_grid_size_y = 48
-amr.max_grid_size_z = 48
-
 amrex.fpe_trap_invalid = 1
 amrex.fpe_trap_zero = 0
 amrex.fpe_trap_overflow = 0
@@ -25,6 +21,9 @@ amrex.fpe_trap_overflow = 0
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 pelec.lo_bc       =  "Interior" "Interior" "Interior"
 pelec.hi_bc       =  "Interior" "Interior" "Interior"
+
+amr.blocking_factor = 16
+amr.max_grid_size = 96
 
 # WHICH PHYSICS
 pelec.do_hydro = 1

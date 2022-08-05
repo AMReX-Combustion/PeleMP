@@ -35,8 +35,6 @@ read_inject(const std::string myfile)
   iss.clear();
   iss.seekg(0, std::ios::beg);
   std::getline(iss, firstline);
-  int pos1 = 0;
-  int pos2 = 0;
   for (int i = 0; i < PeleC::prob_parm_host->inject_N; i++) {
     std::getline(iss, remaininglines);
     std::istringstream sinput(remaininglines);
@@ -49,11 +47,11 @@ read_inject(const std::string myfile)
 extern "C" {
 void
 amrex_probinit(
-  const int* init,
-  const int* name,
-  const int* namelen,
-  const amrex_real* problo,
-  const amrex_real* probhi)
+  const int* /*init*/,
+  const int* /*name*/,
+  const int* /*namelen*/,
+  const amrex_real* /*problo*/,
+  const amrex_real* /*probhi*/)
 {
   // Parse params
   amrex::ParmParse pp("prob");

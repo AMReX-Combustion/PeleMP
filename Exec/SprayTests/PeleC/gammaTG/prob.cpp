@@ -8,9 +8,9 @@ pc_prob_close()
 extern "C" {
 void
 amrex_probinit(
-  const int* init,
-  const int* name,
-  const int* namelen,
+  const int* /*init*/,
+  const int* /*name*/,
+  const int* /*namelen*/,
   const amrex_real* problo,
   const amrex_real* probhi)
 {
@@ -21,7 +21,6 @@ amrex_probinit(
   pp.query("reynolds", PeleC::h_prob_parm_device->reynolds);
   pp.query("mach", PeleC::h_prob_parm_device->mach);
   pp.query("convecting", PeleC::h_prob_parm_device->convecting);
-  pp.query("init_redist", PeleC::prob_parm_host->numRedist);
   pp.query("ref_p", PeleC::h_prob_parm_device->p0);
   pp.query("ref_T", PeleC::h_prob_parm_device->T0);
   pp.query("st_mod", Stmod);

@@ -9,8 +9,8 @@ unflatten_particles(const amrex::ULong idx, const amrex::IntVect& max_parts)
   amrex::IntVect indx;
   amrex::ULong cidx = idx;
   amrex::ULong d1 = max_parts[0];
-  amrex::ULong d2 = max_parts[1];
 #if AMREX_SPACEDIM > 2
+  amrex::ULong d2 = max_parts[1];
   indx[2] = int(cidx / (d1 * d2));
   cidx -= amrex::ULong(indx[2]) * d1 * d2;
 #endif
@@ -44,18 +44,13 @@ SprayParticleContainer::InitSprayParticles(
   const int lev = 0;
   const int MyProc = amrex::ParallelDescriptor::MyProc();
   const int NProcs = amrex::ParallelDescriptor::NProcs();
-  int NRedist = prob_parm.numRedist; // Number of times to redistribute
-  // TODO: This might be overkill but issues persisted at high Summit node
-  // counts
-  if (NRedist < 0) {
-    NRedist = 1;
-    if (NProcs <= 1024) {
-      NRedist = 2;
-    } else if (NProcs <= 2048) {
-      NRedist = 4;
-    } else if (NProcs <= 4096) {
-      NRedist = 8;
-    }
+  int NRedist = 1; // Number of times to redistribute
+  if (NProcs <= 1024) {
+    NRedist = 2;
+  } else if (NProcs <= 2048) {
+    NRedist = 4;
+  } else if (NProcs <= 4096) {
+    NRedist = 8;
   }
   amrex::Real part_dia = prob_parm.partDia;
   amrex::Real T_ref = prob_parm.partTemp;
