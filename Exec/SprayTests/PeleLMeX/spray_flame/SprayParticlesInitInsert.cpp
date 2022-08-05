@@ -34,7 +34,7 @@ SprayParticleContainer::InitSprayParticles(
   amrex::ignore_unused(prob_parm);
   m_sprayJets.resize(1);
   std::string jet_name = "jet1";
-  m_sprayJets[0] = std::make_unique<SprayJet>(jet_name);
+  m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
   // Start without any particles
   m_injectVel = m_sprayJets[0]->jet_vel();
   if (init_parts) {

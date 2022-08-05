@@ -44,10 +44,6 @@ read_inject(const std::string myfile)
     sinput >> PeleC::prob_parm_host->inject_mass[i];
     sinput >> PeleC::prob_parm_host->inject_vel[i];
   }
-
-  PeleC::prob_parm_host->jet_start_time = PeleC::prob_parm_host->inject_time[0];
-  PeleC::prob_parm_host->jet_end_time =
-    PeleC::prob_parm_host->inject_time[line_count - 1];
 }
 
 extern "C" {

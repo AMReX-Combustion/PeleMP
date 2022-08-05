@@ -48,8 +48,8 @@ SprayParticleContainer::InitSprayParticles(
   amrex::Real spray_angle = 20.;
   amrex::Real[SPRAY_FUEL_NUM] Y_jet = {0.0};
   ps.query("jet_vel", jet_vel);
-  ps.query("jet_start_time", jet_start_time);
-  ps.query("jet_end_time", jet_end_time);
+  ps.query("jet_start", jet_start_time);
+  ps.query("jet_end", jet_end_time);
   // The cells are divided by this value when prescribing the jet inlet
   ps.get("jet_dia", jet_dia);
   ps.get("part_mean_dia", part_mean_dia);
@@ -98,8 +98,9 @@ SprayParticleContainer::InitSprayParticles(
       amrex::Real zloc = zlo + div_lenz * (amrex::Real(k) + 0.5);
       amrex::RealVect jet_cent(AMREX_D_DECL(xloc, yloc, zloc));
       m_sprayJets[jindx] = std::make_unique<SprayJet>(
-        jet_cent, jet_norm, spray_angle, jet_dia, jet_vel, mass_flow_rate,
-        part_temp, Y_jet, dist_type, jet_start_time, jet_end_time);
+        Geom(0), jet_cent, jet_norm, spray_angle, jet_dia, jet_vel,
+        mass_flow_rate, part_temp, Y_jet, dist_type, jet_start_time,
+        jet_end_time);
       jindx++;
     }
   }

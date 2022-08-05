@@ -34,7 +34,9 @@ SprayParticleContainer::injectParticles(
 
 void
 SprayParticleContainer::InitSprayParticles(
-                                           const bool init_parts, ProbParmHost const& prob_parm, ProbParmDevice const& /*prob_parm_d*/)
+  const bool init_parts,
+  ProbParmHost const& prob_parm,
+  ProbParmDevice const& /*prob_parm_d*/)
 {
   if (!init_parts) {
     return;
