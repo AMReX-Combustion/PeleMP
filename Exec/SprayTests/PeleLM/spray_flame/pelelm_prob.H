@@ -41,7 +41,7 @@ pelelm_initdata(
 
   state(i, j, k, Xvel) = 0;
   state(i, j, k, Yvel) = 0.;
-#elif (AMREX_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
   state(i, j, k, Zvel) = 0.;
 #endif
 

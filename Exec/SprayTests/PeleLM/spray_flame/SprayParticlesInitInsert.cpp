@@ -12,7 +12,7 @@ SprayParticleContainer::injectParticles(
   int finest_level,
   ProbParm const& prob_parm)
 {
-  amrex::ignore_unused(nstep, finest_level);
+  amrex::ignore_unused(nstep, finest_level, prob_parm);
   if (lev != 0) {
     return false;
   }
