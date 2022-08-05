@@ -1,9 +1,8 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0              # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo   = 0.0 0.0 0.
-#geometry.prob_hi   =   .00256  0.00256 0.01024
-geometry.prob_hi   =   .00256  0.00256 0.00256
+geometry.prob_lo = -0.00128 -0.00128 0.
+geometry.prob_hi = 0.00128 0.00128 0.00256
 
 #amr.restart = chk00700
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -13,8 +12,7 @@ peleLM.lo_bc = SlipWallAdiab  SlipWallAdiab Inflow
 peleLM.hi_bc = SlipWallAdiab  SlipWallAdiab Outflow
 
 #-------------------------AMR CONTROL----------------------------
-amr.n_cell         = 64 64 64        # Level 0 number of cells in each direction
-#amr.n_cell          = 128 128 512
+amr.n_cell          = 64 64 64        # Level 0 number of cells in each direction
 amr.v               = 1                # AMR verbose
 amr.max_level       = 2                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
@@ -41,10 +39,9 @@ nodal_proj.verbose = 0
 
 amr.max_step            = 1000          # maximum number of time steps    
 amr.stop_time           = .5e-1            # final physical time
-amr.cfl             = 0.1
+amr.cfl                 = 0.5
 
 #-------------------------IO CONTROL----------------------------
-amr.checkpoint_files_output = 1
 amr.check_file          = chk          # root name of checkpoint file
 amr.check_int           = 250         # number of timesteps between checkpoints
 amr.plot_file           = plt          # root name of plot file
@@ -53,25 +50,27 @@ amr.derive_plot_vars    = mag_vort mass_fractions enthalpy
 
 #----------------------- PROBLEM PARAMETERS---------------------
 prob.P_mean = 6079500. # or 60 bar
-# Properties of injected particles
-prob.part_temp = 363.
-# Log-normal distribution of particle diameters
-# Mean particle diameter
-prob.part_mean_dia = 5E-6
-# Standard deviation of the particle diameter
-prob.part_stdev_dia = 0.
-# Jet properties
 prob.gas_jet_dia = 2.82E-5
-prob.jet_dia = 4e-5
-prob.spray_angle_deg = 21.
-prob.jets_per_dir = 1
-prob.jet_start_time = 0.
-prob.jet_end_time = .5E-3
-prob.jet_vel = 30.
-prob.jet_dx_mod = 42.
-#prob.mass_flow_rate = 2.0349e-5
-prob.mass_flow_rate = 1.0174e-7
-#prob.jet_end_time = 0.00052
+
+#--------------------------- Injection -------------------------------
+# Jet parameters
+spray.jet1.jet_cent = 0. 0. 0.
+spray.jet1.jet_norm = 0. 0. 1.
+spray.jet1.T = 363.
+# Set droplet diameter distribution at injection
+# Options: Uniform, Normal, LogNormal, and Weibull
+spray.jet1.dist_type = Uniform
+spray.jet1.diameter = 5.E-6
+# Jet diameter
+spray.jet1.jet_dia = 4.E-5
+# The spreading angle in degrees
+spray.jet1.spread_angle = 21.
+# Magnitude of the jet velocity
+spray.jet1.jet_vel = 30.
+spray.jet1.mass_flow_rate = 1.0174E-7
+# Jet start and stop time
+spray.jet1.jet_start = 0.
+spray.jet1.jet_end = 0.5E-3
 
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
@@ -112,11 +111,10 @@ amr.magvort.vorticity_greater = 1e4
 #cvode.solve_type = dense               # CVODE Linear solve type (for Newton direction) 
 cvode.solve_type = GMRES
 #cvode.solve_type = precGMRES
-#cvode.precond_type = cuSparse_simplified_AJacobian
 #cvode.solve_type = sparse_direct
 cvode.max_order = 4
 peleLM.chem_integrator = "ReactorCvode"
-peleLM.use_typ_vals_chem = 0
+peleLM.use_typ_vals_chem = 1
 # ode.atol = 1.E-8
 # ode.rtol = 1.E-6
 

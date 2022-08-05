@@ -39,7 +39,8 @@ amrex_probinit(
   // Convert to radians
   PeleLM::prob_parm->spray_angle *= M_PI / 180.;
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    PeleLM::prob_parm->jet_cent[dir] = problo[dir] + 0.5 * (probhi[dir] - problo[dir]);
+    PeleLM::prob_parm->jet_cent[dir] =
+      problo[dir] + 0.5 * (probhi[dir] - problo[dir]);
     PeleLM::prob_parm->jet_norm[dir] = 0.;
   }
   int lowD = AMREX_SPACEDIM - 1;

@@ -1,8 +1,8 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0              # For each dir, 0: non-perio, 1: periodic
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo   = 0.0 0.0 0.
-geometry.prob_hi   =   .00256  0.00256 0.01024
+geometry.prob_lo   = -0.00128 -0.00128 0.
+geometry.prob_hi   = 0.00128 0.00128 0.01024
 
 #amr.restart = chk00700
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -13,7 +13,6 @@ peleLM.hi_bc = SlipWallAdiab  SlipWallAdiab Outflow
 
 #-------------------------AMR CONTROL----------------------------
 amr.n_cell         = 64 64 256        # Level 0 number of cells in each direction
-#amr.n_cell          = 128 128 512
 amr.v               = 1                # AMR verbose
 amr.max_level       = 2                # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2          # refinement ratio
@@ -24,7 +23,7 @@ amr.blocking_factor = 32               # block factor in grid generation (min bo
 amr.max_grid_size   = 128               # max box size
 
 #----------------------TIME STEPING CONTROL----------------------
-max_step            = 1000          # maximum number of time steps    
+max_step            = 1000          # maximum number of time steps
 stop_time           = .5e-1            # final physical time
 ns.cfl              = 0.1            # cfl number for hyperbolic system
 ns.init_dt          = 5.e-6
@@ -45,24 +44,22 @@ amr.derive_plot_vars    = mag_vort sumRhoYdot mass_fractions enthalpy
 
 #----------------------- PROBLEM PARAMETERS---------------------
 prob.P_mean = 6079500. # or 60 bar
-# Properties of injected particles
-prob.part_temp = 363.
-# Log-normal distribution of particle diameters
-# Mean particle diameter
-prob.part_mean_dia = 5E-6
-# Standard deviation of the particle diameter
-prob.part_stdev_dia = 0.
-# Jet properties
 prob.gas_jet_dia = 2.82E-5
-prob.jet_dia = 4e-5
-prob.spray_angle_deg = 21.
-prob.jets_per_dir = 1
-prob.jet_start_time = 0.
-prob.jet_end_time = .5E-3
-prob.jet_vel = 30.
-#prob.mass_flow_rate = 2.0349e-5
-prob.mass_flow_rate = 1.0174e-7
-#prob.jet_end_time = 0.00052
+
+# Jet properties
+spray.jet1.jet_cent = 0. 0. 0.
+spray.jet1.jet_norm = 0. 0. 1.
+spray.jet1.T = 363.
+spray.jet1.dist_type = Uniform
+spray.jet1.diameter = 5.E-6
+spray.jet1.jet_dia = 4e-5
+spray.jet1.spread_angle = 21.
+spray.jet1.jet_start = 0.
+spray.jet1.jet_end = .5E-3
+spray.jet1.jet_vel = 30.
+#spray.jet1.mass_flow_rate = 2.0349e-5
+spray.jet1.mass_flow_rate = 1.0174e-7
+#spray.jet1.jet_end_time = 0.00052
 
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1

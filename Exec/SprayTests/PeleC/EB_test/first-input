@@ -6,8 +6,8 @@ stop_time = 0.000273365690540257
 geometry.is_periodic = 0 0 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo    =  0. 0. 0.
-geometry.prob_hi     = 10. 10. 1.25
-amr.n_cell           = 64 64 8
+geometry.prob_hi     = 10. 10. 10.
+amr.n_cell           = 64 64 64
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -111,15 +111,16 @@ prob.init_T = 1500.
 prob.init_p = 1.01325E7
 prob.init_v = 0.
 
-prob.do_injection = 0
-prob.part_temp = 363.
-prob.jet_dia = 9.E-3
-prob.spray_angle_deg = 20.
-prob.part_mean_dia = 4.5E-4
-prob.part_stdev_dia = 0.
-prob.jet_vel = 60000.
-prob.jet_start_time = 10000.
-prob.jet_end_time = -100.
-prob.jet_cent = 5. 5. 0.
-prob.jet_norm = 0. 0. 1.
-prob.mass_flow_rate = 1.55
+
+spray.jet1.do_injection = 0
+spray.jet1.jet_cent = 5. 0. 5.
+spray.jet1.jet_norm = 0. 1. 0.
+spray.jet1.part_temp = 363.
+spray.jet1.jet_dia = 9.E-3
+spray.jet1.spread_angle = 20.
+spray.jet1.dist_type = Uniform
+spray.jet1.diameter = 4.5E-4
+spray.jet1.jet_vel = 60000.
+spray.jet1.jet_start_time = 10000.
+spray.jet1.jet_end_time = -100.
+spray.jet1.mass_flow_rate = 1.55

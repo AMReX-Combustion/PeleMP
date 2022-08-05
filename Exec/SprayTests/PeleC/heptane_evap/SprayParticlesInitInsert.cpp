@@ -21,7 +21,7 @@ SprayParticleContainer::injectParticles(
 
 void
 SprayParticleContainer::InitSprayParticles(
-  ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
+                                           const bool init_parts, ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
 {
-  amrex::ignore_unused(prob_parm, prob_parm_d);
+  amrex::ignore_unused(init_parts, prob_parm, prob_parm_d);
 }

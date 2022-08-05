@@ -17,54 +17,91 @@ SprayParticleContainer::injectParticles(
   if (lev != 0) {
     return false;
   }
-  if (time < prob_parm.jet_start_time || time > prob_parm.jet_end_time) {
-    return false;
-  }
-  amrex::ignore_unused(nstep, finest_level, prob_parm_d);
-  amrex::Real mass_flow_rate = prob_parm.mass_flow_rate;
-  amrex::Real jet_vel = prob_parm.jet_vel;
-  const amrex::Geometry& geom = this->m_gdb->Geom(lev);
-  const auto dx = geom.CellSize();
-  amrex::Real jet_dia = prob_parm.jet_dia;
-  // This absolutely must be included with any injection or insertion
-  // function or significant issues will arise
-  if (jet_vel * dt / dx[0] > 0.5) {
-    amrex::Real max_vel = dx[0] * 0.5 / dt;
-    if (amrex::ParallelDescriptor::IOProcessor()) {
-      std::string warn_msg =
-        "Injection velocity of " + std::to_string(jet_vel) +
-        " is reduced to maximum " + std::to_string(max_vel);
-      amrex::Warning(warn_msg);
-    }
-    m_injectVel = jet_vel;
-    jet_vel = max_vel;
-  }
-  int curProc = amrex::ParallelDescripter::MyProc();
-  amrex::Real part_dia = prob_parm.part_mean_dia;
-  amrex::Real part_stdev = prob_parm.part_stdev_dia;
-  LogNormDist log_dist(part_dia, part_stdev);
-  const int norm_dir = 1;
-  amrex::RealVect jet_norm(amrex::RealVect::TheZeroVector());
-  jet_norm[norm_dir] = 1.;
-  for (int jindx = 0; jindx < prob_parm.num_jets; ++jindx) {
-    if (curProc == jindx) {
-      amrex::RealVect cur_jet_cent = prob_parm.jet_cents[jindx];
-      sprayInjection<LogNormDist>(
-        log_dist, cur_jet_cent, jet_norm, jet_dia, prob_parm.part_temp,
-        mass_flow_rate, jet_vel, prob_parm.spray_angle, dt,
-        prob_parm.Y_jet.data(), lev, curProc);
+  amrex::ignore_unused(nstep, finest_level, prob_parm, prob_parm_d);
+  for (int jindx = 0; jindx < m_sprayJets.size(); ++jindx) {
+    SprayJets* js = m_sprayJets[jindx].get();
+    if (js->jet_active(time)) {
+      sprayInjection(js, dt, 0);
     }
   }
+
   // Redistribute is done outside of this function
   return true;
 }
 
 void
 SprayParticleContainer::InitSprayParticles(
-  ProbParmHost const& prob_parm, ProbParmDevice const& prob_parm_d)
+  const bool init_parts,
+  ProbParmHost const& prob_parm,
+  ProbParmDevice const& prob_parm_d)
 {
-  // This ensures the initial time step size stays reasonable
-  m_injectVel = prob_parm.jet_vel;
-  // Start without any particles
+  amrex::ignore_unused(init_pats, prob_parm, prob_parm_d);
+  amrex::ProbParm ps("spray");
+  amrex::Real jet_vel = 50.;
+  amrex::Real jet_dia = 1.E-4;
+  amrex::Real part_mean_dia = 1.E-5;
+  amrex::Real part_stdev_dia = 0.;
+  amrex::Real mass_flow_rate = 2.3E-3;
+  amrex::Real part_temp = 300.;
+  amrex::Real jet_start_time = 0.;
+  amrex::Real jet_end_time = 10000.;
+  amrex::Real spray_angle = 20.;
+  amrex::Real[SPRAY_FUEL_NUM] Y_jet = {0.0};
+  ps.query("jet_vel", jet_vel);
+  ps.query("jet_start_time", jet_start_time);
+  ps.query("jet_end_time", jet_end_time);
+  // The cells are divided by this value when prescribing the jet inlet
+  ps.get("jet_dia", jet_dia);
+  ps.get("part_mean_dia", part_mean_dia);
+  ps.query("part_stdev_dia", part_stdev_dia);
+  ps.get("part_temp", part_temp);
+  ps.query("mass_flow_rate", mass_flow_rate);
+  ps.get("spray_angle_deg", spray_angle);
+  std::vector<int> jets_per_dir(AMREX_SPACEDIM);
+  ps.getarr("jets_per_dir", jets_per_dir);
+  std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
+  in_Y_jet[0] = 1.;
+  ps.queryarr("jet_mass_fracs", in_Y_jet);
+  amrex::Real sumY = 0.;
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    Y_jet[spf] = in_Y_jet[spf];
+    sumY += in_Y_jet[spf];
+  }
+  if (std::abs(sumY - 1.) > 1.E-8) {
+    amrex::Abort("'jet_mass_fracs' must sum to 1");
+  }
+  // Total number of jets
+  int num_jets = AMREX_D_TERM(jets_per_dir[0], *1, *jets_per_dir[2]);
+  m_sprayJets.resize(num_jets);
+  const amrex::Geometry& geom = this->m_gdb->Geom(lev);
+  const auto plo = geom.ProbLoArray();
+  const auto phi = geom.ProbHiArray();
+  const auto dx = geom.CellSize();
+  amrex::Vector<amrex::RealVect> jet_cents(num_jets);
+  amrex::Real div_lenx = (phi[0] - plo[0]) / (amrex::Real(jets_per_dir[0]));
+  int jetz = 1;
+  amrex::Real div_lenz = 0.;
+  amrex::Real zlo = 0.;
+#if AMREX_SPACEDIM == 3
+  div_lenz = (phi[2] - plo[2]) / (amrex::Real(jets_per_dir[2]));
+  zlo = plo[2];
+  jetz = jets_per_dir[2];
+#endif
+  amrex::Real yloc = plo[1];
+  int jindx = 0;
+  amrex::RealVect jet_norm(AMREX_D_DECL(0., 1., 0.));
+  std::string dist_type = "Uniform";
+  // Create each jet struct
+  for (int i = 0; i < prob_parm.jets_per_dir[0]; ++i) {
+    amrex::Real xloc = plo[0] + div_lenx * (amrex::Real(i) + 0.5);
+    for (int k = 0; k < jetz; ++k) {
+      amrex::Real zloc = zlo + div_lenz * (amrex::Real(k) + 0.5);
+      amrex::RealVect jet_cent(AMREX_D_DECL(xloc, yloc, zloc));
+      m_sprayJets[jindx] = std::make_unique<SprayJet>(
+        jet_cent, jet_norm, spray_angle, jet_dia, jet_vel, mass_flow_rate,
+        part_temp, Y_jet, dist_type, jet_start_time, jet_end_time);
+      jindx++;
+    }
+  }
   return;
 }

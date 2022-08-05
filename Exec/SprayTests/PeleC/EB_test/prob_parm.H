@@ -16,19 +16,6 @@ struct ProbParmDevice
 
 struct ProbParmHost
 {
-  bool do_injection = false;
-  amrex::Real jet_vel = 5000.;
-  amrex::Real jet_dia = 1.E-2;
-  amrex::Real part_mean_dia = 1.E-3;
-  amrex::Real part_stdev_dia = 0.;
-  amrex::Real mass_flow_rate = 2.3;
-  amrex::Real part_temp = 300.;
-  amrex::Real jet_start_time = 0.;
-  amrex::Real jet_end_time = 10000.;
-  amrex::Real spray_angle = 20.;
-  amrex::RealVect jet_cent;
-  amrex::RealVect jet_norm;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};
 };
 
 #endif

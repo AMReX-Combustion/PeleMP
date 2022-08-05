@@ -67,33 +67,6 @@ amrex_probinit(
   pp.get("ref_T", PeleC::h_prob_parm_device->T0);
   pp.query("init_N2", PeleC::h_prob_parm_device->Y_N2);
   pp.query("init_O2", PeleC::h_prob_parm_device->Y_O2);
-  pp.query("jet_vel", PeleC::prob_parm_host->jet_vel);
-  // The cells are divided by this value when prescribing the jet inlet
-  pp.get("jet_dia", PeleC::prob_parm_host->jet_dia);
-  pp.get("part_mean_dia", PeleC::prob_parm_host->part_mean_dia);
-  pp.query("part_stdev_dia", PeleC::prob_parm_host->part_stdev_dia);
-  pp.get("part_temp", PeleC::prob_parm_host->part_temp);
-  pp.query("mass_flow_rate", PeleC::prob_parm_host->mass_flow_rate);
-  pp.get("spray_angle_deg", PeleC::prob_parm_host->spray_angle);
-  std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
-  in_Y_jet[0] = 1.;
-  pp.queryarr("jet_mass_fracs", in_Y_jet);
-  amrex::Real sumY = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    PeleC::prob_parm_host->Y_jet[spf] = in_Y_jet[spf];
-    sumY += in_Y_jet[spf];
-  }
-  if (std::abs(sumY - 1.) > 1.E-8) {
-    amrex::Abort("'jet_mass_fracs' must sum to 1");
-  }
-  // Convert to radians
-  PeleC::prob_parm_host->spray_angle *= M_PI / 180.;
-
-  AMREX_D_TERM(PeleC::prob_parm_host->jet_cent[0] =
-                 problo[0] + 0.5 * (probhi[0] - problo[0]);
-               , PeleC::prob_parm_host->jet_cent[1] = problo[1];
-               , PeleC::prob_parm_host->jet_cent[2] =
-                   problo[2] + 0.5 * (probhi[2] - problo[2]););
 
   // Initial density, velocity, and material properties
   amrex::Real eint, cs, cp;
