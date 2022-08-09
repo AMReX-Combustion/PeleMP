@@ -46,19 +46,17 @@ amr.derive_plot_vars    = rhoRT mag_vort avg_pressure gradpx gradpy sumRhoYdot m
 #----------------------- PROBLEM PARAMETERS---------------------
 prob.P_mean = 6079500.
 # Properties of injected particles
-prob.part_temp = 363.
-# Log-normal distribution of particle diameters
-# Mean particle diameter
-prob.part_mean_dia = 2.E-6
-# Standard deviation of the particle diameter
-prob.part_stdev_dia = 0.
-# Jet properties
-prob.jet_dia = 4.E-5
-prob.spray_angle_deg = 21.
-prob.jet_start_time = 0.
-prob.jet_end_time = 0.5E-3
-prob.jet_vel = 30.
-prob.mass_flow_rate = 2.0349e-5
+spray.jet1.jet_cent = 0.00128 0.00128 0.
+spray.jet1.jet_norm = 0. 0. 1.
+spray.jet1.T = 363.
+spray.jet1.dist_type = Uniform
+spray.jet1.diameter = 2.E-6
+spray.jet1.jet_dia = 4.E-5
+spray.jet1.spread_angle = 21.
+spray.jet1.jet_start = 0.
+spray.jet1.jet_end = 0.5E-3
+spray.jet1.jet_vel = 30.
+spray.jet1.mass_flow_rate = 2.0349e-5
 
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
