@@ -17,7 +17,7 @@ amrex_probinit(
   amrex::Real Stmod = 5.;
   amrex::Real rhoRatio = 1000.;
   amrex::Real mach = 0.1;
-  const amrex::Real Pr = 0.71
+  const amrex::Real Pr = 0.71;
   // Parse params
   amrex::ParmParse pp("prob");
   pp.query("reynolds", PeleC::h_prob_parm_device->reynolds);
