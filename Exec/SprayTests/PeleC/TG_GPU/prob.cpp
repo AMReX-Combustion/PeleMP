@@ -17,6 +17,7 @@ amrex_probinit(
   amrex::Real Stmod = 5.;
   amrex::Real rhoRatio = 1000.;
   amrex::Real mach = 0.1;
+  const amrex::Real Pr = 0.71
   // Parse params
   amrex::ParmParse pp("prob");
   pp.query("reynolds", PeleC::h_prob_parm_device->reynolds);
@@ -54,7 +55,7 @@ amrex_probinit(
                          PeleC::h_prob_parm_device->v0 * refL /
                          PeleC::h_prob_parm_device->reynolds;
   trans_parm.const_viscosity = mu;
-  trans_parm.const_conductivity = mu * cp / PeleC::h_prob_parm_device->prandtl;
+  trans_parm.const_conductivity = mu * cp / Pr;
   PeleC::trans_parms.sync_to_device();
 
   const amrex::Real St_num = Stmod / (8. * M_PI);
