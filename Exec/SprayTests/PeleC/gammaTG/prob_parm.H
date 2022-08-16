@@ -8,16 +8,11 @@
 struct ProbParmDevice
 {
   amrex::Real reynolds = 1600.0;
-  amrex::Real mach = 0.1;
-  amrex::Real prandtl = 0.71;
-  bool convecting = false;
   amrex::Real L = 1.0;
   amrex::Real p0 = 1.013e6; // [erg cm^-3]
   amrex::Real T0 = 1000.0;
   amrex::Real rho0 = 0.0;
   amrex::Real v0 = 0.0;
-  amrex::Real Y_O2 = 0.233;
-  amrex::Real Y_N2 = 0.767;
 };
 
 struct ProbParmHost

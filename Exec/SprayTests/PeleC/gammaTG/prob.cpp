@@ -16,10 +16,12 @@ amrex_probinit(
 {
   amrex::Real Stmod = 5.;
   amrex::Real rhoRatio = 1000.;
+  amrex::Real mach = 0.1;
+  const amrex::Real Pr_num = 0.71;
   // Parse params
   amrex::ParmParse pp("prob");
   pp.query("reynolds", PeleC::h_prob_parm_device->reynolds);
-  pp.query("mach", PeleC::h_prob_parm_device->mach);
+  pp.query("mach", mach);
   pp.query("convecting", PeleC::h_prob_parm_device->convecting);
   pp.query("ref_p", PeleC::h_prob_parm_device->p0);
   pp.query("ref_T", PeleC::h_prob_parm_device->T0);
@@ -43,7 +45,7 @@ amrex_probinit(
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
 
   amrex::Real refL = PeleC::h_prob_parm_device->L;
-  PeleC::h_prob_parm_device->v0 = PeleC::h_prob_parm_device->mach * cs;
+  PeleC::h_prob_parm_device->v0 = mach * cs;
   auto& trans_parm = PeleC::trans_parms.host_trans_parm();
 
   trans_parm.const_bulk_viscosity = 0.0;
@@ -52,7 +54,7 @@ amrex_probinit(
                          PeleC::h_prob_parm_device->v0 * refL /
                          PeleC::h_prob_parm_device->reynolds;
   trans_parm.const_viscosity = mu;
-  trans_parm.const_conductivity = mu * cp / PeleC::h_prob_parm_device->prandtl;
+  trans_parm.const_conductivity = mu * cp / Pr_num;
   PeleC::trans_parms.sync_to_device();
 
   const amrex::Real St_num = Stmod / (8. * M_PI);

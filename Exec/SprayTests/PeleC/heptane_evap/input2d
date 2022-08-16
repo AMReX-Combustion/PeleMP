@@ -55,7 +55,8 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # PARTICLES / SPRAY
 pelec.do_spray_particles = 1
 particles.derive_plot_vars = 1
-particles.mom_transfer = 0
+particles.fixed_parts = 1
+particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.init_function = 0
 particles.init_file = "initsprayfile"

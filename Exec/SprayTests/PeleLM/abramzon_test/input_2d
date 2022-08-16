@@ -83,7 +83,7 @@ ns.divu_ceiling = 1
 ns.divu_dt_factor = .4
 ns.min_rho_divu_ceiling = .01
 
-ns.fuelName        = NC10H22
+ns.fuelName = NC10H22
 ns.hack_nochem = 1
 ns.unity_Le = 0
 
@@ -163,16 +163,14 @@ particles.v = 0
 particles.derive_plot_vars = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.heat_transfer = 1
 particles.init_function = 0
-# Particle input files must use MKS units
 particles.init_file = "initspraydata"
 #particles.init_file = "initspraydata3d"
 particles.write_spray_ascii_files = 1
 particles.parcel_size = 1.
 
 particles.fuel_species = NC10H22
-# properties for decane, must use MKS units
+# properties for decane, units match PeleLM so MKS
 particles.fuel_crit_temp = 617.8 # K
 particles.fuel_boil_temp = 447.27 # K
 # If we want the reference point to be same as the boiling temperature

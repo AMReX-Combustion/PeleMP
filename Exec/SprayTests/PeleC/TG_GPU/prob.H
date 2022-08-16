@@ -32,6 +32,7 @@ pc_initdata(
   // Geometry
   const amrex::Real* prob_lo = geomdata.ProbLo();
   const amrex::Real* dx = geomdata.CellSize();
+  amrex::Real L = prob_parm.L;
   amrex::Real x = 0.;
   amrex::Real y = 0.;
   amrex::Real z = 0.;
@@ -42,24 +43,22 @@ pc_initdata(
 
   // TG functions
   amrex::Real u[3] = {0.0};
-  u[0] = prob_parm.v0 * std::sin(coef * x / prob_parm.L) *
-         std::cos(coef * y / prob_parm.L) * std::cos(coef * z / prob_parm.L);
-  u[1] = -prob_parm.v0 * std::cos(coef * x / prob_parm.L) *
-         std::sin(coef * y / prob_parm.L) * std::cos(coef * z / prob_parm.L);
+  u[0] = prob_parm.v0 * std::sin(coef * x / L) * std::cos(coef * y / L) *
+         std::cos(coef * z / L);
+  u[1] = -prob_parm.v0 * std::cos(coef * x / L) * std::sin(coef * y / L) *
+         std::cos(coef * z / L);
   if (prob_parm.convecting) {
     u[0] += prob_parm.v0;
     u[1] += prob_parm.v0;
   }
-
   const amrex::Real p =
-    prob_parm.p0 + prob_parm.rho0 * prob_parm.v0 * prob_parm.v0 *
-                     (std::cos(2.0 * coef * x / prob_parm.L) +
-                      std::cos(2.0 * coef * y / prob_parm.L)) *
-                     (std::cos(2.0 * coef * z / prob_parm.L) + 2.0) / 16.;
+    prob_parm.p0 +
+    prob_parm.rho0 * prob_parm.v0 * prob_parm.v0 *
+      (std::cos(2.0 * coef * x / L) + std::cos(2.0 * coef * y / L)) *
+      (std::cos(2.0 * coef * z / L) + 2.0) / 16.;
   amrex::Real rho, eint;
   amrex::Real massfrac[NUM_SPECIES] = {0.0};
-  massfrac[O2_ID] = prob_parm.Y_O2;
-  massfrac[N2_ID] = prob_parm.Y_N2;
+  massfrac[N2_ID] = 1.;
   auto eos = pele::physics::PhysicsType::eos();
   eos.PYT2RE(p, massfrac, prob_parm.T0, rho, eint);
 
@@ -72,8 +71,9 @@ pc_initdata(
   state(i, j, k, UEDEN) =
     rho * (eint + 0.5 * (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]));
   state(i, j, k, UTEMP) = prob_parm.T0;
-  for (int n = 0; n < NUM_SPECIES; n++)
+  for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, UFS + n) = rho * massfrac[n];
+  }
 }
 
 AMREX_GPU_DEVICE

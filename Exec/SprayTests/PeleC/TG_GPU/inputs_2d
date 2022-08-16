@@ -6,13 +6,12 @@ stop_time = 8.E-5
 geometry.is_periodic = 1 1 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0. 0. 0.
-geometry.prob_hi     = 0.2 0.2 0.2
+geometry.prob_hi     = 1. 1. 1.
 
 # use with single level
 amr.n_cell = 128 128 128
 prob.num_particles = (266, 266, 266)
-prob.init_redist = 1
-amr.max_grid_size = 32
+amr.max_grid_size = 128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -42,39 +41,35 @@ pelec.sum_interval   = -1  # timesteps between computing mass
 pelec.v              = 0   # verbosity in Castro.cpp
 amr.v                = 1   # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 4       # block factor in grid generation
+amr.blocking_factor = 32       # block factor in grid generation
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # PARTICLES / SPRAY
 pelec.do_spray_particles = 1
 particles.v = 0
-particles.mom_transfer = 1
-particles.mass_transfer = 1
-particles.cfl = 0.4
+particles.mom_transfer = 0
+particles.mass_transfer = 0
+particles.cfl = 0.5
 particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
-particles.fuel_species = NC10H22
+particles.fuel_species = O2
 # properties for decane
 particles.fuel_crit_temp = 617.8 # K
 particles.fuel_boil_temp = 447.27 # K
 particles.fuel_ref_temp = 298.15
 particles.fuel_latent = 3.5899E9
 particles.fuel_cp = 2.1921E7 # Cp at 298 K
-particles.fuel_rho = 0.640
-# Coefficients for saturation pressure using Antoine equation
-# These are from the NIST website
-# Last coefficient converts units, in this case bar, to dyne/cm^2
-particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E6
+particles.fuel_rho = 11.7682
 
 particles.use_splash_model = false
 
 # CHECKPOINT FILES
-#amr.checkpoint_files_output = 0
+amr.checkpoint_files_output = 0
 amr.check_file      = chk        # root name of checkpoint file
 amr.check_int       = 10000   # number of timesteps between checkpoints
 #amr.restart         = chk0000100
@@ -90,9 +85,9 @@ amr.file_name_digits = 6
 # PROBLEM PARAMETERS
 prob.reynolds = 1600.
 prob.mach = 0.1
+prob.ref_p = 1.01325E6
 prob.ref_T = 1000.
-prob.part_temp = 300.
-prob.part_dia = 0.001
+prob.density_ratio = 10000.
+prob.st_mod = 10.
 
 amrex.abort_on_out_of_gpu_memory = 1
-fabarray.mfiter_tile_size = 1024 1024 1024

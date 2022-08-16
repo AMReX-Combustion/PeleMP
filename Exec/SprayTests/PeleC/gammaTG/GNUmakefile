@@ -14,7 +14,7 @@ MEM_PROFILE = FALSE
 USE_GPROF = FALSE
 
 # Performance
-USE_MPI = FALSE
+USE_MPI = TRUE
 USE_OMP = FALSE
 USE_CUDA = FALSE
 USE_HIP = FALSE
@@ -25,10 +25,8 @@ FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
 # PeleC
-USE_REACT = FALSE
-USE_EB = FALSE
+Chemistry_Model = Null
 Eos_Model := GammaLaw
-Chemistry_Model := Null
 Transport_Model := Constant
 
 # PeleMP

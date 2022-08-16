@@ -25,10 +25,9 @@ FSANITIZER = FALSE
 THREAD_SANITIZER = FALSE
 
 # PeleC
-USE_EB = FALSE
 Eos_Model := Fuego
-Chemistry_Model := decane_3sp
-Transport_Model := Simple
+Chemistry_Model := Fuego
+Transport_Model := Constant
 
 # PeleMP
 USE_PARTICLES = TRUE

@@ -14,8 +14,8 @@ amr.n_cell = 96 96 96
 prob.num_particles = (100,100,100)
 
 amrex.fpe_trap_invalid = 1
-amrex.fpe_trap_zero = 0
-amrex.fpe_trap_overflow = 0
+amrex.fpe_trap_zero = 1
+amrex.fpe_trap_overflow = 1
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -58,8 +58,8 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # PARTICLES / SPRAY
 pelec.do_spray_particles = 1
 particles.v = 0
-particles.mom_transfer = 1
-particles.mass_transfer = 0
+particles.mom_transfer = 0 # Gas phase has no spray momentum source term
+particles.mass_transfer = 0 # No evaporation takes place
 particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_spray_ascii_files = 0 # Do not write ascii output files
 
@@ -96,4 +96,3 @@ prob.density_ratio = 10000.
 prob.st_mod = 20. # This determines Stokes number as St = st_mod*St_c
 
 amrex.abort_on_out_of_gpu_memory = 1
-fabarray.mfiter_tile_size = 1024 1024 1024

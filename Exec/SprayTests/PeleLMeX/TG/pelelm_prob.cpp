@@ -6,7 +6,6 @@ PeleLM::readProbParm()
 {
   amrex::ParmParse pp("prob");
 
-  std::string type;
   amrex::Real Stmod = 5.;
   amrex::Real rhoRatio = 1000.;
   amrex::Real mach = 0.05;
@@ -91,7 +90,7 @@ PeleLM::readProbParm()
     std::ofstream ofs("ic.txt", std::ofstream::out);
     amrex::Print(ofs) << "number of particles: "
                       << PeleLM::prob_parm->partNum[0];
-    for (int dir = 1; dir != AMREX_SPACEDIM; ++dir) {
+    for (int dir = 1; dir < AMREX_SPACEDIM; ++dir) {
       amrex::Print(ofs) << ", " << PeleLM::prob_parm->partNum[dir];
     }
     amrex::Print(ofs) << std::endl;
@@ -100,11 +99,11 @@ PeleLM::readProbParm()
     amrex::Print(ofs) << "U: " << Ugas << std::endl;
     amrex::Print(ofs) << "mu: " << mu << std::endl;
     amrex::Print(ofs) << "Re: " << reyn << std::endl;
-    amrex::Print(ofs) << "Stokes number: " << Stmod << "*Stc " << std::endl;
+    amrex::Print(ofs) << "Stokes number: " << Stmod << "*Stc" << std::endl;
     amrex::Print(ofs) << "particle diameter: " << dia << std::endl;
     amrex::Print(ofs) << "tau_d: " << tau_d << std::endl;
     amrex::Print(ofs) << "Re_d: " << Re_d << std::endl;
-    amrex::Print(ofs) << "final time (7.2 tau_g): " << 7.2 * tau_g << std::endl;
+    amrex::Print(ofs) << "tau_g: " << tau_g << std::endl;
     ofs.close();
   }
 }
