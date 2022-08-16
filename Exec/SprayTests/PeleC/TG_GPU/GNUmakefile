@@ -26,7 +26,7 @@ THREAD_SANITIZER = FALSE
 
 # PeleC
 Eos_Model := Fuego
-Chemistry_Model := Fuego
+Chemistry_Model := air
 Transport_Model := Constant
 
 # PeleMP
