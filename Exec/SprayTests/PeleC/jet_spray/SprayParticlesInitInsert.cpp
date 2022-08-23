@@ -65,6 +65,11 @@ SprayParticleContainer::InitSprayParticles(
   m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
   if (prob_parm.inject_N <= 0) {
     m_injectVel = m_sprayJets[0]->jet_vel();
+  } else {
+    amrex::Real start_time = prob_parm.inject_time[0];
+    amrex::Real end_time = prob_parm.inject_time[prob_parm.inject_N - 1];
+    m_sprayJets[0]->set_start_time(start_time);
+    m_sprayJets[0]->set_end_time(end_time);
   }
   return;
 }

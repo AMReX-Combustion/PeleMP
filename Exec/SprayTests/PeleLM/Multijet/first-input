@@ -53,8 +53,8 @@ spray.diameter = 4.5E-6
 spray.jet_dia = 9.E-5
 spray.spread_angle = 21.
 spray.jets_per_dir = 2 1 2
-spray.jet_start = 0.
-spray.jet_end = 2.
+spray.start_time = 0.
+spray.end_time = 2.
 spray.jet_vel = 60.
 spray.mass_flow_rate = 2.3E-5
 

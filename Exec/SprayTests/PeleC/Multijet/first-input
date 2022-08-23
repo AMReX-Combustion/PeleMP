@@ -117,7 +117,7 @@ spray.part_temp = 363.
 spray.diameter = 4.5E-4
 
 spray.jets_per_dir = 2 1 2
-spray.jet_start = 0.
-spray.jet_end = 1.54E-3
+spray.start_time = 0.
+spray.end_time = 1.54E-3
 spray.jet_vel = 6.E4
 spray.mass_flow_rate = 2.3
