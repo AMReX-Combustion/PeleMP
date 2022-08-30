@@ -97,9 +97,9 @@ particles.derive_plot_vars = 1
 particles.fuel_species = NC10H22
 # Properties for decane, in MKS
 particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
+particles.fuel_boil_temp = 447.27 # K at 1 atm
 particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E5
+particles.fuel_latent = 3.5899E5 # Latent heat at reference temperature
 particles.fuel_cp = 2.1921E3 # Cp at 298 K
 particles.fuel_rho = 640.
 # Coefficients for saturation pressure using Antoine equation
@@ -108,10 +108,10 @@ particles.fuel_rho = 640.
 particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
 # Dodecane
 # particles.fuel_species = NC12H26
-# particles.fuel_crit_temp = 658.2 # K (at Pc = 1.8170 MPa)
-# particles.fuel_boil_temp = 489. # K (at atmospheric conditions)
+# particles.fuel_crit_temp = 658.2 # K
+# particles.fuel_boil_temp = 489. # K
 # particles.fuel_ref_temp = 298.15
-# particles.fuel_latent = 3.0299E5 # Latent heat at reference temperature
+# particles.fuel_latent = 3.586E5 # Latent heat at reference temperature
 # particles.fuel_cp = 2.207E3 # Cp at 298
 # particles.fuel_rho = 669.43
 # particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
