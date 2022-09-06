@@ -2,13 +2,13 @@ name: PeleMP-Docs
 
 on:
   push:
-    branches: [development]
+    branches: [master]
     paths:
        - 'Docs/**'
        - 'README.rst'
        - '.github/workflows/docs.yml'
   pull_request:
-    branches: [development]
+    branches: [master]
     paths:
        - 'Docs/**'
        - 'README.rst'
@@ -41,7 +41,7 @@ jobs:
            echo "::remove-matcher owner=sphinx-problem-matcher::"
            touch ${{runner.workspace}}/build-docs/sphinx/html/.nojekyll
       - name: Deploy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/development'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
