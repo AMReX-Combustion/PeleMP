@@ -267,22 +267,23 @@ SprayParticleContainer::updateParticles(
     // #endif
     Gpu::HostVector<int> N_refl_h(Np, -1);
     Gpu::DeviceVector<int> N_refl_d(Np);
-    Gpu::copyAsync(Gpu::hostToDevice, N_refl_h.begin(), N_refl_h.end(), N_refl_d.begin());
+    Gpu::copyAsync(
+      Gpu::hostToDevice, N_refl_h.begin(), N_refl_h.end(), N_refl_d.begin());
     auto N_refl = N_refl_d.dataPtr();
     ReflVects refv(Np);
     ReflPtrs rf_d;
-    if(isActive && m_sprayData->sigma > 0.) {
+    if (isActive && m_sprayData->sigma > 0.) {
       refv.fillPtrs_d(rf_d);
     }
     amrex::ParallelFor(
-      Np,
-      [pstruct, Tarr, rhoYarr, rhoarr, momarr, engarr, rhoYSrcarr, rhoSrcarr,
-       momSrcarr, engSrcarr, plo, phi, dx, dxi, do_move, SPI, fdat, bndry_hi,
-       bndry_lo, flow_dt, inv_vol, ltransparm, at_bounds, isGhost, isVirt,
-       src_box, state_box, sub_cfl, num_iter, sub_dt, spray_cfl_lev, eb_in_box, N_refl, rf_d
+      Np, [pstruct, Tarr, rhoYarr, rhoarr, momarr, engarr, rhoYSrcarr,
+           rhoSrcarr, momSrcarr, engSrcarr, plo, phi, dx, dxi, do_move, SPI,
+           fdat, bndry_hi, bndry_lo, flow_dt, inv_vol, ltransparm, at_bounds,
+           isGhost, isVirt, src_box, state_box, sub_cfl, num_iter, sub_dt,
+           spray_cfl_lev, eb_in_box, N_refl, rf_d
 #ifdef AMREX_USE_EB
-       ,
-       flags_array, ccent_fab, bcent_fab, bnorm_fab, volfrac_fab
+           ,
+           flags_array, ccent_fab, bcent_fab, bnorm_fab, volfrac_fab
 #endif
     ] AMREX_GPU_DEVICE(int pid) noexcept {
         ParticleType& p = pstruct[pid];
@@ -311,9 +312,8 @@ SprayParticleContainer::updateParticles(
           IntVect bflags(IntVect::TheZeroVector());
           if (at_bounds) {
             // Check if particle has left the domain or is boundary adjacent
-            // and must be shifted
-            bool left_dom = check_bounds(
-              p.pos(), plo, phi, dx, bndry_lo, bndry_hi, ijk, bflags);
+            bool left_dom =
+              check_bounds(p.pos(), plo, phi, dx, bndry_lo, bndry_hi, bflags);
             if (left_dom) {
               Abort("Particle has incorrectly left the domain");
             }
@@ -401,13 +401,14 @@ SprayParticleContainer::updateParticles(
                 // First check if particle has exited the domain through a
                 // Cartesian boundary
                 bool left_dom = check_bounds(
-                  p.pos(), plo, phi, dx, bndry_lo, bndry_hi, ijk, bflags);
+                  p.pos(), plo, phi, dx, bndry_lo, bndry_hi, bflags);
                 if (left_dom) {
                   p.id() = -1;
                 } else {
                   // Next reflect particles off BC or EB walls if necessary
                   impose_wall(
-                              isActive, pid, p, *fdat, SPI, dx, plo, bflags, cBoilT.data(), eb_in_box,
+                    isActive, pid, p, SPI, dx, plo, phi, bndry_lo, bndry_hi,
+                    bflags, cBoilT.data(), eb_in_box,
 #ifdef AMREX_USE_EB
                     flags_array, bcent_fab, bnorm_fab, volfrac_fab,
                     fdat->min_eb_vfrac,
@@ -429,9 +430,9 @@ SprayParticleContainer::updateParticles(
         }   // End of p.id() > 0 check
       });   // End of loop over particles
     // if (isActive && m_sprayData->sigma > 0.) {
-    //   Gpu::copyAsync(Gpu::deviceToHost, N_refl_d.begin(), N_refl_d.end(), N_refl_h.begin());
-    //   bool get_new_parts = false;
-    //   for (Long n = 0; n < Np; n++) {
+    //   Gpu::copyAsync(Gpu::deviceToHost, N_refl_d.begin(), N_refl_d.end(),
+    //   N_refl_h.begin()); bool get_new_parts = false; for (Long n = 0; n < Np;
+    //   n++) {
     //     if (N_refl_h[n] > 0.) {
     //       get_new_parts = true;
     //     }
@@ -471,5 +472,5 @@ SprayParticleContainer::updateParticles(
     //     }
     //   }
     // }
-  }         // for (int MyParIter pti..
+  } // for (int MyParIter pti..
 }

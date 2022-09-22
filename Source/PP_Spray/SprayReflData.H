@@ -65,33 +65,55 @@ struct ReflVects
 #if SPRAY_FUEL_NUM > 1
     Y0_h.assign(SPRAY_FUEL_NUM * Np, 0.);
     Y0_d.resize(SPRAY_FUEL_NUM * Np);
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, Y0_h.begin(), Y0_h.end(), Y0_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, Y0_h.begin(), Y0_h.end(), Y0_d.begin());
 #endif
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, norm_h.begin(), norm_h.end(), norm_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, vel_h.begin(), vel_h.end(), vel_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, loc_h.begin(), loc_h.end(), loc_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, alpha_h.begin(), alpha_h.end(), alpha_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, we_h.begin(), we_h.end(), we_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, dtpp_h.begin(), dtpp_h.end(), dtpp_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, Tstar_h.begin(), Tstar_h.end(), Tstar_d.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::hostToDevice, d0_h.begin(), d0_h.end(), d0_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, norm_h.begin(), norm_h.end(), norm_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, vel_h.begin(), vel_h.end(), vel_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, loc_h.begin(), loc_h.end(), loc_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, alpha_h.begin(), alpha_h.end(),
+      alpha_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, we_h.begin(), we_h.end(), we_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, dtpp_h.begin(), dtpp_h.end(), dtpp_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, Tstar_h.begin(), Tstar_h.end(),
+      Tstar_d.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, d0_h.begin(), d0_h.end(), d0_d.begin());
   }
   ReflVects() = delete;
-  ReflVects (const ReflVects&) = delete;
+  ReflVects(const ReflVects&) = delete;
 
   void retrieve_data()
   {
 #if SPRAY_FUEL_NUM > 1
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, Y0_d.begin(), Y0_d.end(), Y0_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, Y0_d.begin(), Y0_d.end(), Y0_h.begin());
 #endif
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, norm_d.begin(), norm_d.end(), norm_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, vel_d.begin(), vel_d.end(), vel_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, loc_d.begin(), loc_d.end(), loc_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, alpha_d.begin(), alpha_d.end(), alpha_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, we_d.begin(), we_d.end(), we_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, dtpp_d.begin(), dtpp_d.end(), dtpp_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, Tstar_d.begin(), Tstar_d.end(), Tstar_h.begin());
-    amrex::Gpu::copyAsync(amrex::Gpu::deviceToHost, d0_d.begin(), d0_d.end(), d0_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, norm_d.begin(), norm_d.end(), norm_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, vel_d.begin(), vel_d.end(), vel_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, loc_d.begin(), loc_d.end(), loc_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, alpha_d.begin(), alpha_d.end(),
+      alpha_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, we_d.begin(), we_d.end(), we_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, dtpp_d.begin(), dtpp_d.end(), dtpp_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, Tstar_d.begin(), Tstar_d.end(),
+      Tstar_h.begin());
+    amrex::Gpu::copyAsync(
+      amrex::Gpu::deviceToHost, d0_d.begin(), d0_d.end(), d0_h.begin());
   }
 
   void fillPtrs_d(ReflPtrs& rf)
