@@ -4,6 +4,7 @@
 
 #include "Drag.H"
 #include "SprayFuelData.H"
+#include "SprayInterpolation.H"
 
 // Check if tile is adjacent to non-periodic boundaries
 AMREX_GPU_HOST_DEVICE
@@ -33,6 +34,41 @@ tile_at_bndry(
     }
   }
   return at_bndry;
+}
+
+// This is the same as the check_bounds function but pos and phi have been
+// normalized by plo and dx
+AMREX_GPU_DEVICE AMREX_INLINE bool
+check_bounds_norm(
+  const amrex::RealVect pos,
+  const amrex::RealVect phi,
+  const amrex::IntVect bndry_lo,
+  const amrex::IntVect bndry_hi,
+  amrex::IntVect& bflags)
+{
+  for (int hilo = 0; hilo < 2; ++hilo) {
+    int fact = (hilo == 0) ? 1 : -1;
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+      amrex::Real dom_loc = (hilo == 0) ? 0. : phi[dir];
+      int bflag = (hilo == 0) ? bndry_lo[dir] : bndry_hi[dir];
+      if (bflag != 0) { // Not periodic
+        amrex::Real diff =
+          static_cast<amrex::Real>(fact) * (pos[dir] - dom_loc);
+        if (diff < 0.) {
+          // Outside domain
+          if (bflag == 1) { // Outside reflective BC
+            bflags[dir] = -fact;
+          } else { // Outside non-reflective BC
+            return true;
+          }
+          // Adjacent to non-periodic boundary
+        } else if (diff < 0.5) {
+          bflags[dir] = -2 * fact;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -202,7 +238,10 @@ impose_wall(
   const SprayComps& SPI,
   const amrex::RealVect& dx,
   const amrex::RealVect& plo,
-  const amrex::IntVect bflags,
+  const amrex::RealVect& phi,
+  const amrex::IntVect bndry_lo,
+  const amrex::IntVect bndry_hi,
+  amrex::IntVect& bflags,
   const bool use_EB,
 #ifdef AMREX_USE_EB
   amrex::Array4<amrex::EBCellFlag const> const& flags,
@@ -219,9 +258,11 @@ impose_wall(
   amrex::RealVect vel_part(AMREX_D_DECL(
     p.rdata(SPI.pstateVel), p.rdata(SPI.pstateVel + 1),
     p.rdata(SPI.pstateVel + 2)));
+  amrex::RealVect normphi;
   // Normalize pos
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     p.pos(dir) = (p.pos(dir) - plo[dir]) / dx[dir];
+    normphi[dir] = (phi[dir] - plo[dir]) / dx[dir];
   }
   // Check if particle is behind a wall
   bool do_refl = check_wall(
@@ -253,6 +294,12 @@ impose_wall(
       p.rdata(SPI.pstateVel + dir) -= 2. * Nw_Vp * normal[dir];
       vel_part[dir] = p.rdata(SPI.pstateVel + dir);
       ijkc[dir] = static_cast<int>(amrex::Math::floor(p.pos(dir)));
+    }
+    bool left_dom =
+      check_bounds_norm(p.pos(), normphi, bndry_lo, bndry_hi, bflags);
+    if (left_dom) {
+      p.id() = -1;
+      return;
     }
     do_refl = check_wall(
       p.pos(), bflags, ijkc,
@@ -292,7 +339,6 @@ calculateWallFilmSource(
   const SprayComps& SPI,
   const SprayData& fdat,
   SprayParticleContainer::ParticleType& p,
-  const amrex::Real T_wall,
   const amrex::Real /*face_area*/,
   const amrex::Real diff_cent,
   pele::physics::transport::TransParm<
@@ -398,7 +444,7 @@ calculateWallFilmSource(
   // Determine the temperature at wall film surface using energy balance
   amrex::Real fs1 = lambda_skin * ht_film;
   amrex::Real fs2 = lambda_film * dy_i;
-  amrex::Real T_s = (fs1 * T_i + fs2 * T_wall - ht_film * dy_i * qvap) / (fs1 + fs2);
+  amrex::Real T_s = (fs1 * T_i + fs2 * fdat.wall_T - ht_film * dy_i * qvap) / (fs1 + fs2);
   amrex::Real qconv = lambda_skin * (T_i - T_s) / dy_i;
   gpv.fluid_eng_src += qconv;
   // Update film height
@@ -415,7 +461,7 @@ calculateWallFilmSource(
   // Adjust the height by assuming radius remains unchanged
   amrex::Real new_ht = 4. * new_vol / (M_PI * dia_film * dia_film);
   p.rdata(SPI.pstateHt) = new_ht;
-  p.rdata(SPI.pstateT) = -0.5 * (T_s + T_wall);
+  p.rdata(SPI.pstateT) = -0.5 * (T_s + fdat.wall_T);
   if (new_ht < ht_tol) {
     p.id() = -1;
   }
@@ -538,7 +584,6 @@ droplet_splashing(
   const amrex::RealVect pvel,
   const amrex::Real par_dot_EB,
   const amrex::Real Nw_Vp,
-  const amrex::Real T_wall,
   const amrex::RealVect normal,
   SprayRefl& SPRF,
   const bool dry_wall)
@@ -551,7 +596,7 @@ droplet_splashing(
     const int ysp = SPI.pstateY + spf;
     mu_part += p.rdata(ysp) * fdat.mu[spf];
     rho_part += p.rdata(ysp) / fdat.rho[spf];
-    Tstar += T_wall * p.rdata(ysp) / fdat.boilT[spf];
+    Tstar += fdat.wall_T * p.rdata(ysp) / fdat.boilT[spf];
   }
   rho_part = 1. / rho_part;
   const amrex::Real dia_part = p.rdata(SPI.pstateDia);
