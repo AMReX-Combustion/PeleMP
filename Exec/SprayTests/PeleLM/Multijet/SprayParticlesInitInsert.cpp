@@ -42,12 +42,12 @@ SprayParticleContainer::InitSprayParticles(
   amrex::Real jet_end_time = 10000.;
   amrex::Real spread_angle = 20.;
   amrex::Real Y_jet[SPRAY_FUEL_NUM] = {0.0};
-  ps.query("jet_vel", jet_vel);
+  ps.get("jet_vel", jet_vel);
   ps.query("jet_start", jet_start_time);
   ps.query("jet_end", jet_end_time);
   // The cells are divided by this value when prescribing the jet inlet
   ps.get("jet_dia", jet_dia);
-  ps.get("part_temp", part_temp);
+  ps.get("T", part_temp);
   ps.query("mass_flow_rate", mass_flow_rate);
   ps.get("spread_angle", spread_angle);
   std::vector<int> jets_per_dir(AMREX_SPACEDIM);

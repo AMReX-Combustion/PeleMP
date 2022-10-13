@@ -75,6 +75,7 @@ amrex_probinit(
     PeleC::h_prob_parm_device->rho0, PeleC::h_prob_parm_device->T0, massfrac,
     cs);
   eos.TY2Cp(PeleC::h_prob_parm_device->T0, massfrac, cp);
+  // Read injection ROI file if specified
   if (PeleC::prob_parm_host->input_file != "") {
     read_inject(PeleC::prob_parm_host->input_file);
   }
