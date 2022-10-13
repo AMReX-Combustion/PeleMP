@@ -37,11 +37,11 @@ spray.jet1.Y = 1.
 # Set droplet diameter distribution at injection
 # Options: Uniform, Normal, LogNormal, and Weibull
 spray.jet1.dist_type = Weibull
-spray.jet1.mean_diam = 4.E-5
+spray.jet1.mean_dia = 4.E-5
 spray.jet1.k = 3.
 # For LogNormal distribution
 # spray.jet1.dist_type = LogNormal
-# spray.jet1.mean_diam = 4.E-5
+# spray.jet1.mean_dia = 4.E-5
 # spray.jet1.std_dev = 4.E-6
 # Jet diameter
 spray.jet1.jet_dia = 0.004

@@ -110,10 +110,10 @@ prob.init_O2 = 0.233
 
 # Jet properties
 spray.jet_dia = 9.E-3
-spray.spray_angle_deg = 21.
+spray.spread_angle = 21.
 
 # Properties of injected particles
-spray.part_temp = 363.
+spray.T = 363.
 spray.diameter = 4.5E-4
 
 spray.jets_per_dir = 2 1 2
