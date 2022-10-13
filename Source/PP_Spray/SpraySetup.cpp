@@ -121,7 +121,6 @@ SprayParticleContainer::readSprayParams(
     pp.get("fuel_sigma", sprayData.sigma);
     // TODO: Have this retrieved from proper boundary data
     pp.get("wall_temp", sprayData.wall_T);
->>>>>>> master
   }
 
   // Must use same reference temperature for all fuels

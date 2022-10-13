@@ -10,6 +10,7 @@ struct ReflPtrs
   amrex::Real* We = nullptr;
   amrex::Real* dtpp = nullptr;
   amrex::Real* Tstar = nullptr;
+  amrex::Real* T0 = nullptr;
   amrex::Real* d0 = nullptr;
   amrex::Real* Y0 = nullptr;
 };
@@ -37,6 +38,9 @@ struct ReflVects
   // T* from Kuhnke model
   amrex::Gpu::HostVector<amrex::Real> Tstar_h;
   amrex::Gpu::DeviceVector<amrex::Real> Tstar_d;
+  // Splashing droplet temperature
+  amrex::Gpu::HostVector<amrex::Real> T0_h;
+  amrex::Gpu::DeviceVector<amrex::Real> T0_d;
   // Splashing droplet diameter
   amrex::Gpu::HostVector<amrex::Real> d0_h;
   amrex::Gpu::DeviceVector<amrex::Real> d0_d;
@@ -52,6 +56,7 @@ struct ReflVects
     we_h.assign(Np, 0.);
     dtpp_h.assign(Np, 0.);
     Tstar_h.assign(Np, 0.);
+    T0_h.assign(Np, 0.);
     d0_h.assign(Np, 0.);
 
     norm_d.resize(AMREX_SPACEDIM * Np);
@@ -61,6 +66,7 @@ struct ReflVects
     we_d.resize(Np);
     dtpp_d.resize(Np);
     Tstar_d.resize(Np);
+    T0_d.resize(Np);
     d0_d.resize(Np);
 #if SPRAY_FUEL_NUM > 1
     Y0_h.assign(SPRAY_FUEL_NUM * Np, 0.);
@@ -85,6 +91,8 @@ struct ReflVects
       amrex::Gpu::hostToDevice, Tstar_h.begin(), Tstar_h.end(),
       Tstar_d.begin());
     amrex::Gpu::copyAsync(
+      amrex::Gpu::hostToDevice, T0_h.begin(), T0_h.end(), T0_d.begin());
+    amrex::Gpu::copyAsync(
       amrex::Gpu::hostToDevice, d0_h.begin(), d0_h.end(), d0_d.begin());
   }
   ReflVects() = delete;
@@ -93,26 +101,28 @@ struct ReflVects
   void retrieve_data()
   {
 #if SPRAY_FUEL_NUM > 1
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, Y0_d.begin(), Y0_d.end(), Y0_h.begin());
 #endif
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, norm_d.begin(), norm_d.end(), norm_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, vel_d.begin(), vel_d.end(), vel_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, loc_d.begin(), loc_d.end(), loc_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, alpha_d.begin(), alpha_d.end(),
       alpha_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, we_d.begin(), we_d.end(), we_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, dtpp_d.begin(), dtpp_d.end(), dtpp_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, Tstar_d.begin(), Tstar_d.end(),
       Tstar_h.begin());
-    amrex::Gpu::copyAsync(
+    amrex::Gpu::copy(
+      amrex::Gpu::deviceToHost, T0_d.begin(), T0_d.end(), T0_h.begin());
+    amrex::Gpu::copy(
       amrex::Gpu::deviceToHost, d0_d.begin(), d0_d.end(), d0_h.begin());
   }
 
@@ -125,6 +135,7 @@ struct ReflVects
     rf.We = we_d.data();
     rf.dtpp = dtpp_d.data();
     rf.Tstar = Tstar_d.data();
+    rf.T0 = T0_d.data();
     rf.d0 = d0_d.data();
     rf.Y0 = Y0_d.data();
   }
@@ -137,6 +148,7 @@ struct ReflVects
     rf.We = we_h.data();
     rf.dtpp = dtpp_h.data();
     rf.Tstar = Tstar_h.data();
+    rf.T0 = T0_h.data();
     rf.d0 = d0_h.data();
     rf.Y0 = Y0_h.data();
   }
