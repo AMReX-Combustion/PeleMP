@@ -1,7 +1,6 @@
 
 #include "SprayParticles.H"
-#include "SprayInjectTemplate.H"
-#include <PeleC.H>
+#include "SprayInjection.H"
 #include "prob.H"
 
 int
@@ -47,7 +46,7 @@ SprayParticleContainer::injectParticles(
     js->set_jet_vel(jet_vel);
   }
 
-  sprayInjection(js, dt, lev);
+  sprayInjection(time, js, dt, lev);
 
   // Redistribute is done outside of this function
   return true;

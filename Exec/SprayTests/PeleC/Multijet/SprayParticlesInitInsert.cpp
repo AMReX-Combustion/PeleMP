@@ -1,7 +1,6 @@
 
 #include "SprayParticles.H"
-#include "SprayInjectTemplate.H"
-#include "PeleC.H"
+#include "SprayInjection.H"
 #include "prob.H"
 
 bool
@@ -21,7 +20,7 @@ SprayParticleContainer::injectParticles(
   for (int jindx = 0; jindx < m_sprayJets.size(); ++jindx) {
     SprayJet* js = m_sprayJets[jindx].get();
     if (js->jet_active(time)) {
-      sprayInjection(js, dt, 0);
+      sprayInjection(time, js, dt, 0);
     }
   }
 

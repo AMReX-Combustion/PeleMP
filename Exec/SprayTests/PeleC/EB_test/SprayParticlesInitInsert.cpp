@@ -1,7 +1,6 @@
 
 #include "SprayParticles.H"
-#include "SprayInjectTemplate.H"
-#include <PeleC.H>
+#include "SprayInjection.H"
 #include "prob.H"
 
 bool
@@ -20,7 +19,7 @@ SprayParticleContainer::injectParticles(
   }
   SprayJet* js = m_sprayJets[0].get();
 
-  sprayInjection(js, dt, lev);
+  sprayInjection(time, js, dt, lev);
 
   // Redistribute is done outside of this function
   return true;
