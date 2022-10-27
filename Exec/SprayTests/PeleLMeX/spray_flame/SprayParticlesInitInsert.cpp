@@ -1,6 +1,6 @@
 
 #include "SprayParticles.H"
-#include "SprayInjectTemplate.H"
+#include "SprayInjection.H"
 #include "pelelm_prob.H"
 
 bool
@@ -21,7 +21,7 @@ SprayParticleContainer::injectParticles(
     return false;
   }
 
-  sprayInjection(js, dt, lev);
+  sprayInjection(time, js, dt, lev);
 
   // Redistribute is done outside of this function
   return true;

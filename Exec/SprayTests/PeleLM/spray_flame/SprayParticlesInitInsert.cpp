@@ -1,6 +1,6 @@
 
 #include "SprayParticles.H"
-#include "SprayInjectTemplate.H"
+#include "SprayInjection.H"
 #include "pelelm_prob.H"
 
 bool
@@ -20,7 +20,7 @@ SprayParticleContainer::injectParticles(
   if (!js->jet_active(time)) {
     return false;
   }
-  sprayInjection(js, dt, lev);
+  sprayInjection(time, js, dt, lev);
   // Redistribute is done outside of this function
   return true;
 }
@@ -37,7 +37,8 @@ SprayParticleContainer::InitSprayParticles(
   if (init_parts) {
     const auto dx = this->m_gdb->Geom(0).CellSize();
     amrex::Real fakedt = dx[0] * m_partCFL / m_injectVel;
-    sprayInjection(m_sprayJets[0].get(), fakedt, 0);
+    amrex::Real time = 0.;
+    sprayInjection(time, m_sprayJets[0].get(), fakedt, 0);
     Redistribute();
   }
   return;
