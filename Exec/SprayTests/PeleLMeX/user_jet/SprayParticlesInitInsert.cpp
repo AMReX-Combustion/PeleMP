@@ -51,7 +51,6 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
   amrex::Real mag = m_norm.vectorLength();
   m_norm /= mag;
   check_jet_cent(geom);
-  //pp.get("jet_dia", m_jetDia);
   pp.get("spread_angle", m_spreadAngle);
   m_spreadAngle *= M_PI / 180.; // Assumes spread angle is in degrees
   pp.query("start_time", m_startTime);
