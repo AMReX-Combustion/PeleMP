@@ -100,7 +100,7 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
     sinput >> mean_vals[vel_col][i];
     sinput >> std_vals[vel_col][i];
     m_avgDia += mean_vals[smd_col][i];
-    m_jetT += mean_vals[smd_temp][i];
+    m_jetT += mean_vals[temp_col][i];
   }
   // Must provide values for m_avgDia, m_jetT, and m_jetY
   // The average values are used during the jet calculations
