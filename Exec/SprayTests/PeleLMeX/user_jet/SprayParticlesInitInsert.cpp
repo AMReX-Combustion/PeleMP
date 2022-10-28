@@ -3,15 +3,14 @@
 #include "SprayInjection.H"
 #include "pelelm_prob.H"
 
-// This demonstrates a way to override the get_new_particle function in the SprayJet class
+// This demonstrates a way to override the get_new_particle function in the
+// SprayJet class
 class ThisJet : public SprayJet
 {
 public:
   ThisJet(const std::string& jet_name, const amrex::Geometry& geom);
 
   ~ThisJet() override {}
-
-  amrex::Real get_avg_dia() override;
 
   bool get_new_particle(
     const amrex::Real time,
@@ -33,7 +32,6 @@ protected:
   amrex::Vector<amrex::Real> jet_radius_vec;
   std::array<amrex::Vector<amrex::Real>, 3> mean_vals;
   std::array<amrex::Vector<amrex::Real>, 3> std_vals;
-  amrex::Real avg_dia;
 };
 
 ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
@@ -84,7 +82,8 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
   iss.clear();
   iss.seekg(0, std::ios::beg);
   std::getline(iss, firstline);
-  avg_dia = 0.;
+  m_avgDia = 0.;
+  m_jetT = 0.;
   amrex::Real max_jet_dia = 0.;
   for (unsigned int i = 0; i < line_count; ++i) {
     std::getline(iss, remaininglines);
@@ -100,21 +99,33 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
     std_vals[smd_col][i] *= 1.E-6;
     sinput >> mean_vals[vel_col][i];
     sinput >> std_vals[vel_col][i];
-    avg_dia += mean_vals[smd_col][i];
+    m_avgDia += mean_vals[smd_col][i];
+    m_jetT += mean_vals[smd_temp][i];
   }
-  avg_dia = avg_dia / static_cast<amrex::Real>(line_count);
+  // Must provide values for m_avgDia, m_jetT, and m_jetY
+  // The average values are used during the jet calculations
+  m_avgDia = m_avgDia / static_cast<amrex::Real>(line_count);
+  m_jetT = m_jetT / static_cast<amrex::Real>(line_count);
+  if (SPRAY_FUEL_NUM > 1) {
+    std::vector<amrex::Real> in_Y_jet(SPRAY_FUEL_NUM, 0.);
+    pp.getarr("Y", in_Y_jet);
+    amrex::Real sumY = 0.;
+    for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+      m_jetY[spf] = in_Y_jet[spf];
+      sumY += in_Y_jet[spf];
+    }
+    for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+      m_jetY[spf] /= sumY;
+    }
+  } else {
+    m_jetY[0] = 1.;
+  }
   data_len = line_count;
   if (pp.contains("jet_dia")) {
     pp.get("jet_dia", m_jetDia);
   } else {
     m_jetDia = max_jet_dia;
   }
-}
-
-amrex::Real
-ThisJet::get_avg_dia()
-{
-  return avg_dia;
 }
 
 bool
