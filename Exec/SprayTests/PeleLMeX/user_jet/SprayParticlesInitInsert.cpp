@@ -143,30 +143,35 @@ ThisJet::get_new_particle(
   amrex::Real* Y_part)
 {
   // Interpolate values from data tables
-  amrex::Real Tmean, Tstd, SMDmean, SMDstd, Umean, Ustd;
+  amrex::Real Tmean, Tstd, SMDmean, SMDstd, Umean, Ustd, dxdx;
+  int iloc = 0;
+  if (cur_radius < jet_radius_vec[0]) {
+    iloc = 0;
+  }
   for (int i = 0; i < data_len - 1; ++i) {
     amrex::Real x1 = jet_radius_vec[i];
     amrex::Real x2 = jet_radius_vec[i + 1];
     if (cur_radius > x1 && cur_radius < x2) {
-      amrex::Real dxdx = (cur_radius - x1) / (x2 - x1);
-      for (int jc = 0; jc < 3; ++jc) {
-        amrex::Real y1 = mean_vals[jc][i];
-        amrex::Real y2 = mean_vals[jc][i + 1];
-        amrex::Real yval = y1 + (y2 - y1) * dxdx;
-        amrex::Real ys1 = std_vals[jc][i];
-        amrex::Real ys2 = std_vals[jc][i + 1];
-        amrex::Real ysval = ys1 + (ys2 - ys1) * dxdx;
-        if (jc == temp_col) {
-          Tmean = yval;
-          Tstd = ysval;
-        } else if (jc == smd_col) {
-          SMDmean = yval;
-          SMDstd = ysval;
-        } else {
-          Umean = yval;
-          Ustd = ysval;
-        }
-      }
+      dxdx = (cur_radius - x1) / (x2 - x1);
+      iloc = i;
+    }
+  }
+  for (int jc = 0; jc < 3; ++jc) {
+    amrex::Real y1 = mean_vals[jc][iloc];
+    amrex::Real y2 = mean_vals[jc][iloc + 1];
+    amrex::Real yval = y1 + (y2 - y1) * dxdx;
+    amrex::Real ys1 = std_vals[jc][iloc];
+    amrex::Real ys2 = std_vals[jc][iloc + 1];
+    amrex::Real ysval = ys1 + (ys2 - ys1) * dxdx;
+    if (jc == temp_col) {
+      Tmean = yval;
+      Tstd = ysval;
+    } else if (jc == smd_col) {
+      SMDmean = yval;
+      SMDstd = ysval;
+    } else {
+      Umean = yval;
+      Ustd = ysval;
     }
   }
   // Change normalized distribution to match each variable
@@ -177,7 +182,7 @@ ThisJet::get_new_particle(
     Y_part[spf] = m_jetY[spf];
   }
   phi_swirl = 0.;
-  theta_spread = cur_radius / m_jetDia * m_spreadAngle;
+  theta_spread = 2. * cur_radius / m_jetDia * m_spreadAngle;
   return true;
 }
 
