@@ -182,7 +182,7 @@ ThisJet::get_new_particle(
     Y_part[spf] = m_jetY[spf];
   }
   phi_swirl = 0.;
-  theta_spread = 2. * cur_radius / m_jetDia * m_spreadAngle;
+  theta_spread = cur_radius / m_jetDia * m_spreadAngle;
   return true;
 }
 
