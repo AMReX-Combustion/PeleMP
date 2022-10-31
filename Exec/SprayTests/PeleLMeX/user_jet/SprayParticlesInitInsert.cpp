@@ -84,6 +84,7 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
   std::getline(iss, firstline);
   m_avgDia = 0.;
   m_jetT = 0.;
+  m_jetVel = 0.;
   amrex::Real max_jet_dia = 0.;
   for (unsigned int i = 0; i < line_count; ++i) {
     std::getline(iss, remaininglines);
@@ -101,6 +102,7 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
     sinput >> std_vals[vel_col][i];
     m_avgDia += mean_vals[smd_col][i];
     m_jetT += mean_vals[temp_col][i];
+    m_jetVel = amrex::max(m_jetVel, mean_vals[vel_col][i]);
   }
   // Must provide values for m_avgDia, m_jetT, and m_jetY
   // The average values are used during the jet calculations
