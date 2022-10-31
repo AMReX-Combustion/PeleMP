@@ -104,7 +104,7 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
     m_jetT += mean_vals[temp_col][i];
     m_jetVel = amrex::max(m_jetVel, mean_vals[vel_col][i]);
   }
-  // Must provide values for m_avgDia, m_jetT, and m_jetY
+  // Must provide values for m_avgDia, m_jetT, m_jetVel, and m_jetY
   // The average values are used during the jet calculations
   m_avgDia = m_avgDia / static_cast<amrex::Real>(line_count);
   m_jetT = m_jetT / static_cast<amrex::Real>(line_count);
