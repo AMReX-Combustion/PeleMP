@@ -1,14 +1,14 @@
 #----------------------DOMAIN DEFINITION------------------------
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
-geometry.prob_lo     = -0.027 0.
-geometry.prob_hi     =  0.027 0.054
+geometry.prob_lo     = -0.027 -0.027 0.
+geometry.prob_hi     =  0.027 0.027 0.054
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, # SlipWallIsotherm, NoSlipWallIsotherm
-peleLM.lo_bc = SlipWallAdiab Inflow
-peleLM.hi_bc = SlipWallAdiab Outflow
+peleLM.lo_bc = SlipWallAdiab SlipWallAdiab Inflow
+peleLM.hi_bc = SlipWallAdiab SlipWallAdiab Outflow
 
 #-------------------------AMR CONTROL----------------------------
 amr.n_cell = 64 64 64
@@ -29,27 +29,17 @@ prob.T_init = 900.
 
 #--------------------------- Injection -------------------------------
 # Jet parameters
-spray.jet1.jet_cent = 0. 0.
-spray.jet1.jet_norm = 0. 1.
-spray.jet1.T  = 300.
+spray.jet1.jet_cent = 0. 0. 0.
+spray.jet1.jet_norm = 0. 0. 1.
 # NC10H22
 spray.jet1.Y = 1.
-# Set droplet diameter distribution at injection
-# Options: Uniform, Normal, LogNormal, and Weibull
-spray.jet1.dist_type = Weibull
-spray.jet1.mean_dia = 4.E-5
-spray.jet1.k = 3.
-# For LogNormal distribution
-# spray.jet1.dist_type = LogNormal
-# spray.jet1.mean_dia = 4.E-5
-# spray.jet1.std_dev = 4.E-6
-# Jet diameter
-spray.jet1.jet_dia = 0.004
 # The spreading angle in degrees
 spray.jet1.spread_angle = 21.
-# Magnitude of the jet velocity
-spray.jet1.jet_vel = 30.
 spray.jet1.mass_flow_rate = 1.E-3
+# Velocity, temperature, and SMD for particles are read from this file
+spray.jet1.injection_file = datafiles/radial_z_2_mm.dat
+# The jet diameter is assumed to be largest value in the data file but can be set here
+#spray.jet1.jet_dia = 5.E-3
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
@@ -65,8 +55,8 @@ peleLM.temporal_int = 2
 peleLM.mass_balance = 1
 peleLM.num_init_iter = 0
 
-amr.plot_per = 5.E-5
-#amr.plot_int = 1
+#amr.plot_per = 5.E-5
+amr.plot_int = 1
 
 amr.dt_shrink = 1.
 amr.max_step = 10
@@ -92,7 +82,6 @@ nodal_proj.verbose = 0
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.derive_plot_vars = 1
-
 # Decane
 particles.fuel_species = NC10H22
 # Properties for decane, in MKS
@@ -109,7 +98,7 @@ particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
 # Dodecane
 # particles.fuel_species = NC12H26
 # particles.fuel_crit_temp = 658.2 # K
-# particles.fuel_boil_temp = 489. # K
+# particles.fuel_boil_temp = 489. # K at 1 atm
 # particles.fuel_ref_temp = 298.15
 # particles.fuel_latent = 3.586E5 # Latent heat at reference temperature
 # particles.fuel_cp = 2.207E3 # Cp at 298
@@ -127,7 +116,7 @@ particles.cfl           = 1.
 particles.write_ascii_files = 0
 particles.parcel_size = 10.
 
-amrex.regtest_reduction=1
-amrex.fpe_trap_invalid = 1
-amrex.fpe_trap_zero = 1
-amrex.fpe_trap_overflow = 1
+# amrex.regtest_reduction=1
+# amrex.fpe_trap_invalid = 1
+# amrex.fpe_trap_zero = 1
+# amrex.fpe_trap_overflow = 1

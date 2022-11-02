@@ -61,7 +61,7 @@ particles.v = 0
 particles.mom_transfer = 0 # Gas phase has no spray momentum source term
 particles.mass_transfer = 0 # No evaporation takes place
 particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
-particles.write_spray_ascii_files = 0 # Do not write ascii output files
+particles.write_ascii_files = 0 # Do not write ascii output files
 
 particles.fuel_species = O2
 # These properties don't matter since there is no evaporation

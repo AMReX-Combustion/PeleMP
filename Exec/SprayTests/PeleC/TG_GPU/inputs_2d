@@ -55,7 +55,7 @@ particles.mom_transfer = 0
 particles.mass_transfer = 0
 particles.cfl = 0.5
 particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
-particles.write_spray_ascii_files = 0 # Do not write ascii output files
+particles.write_ascii_files = 0 # Do not write ascii output files
 
 particles.fuel_species = O2
 # properties for decane
