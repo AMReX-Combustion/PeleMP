@@ -26,7 +26,6 @@ amrex_probinit(
   pp.query("ref_p", PeleC::h_prob_parm_device->p0);
   pp.query("ref_T", PeleC::h_prob_parm_device->T0);
   pp.query("st_mod", Stmod);
-  pp.query("num_particles", PeleC::prob_parm_host->partNum);
   pp.query("density_ratio", rhoRatio);
 
   // Define the length scale
@@ -96,11 +95,6 @@ amrex_probinit(
   // Output IC
   if (amrex::ParallelDescriptor::IOProcessor()) {
     std::ofstream ofs("ic.txt", std::ofstream::out);
-    amrex::Print(ofs) << "number of particles: "
-                      << PeleC::prob_parm_host->partNum[0];
-    for (int dir = 1; dir != AMREX_SPACEDIM; ++dir)
-      amrex::Print(ofs) << ", " << PeleC::prob_parm_host->partNum[dir];
-    amrex::Print(ofs) << std::endl;
     amrex::Print(ofs) << "rho0: " << PeleC::h_prob_parm_device->rho0
                       << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;

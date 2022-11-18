@@ -29,8 +29,7 @@ SprayParticleContainer::injectParticles(
 
 void
 SprayParticleContainer::InitSprayParticles(
-  const bool init_parts,
-  ProbParm const& prob_parm)
+  const bool init_parts, ProbParm const& prob_parm)
 {
   amrex::ignore_unused(init_parts, prob_parm);
   amrex::ParmParse ps("spray");
@@ -68,7 +67,8 @@ SprayParticleContainer::InitSprayParticles(
   m_sprayJets.resize(num_jets);
   const auto plo = Geom(0).ProbLoArray();
   const auto phi = Geom(0).ProbHiArray();
-  amrex::Real div_lenx = (phi[0] - plo[0]) / (static_cast<amrex::Real>(jets_per_dir[0]));
+  amrex::Real div_lenx =
+    (phi[0] - plo[0]) / (static_cast<amrex::Real>(jets_per_dir[0]));
   int jetz = 1;
   amrex::Real div_lenz = 0.;
   amrex::Real zlo = 0.;

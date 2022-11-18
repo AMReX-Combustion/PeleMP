@@ -7,8 +7,6 @@ geometry.prob_hi     = 10. 10. 10.        # x_hi y_hi (z_hi)
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # Interior, Inflow, Outflow, Symmetry,
 # SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
-# peleLM.lo_bc = Interior Interior
-# peleLM.hi_bc = Interior Interior
 peleLM.lo_bc = Interior SlipWallAdiab
 peleLM.hi_bc = Interior SlipWallAdiab
 
@@ -41,18 +39,15 @@ amr.regrid_file = two_d_gridfiles/gridfile_32_3
 
 #--------------------------- Problem -------------------------------
 prob.P_mean = 101325.0
-prob.init_redist = 1
-prob.init_T              = 500.
-#prob.init_vel           = 1.E-3 # Small velocity helps stability for open domain
+prob.init_T = 500.
 prob.init_vel = 0.0
+
 # Particle parameters, only used if particles.init_function = 1
-#prob.num_particles      = (150,150,150)
-#prob.num_particles       = (64,64,64)
 prob.num_particles = (256, 256, 256)
-#prob.num_particles       = (128,128,128)
-prob.part_temp          = 300.
-prob.part_dia           = 1.E-3
-prob.part_vel           = 15. 0. 0.
+prob.init_redist   = 1
+prob.part_temp     = 300.
+prob.part_dia      = 1.E-3
+prob.part_vel      = 15. 0. 0.
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
@@ -66,18 +61,12 @@ peleLM.temporal_int = 2
 peleLM.mass_balance = 1
 peleLM.num_init_iter = 0
 
-
 amr.cfl = 0.5
 amr.plot_speciesState = 1
 amr.plot_grad_p = 0
 
 # --------------- INPUTS TO CHEMISTRY REACTOR ---------------
 peleLM.chem_integrator = "ReactorNull"
-# peleLM.use_typ_vals_chem = 1          # Use species/temp typical values in CVODE
-# ode.rtol = 1.0e-6                     # Relative tolerance of the chemical solve
-# ode.atol = 1.0e-5                     # Absolute tolerance factor applied on typical values
-# cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton direction) 
-# cvode.max_order  = 4                  # CVODE max BDF order. 
 
 mac_proj.verbose = 0
 nodal_proj.verbose = 0
