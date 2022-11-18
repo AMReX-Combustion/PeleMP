@@ -13,7 +13,6 @@ PeleLM::readProbParm()
   pp.query("init_T", PeleLM::prob_parm->T0);
   pp.query("reynolds", PeleLM::prob_parm->reynolds);
   pp.query("mach", mach);
-  pp.query("num_particles", PeleLM::prob_parm->partNum);
   pp.query("density_ratio", rhoRatio);
   pp.query("st_mod", Stmod);
   if (mach > 0.3) {
@@ -88,12 +87,6 @@ PeleLM::readProbParm()
   PeleLM::prob_parm->partTemp = T;
   if (amrex::ParallelDescriptor::IOProcessor()) {
     std::ofstream ofs("ic.txt", std::ofstream::out);
-    amrex::Print(ofs) << "number of particles: "
-                      << PeleLM::prob_parm->partNum[0];
-    for (int dir = 1; dir < AMREX_SPACEDIM; ++dir) {
-      amrex::Print(ofs) << ", " << PeleLM::prob_parm->partNum[dir];
-    }
-    amrex::Print(ofs) << std::endl;
     amrex::Print(ofs) << "rho0: " << rho << std::endl;
     amrex::Print(ofs) << "cs: " << cs << std::endl;
     amrex::Print(ofs) << "U: " << Ugas << std::endl;
