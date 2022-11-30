@@ -319,7 +319,6 @@ SprayParticleContainer::updateParticles(
             }
           }
           // Subcycle loop
-          Real ctime = 0.;
           Real cur_dt = sub_dt;
           int cur_iter = 0;
           while (p.id() > 0 && cur_iter < num_iter) {
@@ -421,7 +420,6 @@ SprayParticleContainer::updateParticles(
               ijkc = lxc.floor(); // New cell center
             }                     // if (do_move)
             cur_iter++;
-            ctime += cur_dt;
             if (isGhost && !src_box.contains(ijkc)) {
               p.id() = -1;
             }
