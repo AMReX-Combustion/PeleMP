@@ -139,7 +139,7 @@ ChiSquared::init(const amrex::Real& d32, const amrex::Real& /*dummy*/)
 amrex::Real
 ChiSquared::get_dia()
 {
-  amrex::Real dmean = d32 / 3.;
+  amrex::Real dmean = m_d32 / 3.;
   amrex::Real dxi = 12. / 100.;
   amrex::Real fact = amrex::Random();
   int curn = 0;
@@ -157,7 +157,7 @@ amrex::Real
 ChiSquared::get_avg_dia()
 {
   // Rough estimate of mean
-  amrex::Real dmean = d32 / 3.;
+  amrex::Real dmean = m_d32 / 3.;
   amrex::Real dxi = 12. / 100.;
   amrex::Real fact = 0.5;
   int curn = 0;
