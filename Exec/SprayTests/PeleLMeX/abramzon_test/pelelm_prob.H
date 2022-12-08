@@ -39,7 +39,7 @@ pelelm_initdata(
   massfrac[O2_ID] = prob_parm.Y_O2;
   state(i, j, k, TEMP) = prob_parm.T0;
 
-  state(i, j, k, VELX) = prob_parm.vel;
+  state(i, j, k, VELX) = prob_parm.vel_gas;
 #if (AMREX_SPACEDIM == 2)
   state(i, j, k, VELY) = 0.0;
 #elif (AMREX_SPACEDIM == 3)
@@ -79,7 +79,7 @@ bcnormal(
   ProbParm const& prob_parm,
   pele::physics::PMF::PmfData::DataContainer const* /*pmf_data*/)
 {
-  AMREX_D_TERM(s_ext[VELX] = prob_parm.vel;, s_ext[VELY] = 0.;
+  AMREX_D_TERM(s_ext[VELX] = prob_parm.vel_gas;, s_ext[VELY] = 0.;
                , s_ext[VELZ] = 0.;);
   amrex::GpuArray<amrex::Real, NUM_SPECIES> massfrac = {{0.0}};
   massfrac[N2_ID] = prob_parm.Y_N2;
