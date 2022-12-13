@@ -25,4 +25,7 @@ Transport_Model = Simple
 USE_SOOT = TRUE
 NUM_SOOT_MOMENTS = 3
 
+# PeleRad
+USE_PELERAD = TRUE
+
 include $(PELELMEX_HOME)/Utils/Make.PeleLMeX

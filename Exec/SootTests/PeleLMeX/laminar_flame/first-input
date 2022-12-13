@@ -36,6 +36,21 @@ soot.conserve_mass = false
 soot.num_subcycles = 10
 soot.max_subcycles = 1000
 
+#-------------------RADIATION MODELING--------------------
+peleLM.do_rad_solve = 1
+pelerad.composite_solve = 0
+pelerad.use_hype = 0
+pelerad.verbose = 0
+pelerad.max_iter = 200
+pelerad.max_coarsening_level = 20
+pelerad.reltol = 1.0e-4
+pelerad.abstol = 1.0e-4
+pelerad.agglomeration = 1
+pelerad.consolidation = 1
+pelerad.bottom_verbose = 0
+pelerad.maxorder = 2
+pelerad.linop_maxorder = 2
+
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
 peleLM.incompressible = 0
