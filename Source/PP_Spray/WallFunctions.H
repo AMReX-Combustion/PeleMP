@@ -184,7 +184,6 @@ impose_wall(
   int pid,
   SprayParticleContainer::ParticleType& p,
   const SprayData& fdat,
-  const SprayComps& SPI,
   const amrex::RealVect& dx,
   const amrex::RealVect& plo,
   const amrex::RealVect& phi,
@@ -209,8 +208,8 @@ impose_wall(
   amrex::Real par_dot = 2.;
   amrex::RealVect normal;
   amrex::RealVect vel_part(AMREX_D_DECL(
-    p.rdata(SPI.pstateVel), p.rdata(SPI.pstateVel + 1),
-    p.rdata(SPI.pstateVel + 2)));
+    p.rdata(SprayComps::pstateVel), p.rdata(SprayComps::pstateVel + 1),
+    p.rdata(SprayComps::pstateVel + 2)));
   // Normalize positions
   amrex::RealVect normphi;
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -259,8 +258,8 @@ impose_wall(
         // If not bouncing and splash model is on
         if (isActive) {
           droplet_splashing(
-            p, pid, dx, plo, SPI, fdat, p_fluid, vel_part, par_dot, normal,
-            cBoilT, N_SB, rf, true, rem_dt);
+            p, pid, dx, plo, fdat, p_fluid, vel_part, par_dot, normal, cBoilT,
+            N_SB, rf, true, rem_dt);
         } else {
           // Otherwise, just reflect particle
           p.pos() = refl_pos;
@@ -289,8 +288,6 @@ impose_wall(
       }
     }
   } // while (do_refl)
-  // If deposited, place at wall
-  // TODO: Implement wall film model for this scenario
   if (do_deposit) {
     amrex::Real Nw_Vp = normal.dotProduct(vel_part);
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -301,149 +298,8 @@ impose_wall(
   // Undo normalization and set new velocity
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     p.pos(dir) = p.pos(dir) * dx[dir] + plo[dir];
-    p.rdata(SPI.pstateVel + dir) = vel_part[dir];
+    p.rdata(SprayComps::pstateVel + dir) = vel_part[dir];
   }
 }
 
-#if 0
-/****************************************************************
- Functions computing wall film source terms
- WIP
- ***************************************************************/
-
-AMREX_GPU_DEVICE AMREX_INLINE void
-calculateWallFilmSource(
-  const amrex::Real flow_dt,
-  GasPhaseVals& gpv,
-  const SprayComps& SPI,
-  const SprayData& fdat,
-  SprayParticleContainer::ParticleType& p,
-  const amrex::Real /*face_area*/,
-  const amrex::Real diff_cent,
-  pele::physics::transport::TransParm<
-    pele::physics::EosType,
-    pele::physics::TransportType> const* trans_parm)
-{
-  auto eos = pele::physics::PhysicsType::eos();
-  SprayUnits SPU;
-  const amrex::Real C_eps = 1.E-15;
-  const amrex::Real ht_tol = 2.E-6;
-  const amrex::Real part_dt = 0.5 * flow_dt;
-  bool get_xi = false;
-  bool get_Ddiag = true;
-  bool get_lambda = true;
-  bool get_mu = true;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_film;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_vapor;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> L_fuel;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> mi_dot;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> cBoilT;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Psat;
-  amrex::GpuArray<amrex::Real, NUM_SPECIES> Y_skin;
-  amrex::GpuArray<amrex::Real, NUM_SPECIES> h_skin;
-  amrex::GpuArray<amrex::Real, NUM_SPECIES> Ddiag;
-  for (int sp = 0; sp < NUM_SPECIES; ++sp) {
-    Y_skin[sp] = 0.;
-  }
-  // Get particle variables
-  // Note: the diameter is set assuming a sphere
-  // of the same volume as the film
-  // and temperature is set to a negative value
-  amrex::Real T_film = -p.rdata(SPI.pstateT);
-  amrex::Real vol = p.rdata(SPI.pstateVol);
-  amrex::Real ht_film = p.rdata(SPI.pstateHt);
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    Y_film[spf] = p.rdata(SPI.pstateY + spf);
-  }
-  calcBoilT(fdat, gpv, cBoilT.data());
-  // TODO: Add model for when T > T_boil
-  amrex::Real T_i = gpv.T_fluid;
-  amrex::Real area_film = vol / ht_film;
-  amrex::Real dia_film = std::sqrt(4. * area_film / M_PI);
-  eos.T2Hi(T_film, h_skin.data());
-  for (int n = 0; n < NUM_SPECIES; ++n) {
-    h_skin[n] *= SPU.eng_conv;
-  }
-  calcVaporY(
-    fdat, gpv, T_film, C_eps, Y_film.data(), h_skin.data(), cBoilT.data(),
-    Y_vapor.data(), Psat.data(), L_fuel.data());
-  amrex::Real T_vapor = 0.5 * (T_film + T_i);
-  amrex::Real sumYSkin = 0.;
-  amrex::Real sumYFuel = 0.;
-  amrex::Real rho_film = 0.;
-  amrex::Real lambda_film = 0.;
-  amrex::Real cp_film = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    const int fspec = fdat.indx[spf];
-    rho_film += Y_film[spf] / fdat.rho[spf];
-    lambda_film += Y_film[spf] * fdat.lambda[spf];
-    cp_film += Y_film[spf] * fdat.cp[spf];
-    Y_skin[fspec] = 0.5 * (Y_vapor[spf] + gpv.Y_fluid[fspec]);
-    sumYSkin += Y_skin[fspec];
-    sumYFuel += gpv.Y_fluid[fspec];
-  }
-  rho_film = 1. / rho_film;
-  const amrex::Real restYSkin = 1. - sumYSkin;
-  const amrex::Real restYfluid = 1. - sumYFuel;
-  amrex::Real renorm = restYSkin / restYfluid;
-  amrex::Real mw_vap = 0.;
-  for (int sp = 0; sp < NUM_SPECIES; ++sp) {
-    if (Y_skin[sp] == 0.) {
-      Y_skin[sp] = gpv.Y_fluid[sp] * renorm;
-    }
-    mw_vap += Y_skin[sp] * gpv.invmw[sp];
-  }
-  mw_vap = 1. / mw_vap;
-  amrex::Real pmass = vol * rho_film;
-  amrex::Real lambda_skin = 0.;
-  amrex::Real mu_skin = 0.;
-  amrex::Real xi_skin = 0.;
-  auto trans = pele::physics::PhysicsType::transport();
-  trans.transport(
-    get_xi, get_mu, get_lambda, get_Ddiag, T_vapor, gpv.rho_fluid,
-    Y_skin.data(), Ddiag.data(), mu_skin, xi_skin, lambda_skin, trans_parm);
-  mu_skin *= SPU.mu_conv;
-  lambda_skin *= SPU.lambda_conv;
-  amrex::Real dy_i = diff_cent - ht_film; // Distance from film surface to cell center
-  // Determine the mass evaporation values
-  amrex::Real m_dot = 0.;
-  amrex::Real qvap = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    const int fspec = fdat.indx[spf];
-    Ddiag[fspec] *= mw_vap * gpv.invmw[fspec] * SPU.rhod_conv;
-    // TODO: Ensure condensed mass does not exceed gas phase mass
-    mi_dot[spf] = -Ddiag[fspec] / (1. - Y_vapor[spf]) *
-                  (gpv.Y_fluid[fspec] - Y_vapor[spf]) / dy_i;
-    m_dot += mi_dot[spf];
-    qvap += mi_dot[spf] * L_fuel[spf];
-    gpv.fluid_Y_dot[spf] += mi_dot[spf];
-    gpv.fluid_eng_src += mi_dot[spf] * h_skin[fspec];
-  }
-  gpv.fluid_mass_src = m_dot;
-  // Determine the temperature at wall film surface using energy balance
-  amrex::Real fs1 = lambda_skin * ht_film;
-  amrex::Real fs2 = lambda_film * dy_i;
-  amrex::Real T_s = (fs1 * T_i + fs2 * fdat.wall_T - ht_film * dy_i * qvap) / (fs1 + fs2);
-  amrex::Real qconv = lambda_skin * (T_i - T_s) / dy_i;
-  gpv.fluid_eng_src += qconv;
-  // Update film height
-  amrex::Real new_mass = pmass + part_dt * m_dot;
-  amrex::Real new_rho = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    amrex::Real newY = (Y_film[spf] * pmass + mi_dot[spf] * part_dt) / new_mass;
-    p.rdata(SPI.pstateY + spf) = newY;
-    new_rho += newY / fdat.rho[spf];
-  }
-  new_rho = 1. / new_rho;
-  amrex::Real new_vol = new_mass / new_rho;
-  p.rdata(SPI.pstateVol) = new_vol;
-  // Adjust the height by assuming radius remains unchanged
-  amrex::Real new_ht = 4. * new_vol / (M_PI * dia_film * dia_film);
-  p.rdata(SPI.pstateHt) = new_ht;
-  p.rdata(SPI.pstateT) = -0.5 * (T_s + fdat.wall_T);
-  if (new_ht < ht_tol) {
-    p.id() = -1;
-  }
-}
-#endif // #if 0
 #endif // _WALLFUNCTIONS_H_
