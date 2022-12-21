@@ -125,8 +125,9 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
           if (p.id() > 0) {
             const Real max_mag_vdx =
               amrex::max(AMREX_D_DECL(
-                amrex::Math::abs(p.rdata(0)), amrex::Math::abs(p.rdata(1)),
-                amrex::Math::abs(p.rdata(2)))) *
+                amrex::Math::abs(p.rdata(SprayComps::pstateVel)),
+                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 1)),
+                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 2)))) *
               dxi[0];
             Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
             return dt_part;
@@ -372,7 +373,6 @@ SprayParticleContainer::updateParticles(
             if (flags_array(cur_indx).isSingleValued()) {
               cvol *= 1. / (volfrac_fab(cur_indx));
             }
-#endif
             Real cur_coef =
               -weights[aindx] * fdat->num_ppp * cvol * cur_dt / flow_dt;
             if (!src_box.contains(cur_indx)) {

@@ -13,7 +13,7 @@
 #endif
 
 // Need components for velocity, diameter, temperature, mass fractions, and
-// breakup model variables P and Pdot
+// breakup model variables P and Pdot and wall film volume
 #define NSR_SPR (SprayComps::pstateNum)
 #define NSI_SPR 0
 #define NAR_SPR 0

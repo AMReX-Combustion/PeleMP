@@ -25,10 +25,6 @@ SprayParticleContainer::InitSprayParticles(
   const amrex::Geometry& geom = this->m_gdb->Geom(0);
   const auto plo = geom.ProbLoArray();
   const auto phi = geom.ProbHiArray();
-  const int pstateVel = m_sprayIndx.pstateVel;
-  const int pstateDia = m_sprayIndx.pstateDia;
-  const int pstateT = m_sprayIndx.pstateT;
-  const int pstateY = m_sprayIndx.pstateY;
   if (amrex::ParallelDescriptor::MyProc() == 0) {
     ParticleType p;
     p.id() = ParticleType::NextID();
@@ -39,13 +35,16 @@ SprayParticleContainer::InitSprayParticles(
       } else {
         p.pos(dir) = plo[dir] + (phi[dir] - plo[dir]) / 2.;
       }
-      p.rdata(pstateVel + dir) = prob_parm.vel_drop[dir];
+      p.rdata(SprayComps::pstateVel + dir) = prob_parm.vel_drop[dir];
     }
-    p.rdata(pstateT) = prob_parm.T_drop;
-    p.rdata(pstateDia) = prob_parm.dia_drop;
+    p.rdata(SprayComps::pstateT) = prob_parm.T_drop;
+    p.rdata(SprayComps::pstateDia) = prob_parm.dia_drop;
     for (int n = 0; n < SPRAY_FUEL_NUM; ++n) {
-      p.rdata(pstateY + n) = prob_parm.Y_drop[n];
+      p.rdata(SprayComps::pstateY + n) = prob_parm.Y_drop[n];
     }
+    p.rdata(SprayComps::pstateTABY) = 0.;
+    p.rdata(SprayComps::pstateTABYdot) = 0.;
+    p.rdata(SprayComps::pstateFilmVol) = 0.;
     amrex::ParticleLocData pld;
     std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
       host_particles;
