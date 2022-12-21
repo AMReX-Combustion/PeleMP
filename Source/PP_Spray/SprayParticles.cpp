@@ -123,8 +123,9 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
           if (p.id() > 0) {
             const Real max_mag_vdx =
               amrex::max(AMREX_D_DECL(
-                amrex::Math::abs(p.rdata(0)), amrex::Math::abs(p.rdata(1)),
-                amrex::Math::abs(p.rdata(2)))) *
+                amrex::Math::abs(p.rdata(SprayComps::pstateVel)),
+                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 1)),
+                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 2)))) *
               dxi[0];
             Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
             return dt_part;
@@ -266,9 +267,9 @@ SprayParticleContainer::updateParticles(
     // #endif
     amrex::ParallelFor(
       Np, [pstruct, Tarr, rhoYarr, rhoarr, momarr, engarr, rhoYSrcarr,
-           rhoSrcarr, momSrcarr, engSrcarr, plo, phi, dx, dxi, do_move, SPI,
-           fdat, bndry_hi, bndry_lo, flow_dt, inv_vol, ltransparm, at_bounds,
-           isGhost, isVirt, src_box, state_box, num_iter, sub_dt, eb_in_box
+           rhoSrcarr, momSrcarr, engSrcarr, plo, phi, dx, dxi, do_move, fdat,
+           bndry_hi, bndry_lo, flow_dt, inv_vol, ltransparm, at_bounds, isGhost,
+           isVirt, src_box, state_box, num_iter, sub_dt, eb_in_box
 #ifdef AMREX_USE_EB
            ,
            flags_array, ccent_fab, bcent_fab, bnorm_fab, volfrac_fab
@@ -328,7 +329,7 @@ SprayParticleContainer::updateParticles(
               indx_array.data(), weights.data());
             // Solve for avg mw and pressure at droplet location
             gpv.define();
-            calculateSpraySource(cur_dt, gpv, SPI, *fdat, p, ltransparm);
+            calculateSpraySource(cur_dt, gpv, *fdat, p, ltransparm);
             for (int aindx = 0; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
               IntVect cur_indx = indx_array[aindx];
               Real cvol = inv_vol;
@@ -369,7 +370,7 @@ SprayParticleContainer::updateParticles(
             // Modify particle position by whole time step
             if (do_move && !fdat->fixed_parts) {
               for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                const Real cvel = p.rdata(SPI.pstateVel + dir);
+                const Real cvel = p.rdata(SprayComps::pstateVel + dir);
                 p.pos(dir) += cur_dt * cvel;
               }
               // Update indices
@@ -388,7 +389,7 @@ SprayParticleContainer::updateParticles(
                 } else {
                   // Next reflect particles off BC or EB walls if necessary
                   impose_wall(
-                    p, SPI, dx, plo, phi, bndry_lo, bndry_hi, bflags, eb_in_box,
+                    p, dx, plo, phi, bndry_lo, bndry_hi, bflags, eb_in_box,
 #ifdef AMREX_USE_EB
                     flags_array, bcent_fab, bnorm_fab, volfrac_fab,
                     fdat->min_eb_vfrac,

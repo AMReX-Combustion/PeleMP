@@ -235,7 +235,6 @@ AMREX_INLINE
 void
 impose_wall(
   SprayParticleContainer::ParticleType& p,
-  const SprayComps& SPI,
   const amrex::RealVect& dx,
   const amrex::RealVect& plo,
   const amrex::RealVect& phi,
@@ -256,8 +255,8 @@ impose_wall(
   amrex::Real par_dot = 2.;
   amrex::RealVect normal;
   amrex::RealVect vel_part(AMREX_D_DECL(
-    p.rdata(SPI.pstateVel), p.rdata(SPI.pstateVel + 1),
-    p.rdata(SPI.pstateVel + 2)));
+    p.rdata(SprayComps::pstateVel), p.rdata(SprayComps::pstateVel + 1),
+    p.rdata(SprayComps::pstateVel + 2)));
   amrex::RealVect normphi;
   // Normalize pos
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -291,8 +290,8 @@ impose_wall(
     // Reflect particle position and velocity around the boundary
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       p.pos(dir) -= 2. * par_dot * normal[dir];
-      p.rdata(SPI.pstateVel + dir) -= 2. * Nw_Vp * normal[dir];
-      vel_part[dir] = p.rdata(SPI.pstateVel + dir);
+      p.rdata(SprayComps::pstateVel + dir) -= 2. * Nw_Vp * normal[dir];
+      vel_part[dir] = p.rdata(SprayComps::pstateVel + dir);
       ijkc[dir] = static_cast<int>(amrex::Math::floor(p.pos(dir)));
     }
     bool left_dom =
@@ -314,8 +313,9 @@ impose_wall(
       Nw_Vp = normal.dotProduct(vel_part);
       for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
         p.pos(dir) +=
-          (0.5 * p.rdata(SPI.pstateDia) / dx[dir] - par_dot) * normal[dir];
-        p.rdata(SPI.pstateVel + dir) -= Nw_Vp * normal[dir];
+          (0.5 * p.rdata(SprayComps::pstateDia) / dx[dir] - par_dot) *
+          normal[dir];
+        p.rdata(SprayComps::pstateVel + dir) -= Nw_Vp * normal[dir];
         ijkc[dir] = static_cast<int>(amrex::Math::floor(p.pos(dir)));
       }
       do_refl = false;
@@ -370,11 +370,11 @@ calculateWallFilmSource(
   // Note: the diameter is set assuming a sphere
   // of the same volume as the film
   // and temperature is set to a negative value
-  amrex::Real T_film = -p.rdata(SPI.pstateT);
-  amrex::Real vol = p.rdata(SPI.pstateVol);
-  amrex::Real ht_film = p.rdata(SPI.pstateHt);
+  amrex::Real T_film = -p.rdata(SprayComps::pstateT);
+  amrex::Real vol = p.rdata(SprayComps::pstateVol);
+  amrex::Real ht_film = p.rdata(SprayComps::pstateHt);
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    Y_film[spf] = p.rdata(SPI.pstateY + spf);
+    Y_film[spf] = p.rdata(SprayComps::pstateY + spf);
   }
   calcBoilT(fdat, gpv, cBoilT.data());
   // TODO: Add model for when T > T_boil
@@ -452,16 +452,16 @@ calculateWallFilmSource(
   amrex::Real new_rho = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
     amrex::Real newY = (Y_film[spf] * pmass + mi_dot[spf] * part_dt) / new_mass;
-    p.rdata(SPI.pstateY + spf) = newY;
+    p.rdata(SprayComps::pstateY + spf) = newY;
     new_rho += newY / fdat.rho[spf];
   }
   new_rho = 1. / new_rho;
   amrex::Real new_vol = new_mass / new_rho;
-  p.rdata(SPI.pstateVol) = new_vol;
+  p.rdata(SprayComps::pstateVol) = new_vol;
   // Adjust the height by assuming radius remains unchanged
   amrex::Real new_ht = 4. * new_vol / (M_PI * dia_film * dia_film);
-  p.rdata(SPI.pstateHt) = new_ht;
-  p.rdata(SPI.pstateT) = -0.5 * (T_s + fdat.wall_T);
+  p.rdata(SprayComps::pstateHt) = new_ht;
+  p.rdata(SprayComps::pstateT) = -0.5 * (T_s + fdat.wall_T);
   if (new_ht < ht_tol) {
     p.id() = -1;
   }
@@ -593,13 +593,13 @@ droplet_splashing(
   // TODO: Determine correct method for handling multi-component liquids
   amrex::Real Tstar = 0.; // Average sum Y_i T_wall/T_boil,i
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    const int ysp = SPI.pstateY + spf;
+    const int ysp = SprayComps::pstateY + spf;
     mu_part += p.rdata(ysp) * fdat.mu[spf];
     rho_part += p.rdata(ysp) / fdat.rho[spf];
     Tstar += fdat.wall_T * p.rdata(ysp) / fdat.boilT[spf];
   }
   rho_part = 1. / rho_part;
-  const amrex::Real dia_part = p.rdata(SPI.pstateDia);
+  const amrex::Real dia_part = p.rdata(SprayComps::pstateDia);
   const amrex::Real d3 = std::pow(dia_part, 3);
   const amrex::Real pmass = M_PI / 6. * rho_part * d3;
   // Weber number
@@ -630,10 +630,10 @@ droplet_splashing(
       amrex::Real depot_height =
         4. * depot_vol / (M_PI * depot_dia * depot_dia);
       for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        p.rdata(SPI.pstateVel + dir) = 0.;
+        p.rdata(SprayComps::pstateVel + dir) = 0.;
       }
-      p.rdata(SPI.pstateVol) = depot_vol;
-      p.rdata(SPI.pstateHt) = depot_height;
+      p.rdata(SprayComps::pstateVol) = depot_vol;
+      p.rdata(SprayComps::pstateHt) = depot_height;
     } else {
       // Determine diameter of secondary droplets
       amrex::Real expon = 3.6 * (alpha / M_PI) * (alpha / M_PI);
@@ -667,10 +667,10 @@ droplet_splashing(
         amrex::Real depot_height =
           4. * depot_vol / (M_PI * depot_dia * depot_dia);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-          p.rdata(SPI.pstateVel + dir) = 0.;
+          p.rdata(SprayComps::pstateVel + dir) = 0.;
         }
-        p.rdata(SPI.pstateVol) = depot_vol;
-        p.rdata(SPI.pstateHt) = depot_height;
+        p.rdata(SprayComps::pstateVol) = depot_vol;
+        p.rdata(SprayComps::pstateHt) = depot_height;
       } else {
         p.id() = -1;
       }
@@ -727,7 +727,7 @@ create_splash_droplet(
       un * SPRF.norm[dir], +utBeta * SPRF.tanBeta[dir],
       +utPsi * SPRF.tanPsi[dir]);
     amrex::Gpu::Atomic::Add(&p.pos(dir), SPRF.dt_pp * pvel);
-    amrex::Gpu::Atomic::Add(&p.rdata(SPI.pstateVel + dir), pvel);
+    amrex::Gpu::Atomic::Add(&p.rdata(SprayComps::pstateVel + dir), pvel);
   }
 }
 #endif // #if 0

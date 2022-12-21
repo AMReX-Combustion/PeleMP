@@ -7,11 +7,11 @@
 // Spray flags and indices
 struct SprayComps
 {
-  int pstateVel = 0; // Particle indices
-  int pstateT = AMREX_SPACEDIM;
-  int pstateDia = pstateT + 1;
-  int pstateY = pstateDia + 1;
-  int pstateTime = pstateY + SPRAY_FUEL_NUM;
+  static const int pstateVel = 0; // Particle indices
+  static const int pstateT = AMREX_SPACEDIM;
+  static const int pstateDia = pstateT + 1;
+  static const int pstateY = pstateDia + 1;
+  static const int pstateNum = pstateY + SPRAY_FUEL_NUM;
   int rhoIndx; // Component indices for conservative variable data structure
   int momIndx;
   int engIndx;
