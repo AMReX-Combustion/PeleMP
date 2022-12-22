@@ -229,7 +229,8 @@ SprayParticleContainer::updateParticles(
     const Box state_box = pti.growntilebox(state_ghosts);
     bool at_bounds = tile_at_bndry(tile_box, bndry_lo, bndry_hi, domain);
     const Long Np = pti.numParticles();
-    ParticleType* pstruct = &(pti.GetArrayOfStructs()[0]);
+    AoS& pbox = pti.GetArrayOfStructs();
+    ParticleType* pstruct = pbox().data();
     const SprayData* fdat = d_sprayData;
     Array4<const Real> const& Tarr = state.array(pti, SPI.utempIndx);
     Array4<const Real> const& rhoYarr = state.array(pti, SPI.specIndx);
@@ -373,6 +374,7 @@ SprayParticleContainer::updateParticles(
             if (flags_array(cur_indx).isSingleValued()) {
               cvol *= 1. / (volfrac_fab(cur_indx));
             }
+#endif
             Real cur_coef =
               -weights[aindx] * fdat->num_ppp * cvol * cur_dt / flow_dt;
             if (!src_box.contains(cur_indx)) {
