@@ -58,7 +58,7 @@ SprayParticleContainer::InitSprayParticles(
   ProbParmHost const& prob_parm,
   ProbParmDevice const& prob_parm_d)
 {
-  amrex::ignore_unused(prob_parm, init_parts);
+  amrex::ignore_unused(prob_parm_d, init_parts);
   m_sprayJets.resize(1);
   std::string jet_name = "jet1";
   m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));

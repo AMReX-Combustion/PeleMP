@@ -16,6 +16,9 @@ read_inject(const std::string myfile)
 
   std::ifstream infile(myfile);
   const std::string memfile = read_inject_file(infile);
+  if (!amrex::FileSystem::Exists(myfile)) {
+    amrex::Abort("ROI file does not exists");
+  }
   infile.close();
   std::istringstream iss(memfile);
 
