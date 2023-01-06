@@ -1,6 +1,6 @@
 
-#ifndef WALLFUNCTIONS_H_
-#define WALLFUNCTIONS_H_
+#ifndef WALLFUNCTIONS_H
+#define WALLFUNCTIONS_H
 
 #include "Drag.H"
 #include "SprayFuelData.H"
@@ -731,4 +731,4 @@ create_splash_droplet(
   }
 }
 #endif // #if 0
-#endif // _WALLFUNCTIONS_H_
+#endif // _WALLFUNCTIONS_H

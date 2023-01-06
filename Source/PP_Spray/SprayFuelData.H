@@ -1,5 +1,5 @@
-#ifndef SPRAYFUELDATA_H_
-#define SPRAYFUELDATA_H_
+#ifndef SPRAYFUELDATA_H
+#define SPRAYFUELDATA_H
 
 #include "PelePhysics.H"
 #include <AMReX_RealVect.H>
