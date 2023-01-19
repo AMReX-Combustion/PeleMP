@@ -11,7 +11,8 @@ struct SprayComps
   static const int pstateT = AMREX_SPACEDIM;
   static const int pstateDia = pstateT + 1;
   static const int pstateY = pstateDia + 1;
-  static const int pstateTABY = pstateY + SPRAY_FUEL_NUM;
+  static const int pstateNumDens = pstateY + SPRAY_FUEL_NUM;
+  static const int pstateTABY = pstateNumDens + 1;
   static const int pstateTABYdot = pstateTABY + 1;
   static const int pstateFilmVol = pstateTABYdot + 1;
   static const int pstateNum = pstateFilmVol + 1;
@@ -121,7 +122,7 @@ struct SprayData
   bool do_splash = false;
   // Min cell volume fraction to add sources to
   amrex::Real min_eb_vfrac = 0.05;
-  amrex::Real num_ppp; // Parcel size
+  amrex::Real max_num_ppp; // Max parcel size
   amrex::Real ref_T;
   amrex::Real sigma = -1.; // Surface tension
   amrex::Real wall_T = -1.;
@@ -149,7 +150,7 @@ struct SprayData
     do_breakup = fdat.do_breakup;
     do_splash = fdat.do_splash;
     // Convert input values from CGS to MKS for PeleLM
-    num_ppp = fdat.num_ppp;
+    max_num_ppp = fdat.max_num_ppp;
     ref_T = fdat.ref_T;
     sigma = fdat.sigma;
     wall_T = fdat.wall_T;

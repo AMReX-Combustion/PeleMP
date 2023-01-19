@@ -367,6 +367,7 @@ SprayParticleContainer::updateParticles(
           } else {
             C_D = calculateSpraySource(cur_dt, gpv, *fdat, p, ltransparm);
           }
+          amrex::Real num_ppp = p.rdata(SprayComps::pstateNumDens);
           for (int aindx = 0; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
             IntVect cur_indx = indx_array[aindx];
             Real cvol = inv_vol;
@@ -376,7 +377,7 @@ SprayParticleContainer::updateParticles(
             }
 #endif
             Real cur_coef =
-              -weights[aindx] * fdat->num_ppp * cvol * cur_dt / flow_dt;
+              -weights[aindx] * num_ppp * cvol * cur_dt / flow_dt;
             if (!src_box.contains(cur_indx)) {
               if (!isGhost) {
                 Abort("SprayParticleContainer::updateParticles() -- source "
@@ -412,7 +413,7 @@ SprayParticleContainer::updateParticles(
             }
             if (fdat->do_breakup) {
               updateBreakup(
-                C_D, rem_dt, cur_dt, pid, gpv, *fdat, p, N_SB, rf_d);
+                C_D, rem_dt, fdat->dtmod * cur_dt, pid, gpv, *fdat, p, N_SB, rf_d);
             }
             if ((at_bounds || do_fe_interp) && p.id() > 0.) {
               // First check if particle has exited the domain through a

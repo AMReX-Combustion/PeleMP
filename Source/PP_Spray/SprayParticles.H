@@ -86,7 +86,8 @@ public:
     const amrex::Real T_part,
     const amrex::Real* Y_part,
     const int level,
-    const int numRedist);
+    const int numRedist,
+    const amrex::Real num_ppp = 1.);
 
   static void spraySetup(SprayData& sprayData);
 
@@ -126,6 +127,7 @@ public:
       real_comp_names[SprayComps::pstateY + sp] =
         "spray_mf_" + spray_fuel_names[sp];
     }
+    real_comp_names[SprayComps::pstateNumDens] = "number_density";
     real_comp_names[SprayComps::pstateTABY] = "Y_TAB";
     real_comp_names[SprayComps::pstateTABYdot] = "Ydot_TAB";
     real_comp_names[SprayComps::pstateFilmVol] = "film_vol";
