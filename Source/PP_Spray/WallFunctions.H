@@ -302,4 +302,4 @@ impose_wall(
   }
 }
 
-#endif // _WALLFUNCTIONS_H_
+#endif // _WALLFUNCTIONS_H

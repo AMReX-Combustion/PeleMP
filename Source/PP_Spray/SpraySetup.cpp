@@ -193,10 +193,12 @@ SprayParticleContainer::readSprayParams(
 
   if (particle_verbose >= 1 && ParallelDescriptor::IOProcessor()) {
     amrex::Print() << "Spray fuel species " << spray_fuel_names[0];
+#if SPRAY_FUEL_NUM > 1
     for (int i = 1; i < SPRAY_FUEL_NUM; ++i) {
       amrex::Print() << ", " << spray_fuel_names[i];
     }
     amrex::Print() << std::endl;
+#endif
     amrex::Print() << "Max particles per parcel " << max_parcel_size
                    << std::endl;
   }
