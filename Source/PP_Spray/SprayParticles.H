@@ -74,7 +74,7 @@ public:
     SprayJet* spray_jet,
     const amrex::Real sim_dt,
     const int level,
-    int injProc = 0)
+    int injProc = 0);
 
   void uniformSprayInit(
     const amrex::IntVect num_part,
