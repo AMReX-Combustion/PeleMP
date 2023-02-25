@@ -39,7 +39,8 @@ SprayParticleContainer::computeDerivedVars(
   const int d32_indx = d10_indx + 1;
   const int wfh_indx = d32_indx + 1;
   const int temp_indx = wfh_indx + 1;
-  const int vel_indx = temp_indx + 1;
+  const int nump_indx = temp_indx + 1;
+  const int vel_indx = nump_indx + 1;
   for (MyParIter pti(*this, level); pti.isValid(); ++pti) {
     const Long Np = pti.numParticles();
     const AoS& pbox = pti.GetArrayOfStructs();
@@ -96,6 +97,7 @@ SprayParticleContainer::computeDerivedVars(
             &vararr(ijkc, d32_indx),
             num_ppp * vol * 6.); // To be divided by surf later
           Gpu::Atomic::Add(&vararr(ijkc, temp_indx), num_ppp * pmass * T_part);
+          Gpu::Atomic::Add(&vararr(ijkc, nump_indx), 1.);
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             Gpu::Atomic::Add(
               &vararr(ijkc, vel_indx + dir),
