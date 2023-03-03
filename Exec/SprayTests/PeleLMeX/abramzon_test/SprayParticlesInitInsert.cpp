@@ -19,7 +19,7 @@ void
 SprayParticleContainer::InitSprayParticles(
   const bool init_parts, ProbParm const& prob_parm)
 {
-  if (!init_spray) {
+  if (!init_parts) {
     return;
   }
   const amrex::Geometry& geom = this->m_gdb->Geom(0);
