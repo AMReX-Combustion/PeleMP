@@ -38,6 +38,7 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
 {
   std::string ppname = "spray." + jet_name;
   amrex::ParmParse pp(ppname);
+  m_jetName = jet_name;
   std::vector<amrex::Real> jcent(AMREX_SPACEDIM);
   pp.getarr("jet_cent", jcent);
   std::vector<amrex::Real> jnorm(AMREX_SPACEDIM);

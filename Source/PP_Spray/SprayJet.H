@@ -13,6 +13,7 @@ public:
 
   // Constructor for assigning parameters directly
   SprayJet(
+    const std::string& jet_name,
     const amrex::Geometry& geom,
     const amrex::RealVect jet_cent,
     const amrex::RealVect jet_norm,
@@ -44,6 +45,7 @@ public:
   inline const amrex::Real& T() const { return m_jetT; }
   inline const amrex::Real& start_time() const { return m_startTime; }
   inline const amrex::Real& end_time() const { return m_endTime; }
+  inline const std::string& jet_name() const { return m_jetName; }
 
   // Call this before using spray jet
   bool jet_active(const amrex::Real time) const
@@ -208,6 +210,7 @@ public:
 
 protected:
   // Member data
+  std::string m_jetName = "";
   amrex::RealVect m_norm = amrex::RealVect::TheZeroVector();
   amrex::RealVect m_cent = amrex::RealVect::TheZeroVector();
   amrex::Real m_spreadAngle = 0.;
