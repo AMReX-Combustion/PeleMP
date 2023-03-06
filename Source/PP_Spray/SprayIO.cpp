@@ -70,8 +70,9 @@ SprayParticleContainer::SprayParticleIO(
     // time, and minimum parcels for injection
     for (int jindx = 0; jindx < numjets; ++jindx) {
       SprayJet* js = m_sprayJets[jindx].get();
-      file << js->jet_name() << " " << js->m_sumInjMass << " "
-           << js->m_sumInjTime << " " << js->m_minParcel << "\n";
+      file << js->jet_name() << " " << js->num_ppp() << " "
+           << js->m_sumInjMass << " " << js->m_sumInjTime << " "
+           << js->m_minParcel << "\n";
     }
     file.flush();
     file.close();
