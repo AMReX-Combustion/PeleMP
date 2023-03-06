@@ -38,8 +38,7 @@ SprayParticleContainer::sprayInjection(
   rho_avg = 1. / rho_avg;
   const amrex::Real Pi_six = M_PI / 6.;
   // Number of particles per parcel
-  amrex::Real num_ppp = spray_jet->num_ppp();
-  const amrex::Real min_ppp = 0.01;
+  const amrex::Real min_ppp = 0.1;
   // Check if mass must be injected across multiple timesteps
   const amrex::Real avg_dia = spray_jet->get_avg_dia();
   const amrex::Real avg_mass = Pi_six * rho_avg * std::pow(avg_dia, 3);
@@ -51,25 +50,18 @@ SprayParticleContainer::sprayInjection(
   // Minimum number of parcels we want injected at a time
   amrex::Real min_inj_parcel = spray_jet->m_minParcel;
   amrex::Real dt = sim_dt;
-  amrex::Real inject_mass = spray_jet->mass_flow_rate() * sim_dt;
-  // Set initial injection number density
-  if (num_ppp < 0.) {
-    num_ppp = amrex::max(min_ppp, inject_mass / avg_mass);
-    spray_jet->set_num_ppp(num_ppp);
-  }
-  // If we are injecting too much mass, we can increase the min_inj_parcel or
-  // decrease the number density
-  if (min_inj_parcel > 2. && num_ppp > min_ppp) {
-    // Try decreasing number density to lower minimum parcel injection
-    num_ppp = amrex::max(min_ppp, inject_mass / avg_mass);
-    spray_jet->set_num_ppp(num_ppp);
-    min_inj_parcel = inject_mass / (num_ppp * avg_mass);
-    spray_jet->m_minParcel = min_inj_parcel;
-  }
+  const amrex::Real mdot = spray_jet->mass_flow_rate();
+  amrex::Real inject_mass = mdot * sim_dt;
   // See if there is uninjected mass from previous time steps
   if (spray_jet->m_sumInjMass > 0.) {
     dt += spray_jet->m_sumInjTime;
     inject_mass += spray_jet->m_sumInjMass;
+  }
+  amrex::Real num_ppp = spray_jet->num_ppp();
+  // Set initial injection number density
+  if (num_ppp < 0.) {
+    num_ppp = amrex::max(min_ppp, inject_mass / avg_mass);
+    spray_jet->set_num_ppp(num_ppp);
   }
   // If we can't get enough mass to create the desired minimum parcel injection,
   // accumulate mass injection over more time steps
@@ -154,11 +146,6 @@ SprayParticleContainer::sprayInjection(
       p.rdata(SprayComps::pstateNumDens) = num_ppp;
       amrex::Real pmass = Pi_six * rho_part * std::pow(dia_part, 3);
       amrex::Real new_mass = cur_mass + num_ppp * pmass;
-      // Check if we exceed desired injected mass
-      if (new_mass > inject_mass) {
-        // If so, increase the minimum parcels to avoid this in the future
-        spray_jet->m_minParcel += 1.;
-      }
       bool where = Where(p, pld);
       if (!where) {
         amrex::Abort("Bad injection particle");
@@ -166,6 +153,17 @@ SprayParticleContainer::sprayInjection(
       std::pair<int, int> ind(pld.m_grid, pld.m_tile);
       host_particles[ind].push_back(p);
       cur_mass = new_mass;
+    }
+  }
+  amrex::Real est_mdot = cur_mass / dt;
+  // If we are over-injecting mass, we can either decrease the number density or increase the minimum parcel
+  if (est_mdot - mdot > 0.1 * mdot) {
+    // First, tryin decreasing the number density by 30%
+    if (0.7 * num_ppp > min_ppp) {
+      num_ppp *= 0.7;
+    } else {
+      // Otherwise, increase the minimum injection parcels
+      spray_jet->m_minParcel += 1.;
     }
   }
   for (auto& kv : host_particles) {
