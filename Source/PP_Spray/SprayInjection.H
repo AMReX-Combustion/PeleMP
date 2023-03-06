@@ -50,7 +50,8 @@ SprayParticleContainer::sprayInjection(
   // Minimum number of parcels we want injected at a time
   const amrex::Real min_inj_parcel = spray_jet->m_minParcel;
   amrex::Real dt = sim_dt;
-  amrex::Real inject_mass = spray_jet->mass_flow_rate() * sim_dt;
+  amrex::Real mdot = spray_jet->mass_flow_rate();
+  amrex::Real inject_mass = mdot * sim_dt;
   // See if there is uninjected mass from previous time steps
   if (spray_jet->m_sumInjMass > 0.) {
     dt += spray_jet->m_sumInjTime;
@@ -124,19 +125,20 @@ SprayParticleContainer::sprayInjection(
           part_loc[dir] + pmov * dt * p.rdata(SprayComps::pstateVel + dir);
       }
       amrex::Real pmass = Pi_six * rho_part * std::pow(dia_part, 3);
-      // Check if we exceed desired injected mass
-      if (cur_mass + num_ppp * pmass > inject_mass) {
-        // If so, increase the minimum parcels to avoid this in the future
-        spray_jet->m_minParcel += 1.;
-      }
+      amrex::Real new_mass = cur_mass + num_ppp * pmass;
       bool where = Where(p, pld);
       if (!where) {
         amrex::Abort("Bad injection particle");
       }
       std::pair<int, int> ind(pld.m_grid, pld.m_tile);
       host_particles[ind].push_back(p);
-      cur_mass += num_ppp * pmass;
+      cur_mass = new_mass;
     }
+  }
+  amrex::Real est_mdot = cur_mass / dt;
+  // If we are over-injecting mass, increase the minimum parcels needed for injection
+  if (est_mdot - mdot > 0.05 * mdot) {
+    spray_jet->m_minParcel += 1.;
   }
   for (auto& kv : host_particles) {
     auto grid = kv.first.first;
