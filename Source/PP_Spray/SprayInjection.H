@@ -161,6 +161,7 @@ SprayParticleContainer::sprayInjection(
     // First, tryin decreasing the number density by 30%
     if (0.7 * num_ppp > min_ppp) {
       num_ppp *= 0.7;
+      spray_jet->set_num_ppp(num_ppp);
     } else {
       // Otherwise, increase the minimum injection parcels
       spray_jet->m_minParcel += 1.;
