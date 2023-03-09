@@ -50,6 +50,9 @@ pelerad.consolidation = 1
 pelerad.bottom_verbose = 0
 pelerad.maxorder = 2
 pelerad.linop_maxorder = 2
+pelerad.max_fmg_iter = 0
+pelerad.lo_bc = Robin Periodic Periodic
+pelerad.hi_bc = Robin Periodic Periodic
 
 #-------------------------PeleLM CONTROL----------------------------
 peleLM.v = 1
