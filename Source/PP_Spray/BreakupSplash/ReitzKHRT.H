@@ -87,29 +87,6 @@ updateBreakupKHRT(
       num_dens *= std::pow(rad_part / lam_RT, 3);
       rad_part = lam_RT;
       breakupRT = true;
-      if (num_dens > 1.) {
-        N_SB[pid] = splash_breakup::breakup_RT;
-        amrex::Real Utan = A1 * omega_RT * lam_RT;
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-          rf.loc[AMREX_SPACEDIM * pid + dir] = p.pos(dir);
-          rf.vel[AMREX_SPACEDIM * pid + dir] = vel_part[dir];
-          rf.norm[AMREX_SPACEDIM * pid + dir] = vel_part[dir] / vel_mag;
-        }
-        rf.numDens[pid] = num_dens;
-        rf.ref_dia[pid] = 2. * rad_part;
-        rf.phi1[pid] = Utan;
-        rf.phi2[pid] = N0;
-        rf.phi3[pid] = 0.; // Unused
-        rf.T0[pid] = T_part;
-#if SPRAY_FUEL_NUM > 1
-        for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-          rf.Y0[SPRAY_FUEL_NUM * pid + spf] =
-            p.rdata(SprayComps::pstateY + spf);
-        }
-#endif
-        p.id() = -1;
-        return;
-      }
     }
   }
   if (!breakupRT) {
@@ -135,7 +112,7 @@ updateBreakupKHRT(
       amrex::Real removed_perc = (std::pow(r0, 3) - rp3) / rjet3;
       amrex::Real Utan = A1 * omega_KH * lam_KH;
       // If removed mass is greater than 3%, break particle up
-      if (ns > num_dens && removed_perc > massperc) {
+      if (ns > 1. && ns > num_dens && removed_perc > massperc) {
         N_SB[pid] = splash_breakup::breakup_KH;
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
           rf.loc[AMREX_SPACEDIM * pid + dir] = p.pos(dir);
@@ -146,7 +123,7 @@ updateBreakupKHRT(
         rf.ref_dia[pid] = 2. * rs;
         rf.T0[pid] = T_part;
         rf.phi1[pid] = Utan;
-        rf.phi2[pid] = N0;
+        rf.phi2[pid] = 0.; // Unused
         rf.phi3[pid] = 0.; // Unused
 #if SPRAY_FUEL_NUM > 1
         for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {

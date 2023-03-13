@@ -6,8 +6,8 @@ using namespace amrex;
 std::string SprayParticleContainer::spray_fuel_names[SPRAY_FUEL_NUM];
 std::string SprayParticleContainer::spray_dep_names[SPRAY_FUEL_NUM];
 Vector<std::string> SprayParticleContainer::spray_derive_vars;
-Real SprayParticleContainer::max_num_ppp = 40.;
-Real SprayParticleContainer::breakup_ppp_fact = 6.;
+Real SprayParticleContainer::max_num_ppp = 100.;
+Real SprayParticleContainer::breakup_ppp_fact = 0.5;
 Real SprayParticleContainer::B0_KHRT = 0.61;
 Real SprayParticleContainer::B1_KHRT = 7.;
 Real SprayParticleContainer::C3_KHRT = 1.;
@@ -109,12 +109,12 @@ SprayParticleContainer::readSprayParams(
   //
   // Set the number of particles per parcel
   //
-  pp.query("max_parcel_size", max_num_ppp);
   pp.query("use_splash_model", splash_model);
   std::string breakup_model_str = "None";
   pp.query("use_breakup_model", breakup_model_str);
   if (breakup_model_str == "TAB") {
     breakup_model = 1;
+    pp.query("max_parcel_size", max_num_ppp);
   } else if (breakup_model_str == "KHRT") {
     breakup_model = 2;
     pp.query("B0_KHRT", B0_KHRT);
@@ -128,6 +128,9 @@ SprayParticleContainer::readSprayParams(
   }
   if (splash_model || (breakup_model > 0)) {
     pp.query("breakup_parcel_factor", breakup_ppp_fact);
+    if (breakup_ppp_fact > 1. || breakup_ppp_fact < 0.) {
+      Abort("'breakup_parcel_factor' must be between 0 and 1");
+    }
     bool wrong_data = false;
     for (int i = 0; i < nfuel; ++i) {
       std::string var_read = fuel_names[i] + "_mu";
@@ -216,9 +219,8 @@ SprayParticleContainer::readSprayParams(
     for (int i = 1; i < SPRAY_FUEL_NUM; ++i) {
       amrex::Print() << ", " << spray_fuel_names[i];
     }
-    amrex::Print() << std::endl;
 #endif
-    amrex::Print() << "Max particles per parcel " << max_num_ppp << std::endl;
+    amrex::Print() << std::endl;
   }
   //
   // Force other processors to wait till directory is built.

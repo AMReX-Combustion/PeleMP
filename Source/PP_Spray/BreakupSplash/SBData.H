@@ -2,8 +2,8 @@
 #define SBDATA_H
 
 // This contains data SB (splashing or breakup) used for creating new droplets
-// using data that is generated on device. Variables phi1 and phi2 will differ
-// between if the droplet is splashing or breaking up.
+// using data that is generated on device. Variables phi1, phi2, and phi3 will
+// differ between if the droplet is splashing or breaking up.
 struct SBPtrs
 {
   amrex::Real* norm = nullptr;
@@ -48,7 +48,7 @@ struct SBVects
   // Variable
   // Splashing: ms, amount of mass that splashes
   // TAB Breakup: TABY value
-  // KH-RT Breakup: parent droplet original number density
+  // KH-RT Breakup: Unused
   amrex::Gpu::HostVector<amrex::Real> phi2_h;
   amrex::Gpu::DeviceVector<amrex::Real> phi2_d;
   // Variable
@@ -57,7 +57,9 @@ struct SBVects
   // KH-RT Breakup: Unused
   amrex::Gpu::HostVector<amrex::Real> phi3_h;
   amrex::Gpu::DeviceVector<amrex::Real> phi3_d;
-  // Droplet number density
+  // Variable
+  // Splashing: Original parcel number density
+  // Breakup: Total number of created droplets
   amrex::Gpu::HostVector<amrex::Real> numDens_h;
   amrex::Gpu::DeviceVector<amrex::Real> numDens_d;
   SBVects(const int Np)

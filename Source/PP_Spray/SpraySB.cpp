@@ -62,7 +62,7 @@ SprayParticleContainer::CreateSBDroplets(
 
       // Splashing: ms, splash amount
       // TAB Breakup: TAB y value
-      // KH-RT Breakup: Parent parcel number density
+      // KH-RT Breakup: Unused
       Real phi2 = rfh.phi2[n];
 
       // Splashing: dtpp, remaining time after splashing
@@ -198,13 +198,7 @@ SprayParticleContainer::CreateSBDroplets(
         // numDens0 = N_s N_d, where N_d - number of newly created parcels and
         // N_s - number density of newly created parcels There is no one way to
         // do this
-        Real N_s = 1.;
-        if (N_SB_h[n] == splash_breakup::breakup_TAB) {
-          N_s = 0.5 * max_num_ppp;
-        } else {
-          Real N0 = phi2;
-          N_s = amrex::min(max_num_ppp, breakup_ppp_fact * N0);
-        }
+        Real N_s = std::pow(numDens0, breakup_ppp_fact);
         int N_d = amrex::max(1, static_cast<int>(numDens0 / N_s));
         N_s = numDens0 / static_cast<Real>(N_d);
 #if AMREX_SPACEDIM == 3

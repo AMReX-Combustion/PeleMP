@@ -362,8 +362,9 @@ public:
   static std::string spray_dep_names[SPRAY_FUEL_NUM];
   static amrex::Vector<std::string> spray_derive_vars;
   static amrex::Real max_num_ppp;
-  // The number density of a parcel formed from breakup is equal to
-  // breakup_ppp_fact * parent parcel number density
+  // Factor for balancing number of child parcels formed versus child parcel
+  // number density 1: Fewer parcels, higher number densities 0: More parcels,
+  // lower number densities
   static amrex::Real breakup_ppp_fact;
   static amrex::Real B0_KHRT;
   static amrex::Real B1_KHRT;
