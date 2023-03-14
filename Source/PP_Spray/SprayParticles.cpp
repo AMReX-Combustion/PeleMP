@@ -111,8 +111,8 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
   const auto dx = Geom(level).CellSizeArray();
   const auto dxi = Geom(level).InvCellSizeArray();
   {
-    amrex::ReduceOps<amrex::ReduceOpMin> reduce_op;
-    amrex::ReduceData<Real> reduce_data(reduce_op);
+    ReduceOps<ReduceOpMin> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
     for (MyParConstIter pti(*this, level); pti.isValid(); ++pti) {
       const AoS& pbox = pti.GetArrayOfStructs();
@@ -126,9 +126,9 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
           if (p.id() > 0) {
             const Real max_mag_vdx =
               amrex::max(AMREX_D_DECL(
-                amrex::Math::abs(p.rdata(SprayComps::pstateVel)),
-                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 1)),
-                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 2)))) *
+                std::abs(p.rdata(SprayComps::pstateVel)),
+                std::abs(p.rdata(SprayComps::pstateVel + 1)),
+                std::abs(p.rdata(SprayComps::pstateVel + 2)))) *
               dxi[0];
             Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
             return dt_part;
@@ -317,7 +317,7 @@ SprayParticleContainer::updateParticles(
         auto eos = pele::physics::PhysicsType::eos();
         SprayUnits SPU;
         GasPhaseVals gpv;
-        amrex::GpuArray<Real, SPRAY_FUEL_NUM>
+        GpuArray<Real, SPRAY_FUEL_NUM>
           cBoilT; // Boiling temperature at current pressure
         eos.molecular_weight(gpv.mw_fluid.data());
         eos.inv_molecular_weight(gpv.invmw.data());

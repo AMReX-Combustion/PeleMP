@@ -30,8 +30,10 @@ SprayParticleContainer::computeDerivedVars(
       total_spec_indx = ivar;
     }
   }
+  // Must correspond to order of spray_derive_vars
   const int mass_indx = 0;
-  const int num_indx = mass_indx + 1;
+  const int dens_indx = mass_indx + 1;
+  const int num_indx = dens_indx + 1;
   const int vol_indx = num_indx + 1;
   const int surf_indx = vol_indx + 1;
   const int volf_indx = surf_indx + 1;
@@ -75,20 +77,21 @@ SprayParticleContainer::computeDerivedVars(
         Real vol = M_PI / 6. * std::pow(dia_part, 3);
         Real pmass = vol * rho_part;
         Real num_ppp = p.rdata(SprayComps::pstateNumDens);
+        Real curvol = cell_vol;
+#ifdef AMREX_USE_EB
+        if (!flags_array(ijkc).isRegular()) {
+          curvol /= volfrac_fab(ijkc);
+        }
+#endif
         // TODO: Adjust face area for EB
         Real film_hght = p.rdata(SprayComps::pstateFilmVol) /
                          (AMREX_D_TERM(1., *dx[0], *dx[0]));
         if (film_hght == 0.) {
           Gpu::Atomic::Add(&vararr(ijkc, mass_indx), num_ppp * pmass);
+          Gpu::Atomic::Add(&vararr(ijkc, dens_indx), num_ppp * pmass / curvol);
           Gpu::Atomic::Add(&vararr(ijkc, num_indx), num_ppp);
           Gpu::Atomic::Add(&vararr(ijkc, vol_indx), num_ppp * vol);
           Gpu::Atomic::Add(&vararr(ijkc, surf_indx), num_ppp * surf);
-          amrex::Real curvol = cell_vol;
-#ifdef AMREX_USE_EB
-          if (!flags_array(ijkc).isRegular()) {
-            curvol /= volfrac_fab(ijkc);
-          }
-#endif
           Gpu::Atomic::Add(&vararr(ijkc, volf_indx), num_ppp * vol / curvol);
           Gpu::Atomic::Add(
             &vararr(ijkc, d10_indx),
