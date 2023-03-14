@@ -34,7 +34,7 @@ SprayParticleContainer::readSprayParams(
   SprayData& sprayData,
   const Real& max_cfl)
 {
-  amrex::ParmParse pp("particles");
+  ParmParse pp("particles");
   //
   // Control the verbosity of the Particle class
   pp.query("v", particle_verbose);
@@ -44,16 +44,13 @@ SprayParticleContainer::readSprayParams(
   pp.query("fixed_parts", sprayData.fixed_parts);
   pp.query("cfl", particle_cfl);
   if (particle_cfl > max_cfl) {
-    std::string errorstr =
-      "particles.cfl must be <= " + std::to_string(max_cfl);
-    Abort(errorstr);
+    Abort("particles.cfl must be <= " + std::to_string(max_cfl));
   }
   // Number of fuel species in spray droplets
   // Must match the number specified at compile time
   const int nfuel = pp.countval("fuel_species");
   if (nfuel != SPRAY_FUEL_NUM) {
-    amrex::Abort(
-      "Number of fuel species in input file must match SPRAY_FUEL_NUM");
+    Abort("Number of fuel species in input file must match SPRAY_FUEL_NUM");
   }
 
   std::vector<std::string> fuel_names;
@@ -109,19 +106,6 @@ SprayParticleContainer::readSprayParams(
   pp.query("use_splash_model", splash_model);
   if (splash_model) {
     Abort("Splash model is not fully implemented");
-    if (
-      !pp.contains("fuel_sigma") || !pp.contains("wall_temp") ||
-      !pp.contains("fuel_mu")) {
-      Print()
-        << "fuel_sigma, wall_temp, and fuel_mu must be set for splash model. "
-        << "Set use_splash_model = false to turn off splash model."
-        << std::endl;
-      Abort();
-    }
-    // Set the fuel surface tension and contact angle
-    pp.get("fuel_sigma", sprayData.sigma);
-    // TODO: Have this retrieved from proper boundary data
-    pp.get("wall_temp", sprayData.wall_T);
   }
 
   // Must use same reference temperature for all fuels
@@ -159,6 +143,7 @@ SprayParticleContainer::readSprayParams(
   // List of known derived spray quantities
   std::vector<std::string> derive_names = {
     "spray_mass",      // Total liquid mass in a cell
+    "spray_density",   // Liquid mass divided by cell volume
     "spray_num",       // Number of spray droplets in a cell
     "spray_vol",       // Total liquid volume in a cell
     "spray_surf_area", // Total liquid surface area in a cell
@@ -183,15 +168,14 @@ SprayParticleContainer::readSprayParams(
   }
 
   if (particle_verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    amrex::Print() << "Spray fuel species " << spray_fuel_names[0];
+    Print() << "Spray fuel species " << spray_fuel_names[0];
 #if SPRAY_FUEL_NUM > 1
     for (int i = 1; i < SPRAY_FUEL_NUM; ++i) {
-      amrex::Print() << ", " << spray_fuel_names[i];
+      Print() << ", " << spray_fuel_names[i];
     }
 #endif
-    amrex::Print() << std::endl;
-    amrex::Print() << "Number of particles per parcel " << parcel_size
-                   << std::endl;
+    Print() << std::endl;
+    Print() << "Number of particles per parcel " << parcel_size << std::endl;
   }
   //
   // Force other processors to wait till directory is built.
@@ -217,14 +201,10 @@ SprayParticleContainer::spraySetup(SprayData& sprayData)
       }
     }
     if (sprayData.indx[i] < 0) {
-      amrex::Print() << "Fuel " << spray_fuel_names[i]
-                     << " not found in species list" << std::endl;
-      amrex::Abort();
+      Abort("Fuel " + spray_fuel_names[i] + " not found in species list");
     }
     if (sprayData.dep_indx[i] < 0) {
-      amrex::Print() << "Fuel " << spray_dep_names[i]
-                     << " not found in species list" << std::endl;
-      amrex::Abort();
+      Abort("Fuel " + spray_dep_names[i] + " not found in species list");
     }
   }
 #else

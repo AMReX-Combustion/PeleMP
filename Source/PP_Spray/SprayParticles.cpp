@@ -108,8 +108,8 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
   const auto dx = Geom(level).CellSizeArray();
   const auto dxi = Geom(level).InvCellSizeArray();
   {
-    amrex::ReduceOps<amrex::ReduceOpMin> reduce_op;
-    amrex::ReduceData<amrex::Real> reduce_data(reduce_op);
+    ReduceOps<ReduceOpMin> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
     for (MyParConstIter pti(*this, level); pti.isValid(); ++pti) {
       const AoS& pbox = pti.GetArrayOfStructs();
@@ -123,9 +123,9 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
           if (p.id() > 0) {
             const Real max_mag_vdx =
               amrex::max(AMREX_D_DECL(
-                amrex::Math::abs(p.rdata(SprayComps::pstateVel)),
-                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 1)),
-                amrex::Math::abs(p.rdata(SprayComps::pstateVel + 2)))) *
+                std::abs(p.rdata(SprayComps::pstateVel)),
+                std::abs(p.rdata(SprayComps::pstateVel + 1)),
+                std::abs(p.rdata(SprayComps::pstateVel + 2)))) *
               dxi[0];
             Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
             return dt_part;
@@ -297,7 +297,6 @@ SprayParticleContainer::updateParticles(
           }
         }
         // Subcycle loop
-        Real cur_dt = sub_dt;
         int cur_iter = 0;
         while (p.id() > 0 && cur_iter < num_iter) {
           // Flag for whether we are near EB boundaries
@@ -321,7 +320,7 @@ SprayParticleContainer::updateParticles(
             indx_array.data(), weights.data());
           // Solve for avg mw and pressure at droplet location
           gpv.define();
-          calculateSpraySource(cur_dt, gpv, *fdat, p, ltransparm);
+          calculateSpraySource(sub_dt, gpv, *fdat, p, ltransparm);
           IntVect cur_indx = ijkc;
           Real cvol = inv_vol;
 #ifdef AMREX_USE_EB
@@ -348,7 +347,7 @@ SprayParticleContainer::updateParticles(
             cvol *= 1. / (volfrac_fab(cur_indx));
           }
 #endif
-          Real cur_coef = -fdat->num_ppp * cvol * cur_dt / flow_dt;
+          Real cur_coef = -fdat->num_ppp * cvol * sub_dt / flow_dt;
           if (!src_box.contains(cur_indx)) {
             if (!isGhost) {
               Abort("SprayParticleContainer::updateParticles() -- source box "
@@ -374,7 +373,7 @@ SprayParticleContainer::updateParticles(
           if (do_move && !fdat->fixed_parts) {
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
               const Real cvel = p.rdata(SprayComps::pstateVel + dir);
-              p.pos(dir) += cur_dt * cvel;
+              p.pos(dir) += sub_dt * cvel;
             }
             // Update indices
             ijkc_prev = ijkc;
