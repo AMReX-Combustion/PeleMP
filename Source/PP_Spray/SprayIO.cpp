@@ -31,7 +31,7 @@ SprayParticleContainer::SprayParticleIO(
     real_comp_names[SprayComps::pstateBM1] = "unused1";
     real_comp_names[SprayComps::pstateBM2] = "unused2";
   }
-  real_comp_names[SprayComps::pstateFilmVol] = "film_vol";
+  real_comp_names[SprayComps::pstateFilmHght] = "wall_film_height";
   Vector<std::string> int_comp_names;
   Checkpoint(dir, "particles", is_checkpoint, real_comp_names, int_comp_names);
   // Here we write ascii information every time we write a plot file

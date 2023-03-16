@@ -23,6 +23,7 @@ SprayParticleContainer::computeDerivedVars(
   const auto& factory =
     dynamic_cast<EBFArrayBoxFactory const&>(mf_var.Factory());
   const auto* volfrac = &(factory.getVolFrac());
+  const auto* bar = &(factory.getBndryArea());
 #endif
   int total_spec_indx = -1;
   for (auto ivar = 0; ivar < derivePlotVarCount; ++ivar) {
@@ -55,9 +56,11 @@ SprayParticleContainer::computeDerivedVars(
     const auto& interp_fab = static_cast<EBFArrayBox const&>(mf_var[pti]);
     const EBCellFlagFab& flags = interp_fab.getEBCellFlagFab();
     Array4<const Real> volfrac_fab;
+    Array4<const Real> bar_fab;
     const auto& flags_array = flags.array();
     if (flags.getType(box) != FabType::regular) {
       volfrac_fab = volfrac->array(pti);
+      bar_fab = bar->array(pti);
     }
 #endif
     amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
@@ -78,14 +81,14 @@ SprayParticleContainer::computeDerivedVars(
         Real pmass = vol * rho_part;
         Real num_ppp = p.rdata(SprayComps::pstateNumDens);
         Real curvol = cell_vol;
+        Real face_area = AMREX_D_TERM(1., *dx[0], *dx[0]);
 #ifdef AMREX_USE_EB
         if (!flags_array(ijkc).isRegular()) {
           curvol /= volfrac_fab(ijkc);
+          face_area = bar_fab(ijkc);
         }
 #endif
-        // TODO: Adjust face area for EB
-        Real film_hght = p.rdata(SprayComps::pstateFilmVol) /
-                         (AMREX_D_TERM(1., *dx[0], *dx[0]));
+        Real film_hght = p.rdata(SprayComps::pstateFilmHght);
         if (film_hght == 0.) {
           Gpu::Atomic::Add(&vararr(ijkc, mass_indx), num_ppp * pmass);
           Gpu::Atomic::Add(&vararr(ijkc, dens_indx), num_ppp * pmass / curvol);
@@ -114,7 +117,10 @@ SprayParticleContainer::computeDerivedVars(
             }
           }
         } else {
-          Gpu::Atomic::Add(&vararr(ijkc, wfh_indx), film_hght);
+          Real rad2 = std::pow(0.5 * dia_part, 2);
+          Real cur_vol =
+            M_PI / 6. * film_hght * (3. rad2 + film_hght * film_hght);
+          Gpu::Atomic::Add(&vararr(ijkc, wfh_indx), cur_vol / face_area);
         }
       }
     });

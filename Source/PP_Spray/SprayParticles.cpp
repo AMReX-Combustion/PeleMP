@@ -284,22 +284,6 @@ SprayParticleContainer::updateParticles(
     //       umac{AMREX_D_DECL(u_mac[0].array(pti), u_mac[1].array(pti),
     //       u_mac[2].array(pti))};
     // #endif
-    // Data structures for wall films
-    FArrayBox wf_fab;
-    Elixir wf_eli;
-    Array4<Real> wall_film;
-    if ((eb_in_box || at_bounds) && do_splash) {
-      wf_fab.resize(src_box, WFIndx::wf_num);
-      wf_eli = wf_fab.elixir();
-      wf_fab.setVal<RunOn::Device>(0.);
-      wall_film = wf_fab.array();
-      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
-        ParticleType& p = pstruct[pid];
-        if (p.id() > 0 && p.rdata(SprayComps::pstateFilmVol) > 0.) {
-          fillFilmFab(wall_film, *fdat, p, plo, dx);
-        }
-      });
-    }
     // Data structures for creating new particles during splashing/breakup
     Gpu::HostVector<splash_breakup> N_SB_h(Np, splash_breakup::no_change);
     Gpu::DeviceVector<splash_breakup> N_SB_d(Np);
@@ -347,9 +331,8 @@ SprayParticleContainer::updateParticles(
         Real Reyn_d = 0.;
         bool is_film = false;
         // Gather wall film values
-        if (p.rdata(SprayComps::pstateFilmVol) > 0. && isActive) {
+        if (p.rdata(SprayComps::pstateFilmHght) > 0.) {
           is_film = true;
-          getWallFilm(ijkc, wall_film, p, dx);
         }
         // Subcycle loop
         for (int cur_iter = 0; cur_iter < num_iter && p.id() > 0; ++cur_iter) {
@@ -377,7 +360,7 @@ SprayParticleContainer::updateParticles(
           fdat->calcBoilT(gpv, cBoilT.data());
           if (is_film) {
             calculateFilmSource(
-              sub_dt, dx, gpv, *fdat, p, cBoilT.data(), ltransparm);
+              sub_dt, gpv, *fdat, p, cBoilT.data(), ltransparm);
           } else {
             Reyn_d = calculateSpraySource(
               sub_dt, gpv, *fdat, p, cBoilT.data(), ltransparm);
