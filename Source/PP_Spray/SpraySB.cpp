@@ -23,6 +23,7 @@ find_tangents(
   tanPsi = testvec.crossProduct(norm);
   tanPsi /= tanPsi.vectorLength();
   tanBeta = tanPsi.crossProduct(norm);
+  tanBeta /= tanBeta.vectorLength();
 #else
   amrex::ignore_unused(pvel, tanPsi);
   tanBeta[0] = -norm[1];
@@ -209,6 +210,7 @@ SprayParticleContainer::CreateSBDroplets(
         RealVect tanPsi = testvec.crossProduct(normal);
         tanPsi /= tanPsi.vectorLength();
         RealVect tanBeta = tanPsi.crossProduct(normal);
+        tanBeta /= tanBeta.vectorLength();
 #else
         RealVect tanBeta(normal[1], normal[0]);
 #endif
