@@ -31,6 +31,7 @@ SprayParticleContainer::InitSprayParticles(
   amrex::Real partDia = PeleLM::prob_parm->partDia;
   amrex::Real partTemp = PeleLM::prob_parm->partTemp;
   std::array<amrex::Real, SPRAY_FUEL_NUM> partY = {0.0};
+  int numRedist = 1;
   partY[0] = 1.;
   uniformSprayInit(
     partNum, partVel, partDia, partTemp, partY.begin(), level, numRedist);
