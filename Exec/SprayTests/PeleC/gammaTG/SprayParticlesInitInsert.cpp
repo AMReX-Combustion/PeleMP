@@ -30,8 +30,9 @@ SprayParticleContainer::InitSprayParticles(
   amrex::IntVect partNum(AMREX_D_DECL(100, 100, 100));
   pp.query("num_particles", partNum);
   amrex::RealVect partVel = amrex::RealVect::TheZeroVector();
-  amrex::Real partDia = PeleC::prob_parm->partDia;
-  amrex::Real partTemp = PeleC::prob_parm->partTemp;
+  amrex::Real partDia = prob_parm.partDia;
+  amrex::Real partTemp = prob_parm.partTemp;
+  int numRedist = 1;
   std::array<amrex::Real, SPRAY_FUEL_NUM> partY = {0.0};
   partY[0] = 1.;
   uniformSprayInit(

@@ -25,7 +25,7 @@ The equations of motion, mass, momentum, and energy for the Lagrangian spray dro
 
    m_d \frac{d Y_{d,n}}{d t} &= \dot{m}_n - Y_{d,n} \frac{d m_d}{d t}
 
-   m_d \frac{d \mathbf{u}_d}{d t} &= \mathbf{F}_d,
+   m_d \frac{d \mathbf{u}_d}{d t} &= \mathbf{F}_d + \mathbf{g},
 
    m_d c_{p,L} \frac{d T_d}{d t} &= \sum^{N_L}_{n=0} \dot{m}_n h_{L,n}(T_d) + \mathcal{Q}_d.
 
@@ -204,3 +204,4 @@ The procedure is as follows for updating the spray droplet:
 .. [#abram] "Droplet vaporization model for spray combustion calculations", B. Abramzon and W. A. Sirignano, Int. J. Heat Mass Transfer, Vol 32, No. 9, pp 1605-1618 (1989)
 
 .. [#ton] "Fuel spray modeling in direct-injection diesel and gasoline enginers", S. Tonini, Dissertation, City University London (2006)
+
