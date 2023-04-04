@@ -82,7 +82,7 @@ public:
     const int numRedist);
 
   /// \brief Setup spray parameters
-  static void spraySetup(SprayData& sprayData);
+  static void spraySetup(SprayData& sprayData, const amrex::Real* body_force);
 
   /// \brief Read in spray parameters from input file
   static void readSprayParams(
