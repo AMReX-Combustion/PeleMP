@@ -93,27 +93,26 @@ nodal_proj.verbose = 0
 peleLM.do_spray_particles = 1
 particles.derive_plot_vars = 1
 
+particles.fuel_ref_temp = 298.15
 # Decane
 particles.fuel_species = NC10H22
 # Properties for decane, in MKS
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K at 1 atm
-particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E5 # Latent heat at reference temperature
-particles.fuel_cp = 2.1921E3 # Cp at 298 K
-particles.fuel_rho = 640.
+particles.NC10H22_crit_temp = 617.8 # K
+particles.NC10H22_boil_temp = 447.27 # K at 1 atm
+particles.NC10H22_latent = 3.5899E5 # Latent heat at reference temperature
+particles.NC10H22_cp = 2.1921E3 # Cp at 298 K
+particles.NC10H22_rho = 640.
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to Pa
 particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
 # Dodecane
 # particles.fuel_species = NC12H26
-# particles.fuel_crit_temp = 658.2 # K
-# particles.fuel_boil_temp = 489. # K
-# particles.fuel_ref_temp = 298.15
-# particles.fuel_latent = 3.586E5 # Latent heat at reference temperature
-# particles.fuel_cp = 2.207E3 # Cp at 298
-# particles.fuel_rho = 669.43
+# particles.NC12H26_crit_temp = 658.2 # K
+# particles.NC12H26_boil_temp = 489. # K
+# particles.NC12H26_latent = 3.586E5 # Latent heat at reference temperature
+# particles.NC12H26_cp = 2.207E3 # Cp at 298
+# particles.NC12H26_rho = 669.43
 # particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E5
 
 particles.use_splash_model = false
