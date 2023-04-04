@@ -60,20 +60,18 @@ particles.mom_transfer = 1
 particles.mass_transfer = 1
 particles.init_function = 0
 particles.init_file = "initsprayfile"
+particles.write_ascii_files = 1
+
+particles.fuel_ref_temp = 300.
 
 particles.fuel_species = NC7H16
 # properties for decane
-particles.fuel_crit_temp = 540. # K
-particles.fuel_boil_temp = 371.6 # K
-# If we want the reference point to be same as the boiling temperature
-# particles.fuel_ref_temp = 371.6
-# particles.fuel_latent = 3.27336E9
-# particles.fuel_cp = 2.558E7
-particles.fuel_ref_temp = 300.
-particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
-particles.fuel_cp = 2.2483E7 # @ 298 K
-particles.fuel_rho = 0.6814
-particles.write_ascii_files = 1
+particles.NC7H16_crit_temp = 540. # K
+particles.NC7H16_boil_temp = 371.6 # K
+particles.NC7H16_ref_temp = 300.
+particles.NC7H16_latent = 3.63E9 # Latent enthalpy at 298 K
+particles.NC7H16_cp = 2.2483E7 # @ 298 K
+particles.NC7H16_rho = 0.6814
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to dyne/cm^2

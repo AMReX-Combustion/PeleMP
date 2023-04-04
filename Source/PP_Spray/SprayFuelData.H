@@ -12,9 +12,8 @@ struct SprayComps
   static const int pstateDia = pstateT + 1;
   static const int pstateY = pstateDia + 1;
   static const int pstateNumDens = pstateY + SPRAY_FUEL_NUM;
-  static const int pstateBM1 =
-    pstateNumDens + 1;                        // Variables for breakup modeling
-  static const int pstateBM2 = pstateBM1 + 1; // Variables for breakup modeling
+  static const int pstateBM1 = pstateNumDens + 1; // Breakup model variables
+  static const int pstateBM2 = pstateBM1 + 1; // Breakup model variables
   static const int pstateFilmHght = pstateBM2 + 1;
   static const int pstateNum = pstateFilmHght + 1;
   int rhoIndx; // Component indices for conservative variable data structure
@@ -130,16 +129,16 @@ struct SprayData
   amrex::Real theta_c = -1.; // Contact angle for wall film
   // If particle is updated half dt or whole dt
   amrex::Real dtmod = 0.5;
+  amrex::RealVect body_force = amrex::RealVect::TheZeroVector();
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> critT;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> boilT;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> cp;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> latent;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> ref_latent;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> rho;
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> lambda;
   // 3 coefficients for Antoine equation and conversion to appropriate units
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM * 4> psat_coef;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM * 4> rho_coef;
+  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM * 4> lambda_coef;
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM * 4> mu_coef;
   amrex::GpuArray<int, SPRAY_FUEL_NUM> indx = {{-1}};
   amrex::GpuArray<int, SPRAY_FUEL_NUM> dep_indx = {{-1}};
@@ -151,6 +150,7 @@ struct SprayData
     fixed_parts = fdat.fixed_parts;
     do_breakup = fdat.do_breakup;
     do_splash = fdat.do_splash;
+    body_force = fdat.body_force;
     ref_T = fdat.ref_T;
     sigma = fdat.sigma;
     wall_T = fdat.wall_T;
@@ -161,12 +161,11 @@ struct SprayData
       cp[spf] = fdat.cp[spf];
       latent[spf] = fdat.latent[spf];
       ref_latent[spf] = fdat.ref_latent[spf];
-      rho[spf] = fdat.rho[spf];
-      lambda[spf] = fdat.lambda[spf];
       for (int cf = 0; cf < 4; ++cf) {
         psat_coef[4 * spf + cf] = fdat.psat_coef[4 * spf + cf];
         rho_coef[4 * spf + cf] = fdat.rho_coef[4 * spf + cf];
         mu_coef[4 * spf + cf] = fdat.mu_coef[4 * spf + cf];
+        lambda_coef[4 * spf + cf] = fdat.lambda_coef[4 * spf + cf];
       }
       indx[spf] = fdat.indx[spf];
       dep_indx[spf] = fdat.dep_indx[spf];
@@ -190,15 +189,33 @@ struct SprayData
   AMREX_FORCE_INLINE
   amrex::Real rhoL(const amrex::Real& T, const int spf) const
   {
-    amrex::Real rhoL = rho[spf];
-    if (rho_coef[4 * spf] != 0.) {
-      amrex::Real a = rho_coef[4 * spf];
-      amrex::Real b = rho_coef[4 * spf + 1];
-      amrex::Real c = rho_coef[4 * spf + 2];
-      amrex::Real d = rho_coef[4 * spf + 3];
-      rhoL = a + T * (b + T * (c + T * d));
-    }
-    return rhoL;
+    amrex::Real a = rho_coef[4 * spf];
+    amrex::Real b = rho_coef[4 * spf + 1];
+    amrex::Real c = rho_coef[4 * spf + 2];
+    amrex::Real d = rho_coef[4 * spf + 3];
+    return a + T * (b + T * (c + T * d));
+  }
+
+  AMREX_GPU_HOST_DEVICE
+  AMREX_FORCE_INLINE
+  amrex::Real lambdaL(const amrex::Real& T, const int spf) const
+  {
+    amrex::Real a = lambda_coef[4 * spf];
+    amrex::Real b = lambda_coef[4 * spf + 1];
+    amrex::Real c = lambda_coef[4 * spf + 2];
+    amrex::Real d = lambda_coef[4 * spf + 3];
+    return a + T * (b + T * (c + T * d));
+  }
+
+  AMREX_GPU_HOST_DEVICE
+  AMREX_FORCE_INLINE
+  amrex::Real muL(const amrex::Real& T, const int spf) const
+  {
+    amrex::Real a = mu_coef[4 * spf];
+    amrex::Real b = mu_coef[4 * spf + 1];
+    amrex::Real c = mu_coef[4 * spf + 2];
+    amrex::Real d = mu_coef[4 * spf + 3];
+    return a + ((d / T + c) / T + b) / T;
   }
 
   // Estimate the boil temperature

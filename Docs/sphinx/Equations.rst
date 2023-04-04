@@ -8,7 +8,7 @@ Equations
 Spray Equations
 ---------------
 The following equations pertain to the spray modeling algorithm in `PeleMP`.
-The evaporation models follow the work by Abramzon and Sirignano [#abram]_ and the multicomponent evaporation is based on work by Tonini. [#ton]_
+The evaporation models follow the work by Abramzon and Sirignano [#abram]_ and the multicomponent evaporation is based on work by Tonini. [#ton]_ Details regarding the energy balance are provided in Ge et al. [#Ge]_
 
 The subscript notation for this section is: :math:`d` relates to the liquid droplet, :math:`v` relates to the vapor state that is in equilibrium with the liquid and gas phase, :math:`s` relates to the reference surface state, :math:`L` relates to the liquid phase, and :math:`g` relates to the gas phase.
 
@@ -23,13 +23,13 @@ The equations of motion, mass, momentum, and energy for the Lagrangian spray dro
 
    \frac{d m_d}{d t} &= \sum^{N_L}_{n=0} \dot{m}_n,
 
-   m_d \frac{d Y_{d,n}}{d t} &= \dot{m}_n - Y_{d,n} \frac{d m_d}{d t}
+   m_d \frac{d Y_{d,n}}{d t} &= \dot{m}_n - Y_{d,n} \frac{d m_d}{d t},
 
-   m_d \frac{d \mathbf{u}_d}{d t} &= \mathbf{F}_d + \mathbf{g},
+   m_d \frac{d \mathbf{u}_d}{d t} &= \mathbf{F}_d + m_d \mathbf{g},
 
    m_d c_{p,L} \frac{d T_d}{d t} &= \sum^{N_L}_{n=0} \dot{m}_n h_{L,n}(T_d) + \mathcal{Q}_d.
 
-where :math:`\mathbf{X}_d` is the spatial vector, :math:`\mathbf{u}_d` is the velocity vector, :math:`T_d` is the droplet temperature, :math:`m_d` is the mass of the droplet, :math:`\dot{m}` is evaporated mass, :math:`\mathcal{Q}_d` is the heat transfer between the droplet and the surrounding gas, and :math:`\mathbf{F}_d` is the momentum source term.
+where :math:`\mathbf{X}_d` is the spatial vector, :math:`\mathbf{u}_d` is the velocity vector, :math:`T_d` is the droplet temperature, :math:`m_d` is the mass of the droplet, :math:`\mathbf{g}` is an external body force (like gravity), :math:`\dot{m}` is evaporated mass, :math:`\mathcal{Q}_d` is the heat transfer between the droplet and the surrounding gas, and :math:`\mathbf{F}_d` is the momentum source term.
 The density of the liquid mixture, :math:`\rho_d`, depends on the liquid mass fractions of the dropet, :math:`Y_{d,n}`,
 
 .. math::
@@ -181,7 +181,7 @@ The procedure is as follows for updating the spray droplet:
 
         \mathcal{Q}_d &= \pi \lambda_s d_d (T_g - T_d) {\rm{Nu}}_0
 
-#. The gas phase source terms for a single parcel to a particular cell are
+#. To alleviate conservation issues at AMR interfaces, each parcel only contributes to the gas phase source term of the cell containing it. The gas phase source terms for a single parcel to the cell are
 
     .. math::
        S_{\rho} &= \mathcal{C} \sum^{N_L}_{n=0} \dot{m}_n,
@@ -197,11 +197,12 @@ The procedure is as follows for updating the spray droplet:
     where
 
     .. math::
-       \mathcal{C} = -\frac{w_c N_{\rm{parcel}}}{V_{\rm{cell}}}
+       \mathcal{C} = -\frac{N_{d}}{V_{\rm{cell}}},
 
-    and :math:`w_c` is the deposition weighting for the particle to the cell, :math:`N_{\rm{parcel}}` is the number of droplets per computational parcel, and :math:`V_{\rm{cell}}` is the volume for the cell of interest. Note that the cell volume can vary depending on if an EB is present.
+    :math:`N_{d}` is the number of droplets per computational parcel, and :math:`V_{\rm{cell}}` is the volume for the cell of interest. Note that the cell volume can vary depending on AMR level and if an EB is present.
 
 .. [#abram] "Droplet vaporization model for spray combustion calculations", B. Abramzon and W. A. Sirignano, Int. J. Heat Mass Transfer, Vol 32, No. 9, pp 1605-1618 (1989)
 
-.. [#ton] "Fuel spray modeling in direct-injection diesel and gasoline enginers", S. Tonini, Dissertation, City University London (2006)
+.. [#ton] "Fuel spray modeling in direct-injection diesel and gasoline engines", S. Tonini, Dissertation, City University London (2006)
 
+.. [#Ge] "Development of a CPU/GPU portable software library for Lagrangian-Eulerian simulations of liquid sprays", W. Ge and R. Sankaran and J. H. Chen, Int. J. Multiph. Flow, Vol 128, Issn 0301-9322, 103293 (2020)

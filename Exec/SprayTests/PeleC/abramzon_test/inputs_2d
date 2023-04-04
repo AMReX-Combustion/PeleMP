@@ -58,15 +58,16 @@ particles.init_function = 0
 particles.init_file = "initspraydata"
 particles.write_ascii_files = 1
 
-particles.fuel_species = NC10H22
-# properties for decane
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
 # If we want the reference point to be same as the boiling temperature
 particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E9
-particles.fuel_cp = 2.1921E7 # Cp at 298 K
-particles.fuel_rho = 0.642
+
+particles.fuel_species = NC10H22
+# properties for decane
+particles.NC10H22_crit_temp = 617.8 # K
+particles.NC10H22_boil_temp = 447.27 # K
+particles.NC10H22_latent = 3.5899E9
+particles.NC10H22_cp = 2.1921E7 # Cp at 298 K
+particles.NC10H22_rho = 0.642
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to dyne/cm^2

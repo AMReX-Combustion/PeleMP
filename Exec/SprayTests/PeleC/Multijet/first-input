@@ -71,18 +71,19 @@ particles.write_ascii_files = 0
 # Number of particles per parcel
 particles.parcel_size = 1.
 
+particles.fuel_ref_temp = 298.15
+
 particles.fuel_species = NC10H22
 # Properties for liquid dodecane
-particles.fuel_crit_temp = 658.2 # K
-particles.fuel_boil_temp = 489. # K
-particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.0294E9
-particles.fuel_cp = 2.5939E7 # Cp at 298
-particles.fuel_rho = 0.669
+particles.NC10H22_crit_temp = 658.2 # K
+particles.NC10H22_boil_temp = 489. # K
+particles.NC10H22_latent = 3.0294E9
+particles.NC10H22_cp = 2.5939E7 # Cp at 298
+particles.NC10H22_rho = 0.669
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to dyne/cm^2
-particles.NC12H26_psat = 4.10549 1625.928 -92.839 1.E6
+particles.NC10H22_psat = 4.10549 1625.928 -92.839 1.E6
 
 particles.use_splash_model = false
 
