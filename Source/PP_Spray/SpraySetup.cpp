@@ -294,5 +294,5 @@ SprayParticleContainer::spraySetup(
     sprayData.body_force[dir] = body_force[dir];
   }
   Gpu::streamSynchronize();
-  ParallelDesciptor::Barrier();
+  ParallelDescriptor::Barrier();
 }
