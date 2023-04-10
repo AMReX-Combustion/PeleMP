@@ -200,7 +200,7 @@ SprayParticleContainer::CreateSBDroplets(
         // numDens0 = N_s N_d, where N_d - number of newly created parcels and
         // N_s - number density of newly created parcels There is no one way to
         // do this
-        Real N_s = std::pow(numDens0, breakup_ppp_fact);
+        Real N_s = std::pow(numDens0, m_breakupPPPFact);
         int N_d = amrex::max(1, static_cast<int>(numDens0 / N_s));
         N_s = numDens0 / static_cast<Real>(N_d);
 #if AMREX_SPACEDIM == 3
