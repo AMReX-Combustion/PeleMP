@@ -57,7 +57,7 @@ public:
   {
     d_sprayData =
       static_cast<SprayData*>(amrex::The_Arena()->alloc(sizeof(SprayData)));
-    m_sprayData->build(fdat);
+    &(m_sprayData) = fdat;
     amrex::Gpu::copy(
       amrex::Gpu::hostToDevice, m_sprayData, m_sprayData + 1, d_sprayData);
     init_bcs();
@@ -362,17 +362,17 @@ public:
   /// @param dir Name of restart directory
   void PostInitRestart(const std::string& dir = "");
 
-  static std::string spray_fuel_names[SPRAY_FUEL_NUM];
-  static std::string spray_dep_names[SPRAY_FUEL_NUM];
-  static amrex::Vector<std::string> spray_derive_vars;
-  static amrex::Real max_num_ppp;
+  static std::string m_sprayFuelNames[SPRAY_FUEL_NUM];
+  static std::string m_sprayDepNames[SPRAY_FUEL_NUM];
+  static amrex::Vector<std::string> m_sprayDeriveVars;
+  static amrex::Real m_maxNumPPP;
   // Factor for balancing number of child parcels formed versus child parcel
   // number density 1: Fewer parcels, higher number densities 0: More parcels,
   // lower number densities
-  static amrex::Real breakup_ppp_fact;
-  static amrex::Real B0_KHRT;
-  static amrex::Real B1_KHRT;
-  static amrex::Real C3_KHRT;
+  static amrex::Real m_breakupPPPFact;
+  static amrex::Real m_khrtB0;
+  static amrex::Real m_khrtB1;
+  static amrex::Real m_khrtC3;
 
 private:
   /// \brief This defines reflect_lo and reflect_hi from phys_bc

@@ -174,10 +174,10 @@ SprayParticleContainer::updateParticles(
   bool isActive = !(isVirt || isGhost);
   bool do_splash = (m_sprayData->do_splash && isActive && do_move);
   bool do_breakup = (m_sprayData->do_breakup > 0 && isActive && do_move);
-  Real B0 = B0_KHRT;
-  Real B1 = B1_KHRT;
-  Real C3 = C3_KHRT;
-  Real max_ppp = max_num_ppp;
+  Real B0 = m_khrtB0;
+  Real B1 = m_khrtB1;
+  Real C3 = m_khrtC3;
+  Real max_ppp = m_maxNumPPP;
   const auto dxiarr = this->Geom(level).InvCellSizeArray();
   const auto dxarr = this->Geom(level).CellSizeArray();
   const auto ploarr = this->Geom(level).ProbLoArray();

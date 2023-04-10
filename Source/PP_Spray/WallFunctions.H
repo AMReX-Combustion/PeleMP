@@ -296,5 +296,4 @@ impose_wall(
     p.rdata(SprayComps::pstateVel + dir) = vel_part[dir];
   }
 }
-
 #endif // _WALLFUNCTIONS_H

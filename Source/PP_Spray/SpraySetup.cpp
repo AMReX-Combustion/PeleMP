@@ -3,14 +3,14 @@
 
 using namespace amrex;
 
-std::string SprayParticleContainer::spray_fuel_names[SPRAY_FUEL_NUM];
-std::string SprayParticleContainer::spray_dep_names[SPRAY_FUEL_NUM];
-Vector<std::string> SprayParticleContainer::spray_derive_vars;
-Real SprayParticleContainer::max_num_ppp = 100.;
-Real SprayParticleContainer::breakup_ppp_fact = 0.5;
-Real SprayParticleContainer::B0_KHRT = 0.61;
-Real SprayParticleContainer::B1_KHRT = 7.;
-Real SprayParticleContainer::C3_KHRT = 1.;
+std::string SprayParticleContainer::m_sprayFuelNames[SPRAY_FUEL_NUM];
+std::string SprayParticleContainer::m_sprayDepNames[SPRAY_FUEL_NUM];
+Vector<std::string> SprayParticleContainer::m_sprayDeriveVars;
+Real SprayParticleContainer::m_maxNumPPP = 100.;
+Real SprayParticleContainer::m_breakupPPPFact = 0.5;
+Real SprayParticleContainer::m_khrtB0 = 0.61;
+Real SprayParticleContainer::m_khrtB1 = 7.;
+Real SprayParticleContainer::m_khrtC3 = 1.;
 
 void
 getInpCoef(
@@ -112,11 +112,11 @@ SprayParticleContainer::readSprayParams(
     getInpCoef(sprayData.rho_coef.data(), pp, fuel_names.data(), "rho", true);
     getInpCoef(sprayData.mu_coef.data(), pp, fuel_names.data(), "mu");
     for (int i = 0; i < nfuel; ++i) {
-      spray_fuel_names[i] = fuel_names[i];
+      m_sprayFuelNames[i] = fuel_names[i];
       if (has_dep_spec) {
-        spray_dep_names[i] = dep_fuel_names[i];
+        m_sprayDepNames[i] = dep_fuel_names[i];
       } else {
-        spray_dep_names[i] = spray_fuel_names[i];
+        m_sprayDepNames[i] = m_sprayFuelNames[i];
       }
       sprayData.latent[i] = sprayData.ref_latent[i];
     }
@@ -133,12 +133,12 @@ SprayParticleContainer::readSprayParams(
   pp.query("use_breakup_model", breakup_model_str);
   if (breakup_model_str == "TAB") {
     breakup_model = 1;
-    pp.query("max_parcel_size", max_num_ppp);
+    pp.query("max_parcel_size", m_maxNumPPP);
   } else if (breakup_model_str == "KHRT") {
     breakup_model = 2;
-    pp.query("B0_KHRT", B0_KHRT);
-    pp.query("B1_KHRT", B1_KHRT);
-    pp.query("C3_KHRT", C3_KHRT);
+    pp.query("m_khrtB0", m_khrtB0);
+    pp.query("m_khrtB1", m_khrtB1);
+    pp.query("m_khrtC3", m_khrtC3);
   } else if (breakup_model_str == "None") {
     breakup_model = 0;
   } else {
@@ -146,8 +146,8 @@ SprayParticleContainer::readSprayParams(
           "'None'");
   }
   if (splash_model || (breakup_model > 0)) {
-    pp.query("breakup_parcel_factor", breakup_ppp_fact);
-    if (breakup_ppp_fact > 1. || breakup_ppp_fact < 0.) {
+    pp.query("breakup_parcel_factor", m_breakupPPPFact);
+    if (m_breakupPPPFact > 1. || m_breakupPPPFact < 0.) {
       Abort("'breakup_parcel_factor' must be between 0 and 1");
     }
     bool wrong_data = false;
@@ -229,19 +229,19 @@ SprayParticleContainer::readSprayParams(
   // If derive_spray_vars if present, add above spray quantities in the same
   // order
   for (const auto& derive_name : derive_names) {
-    spray_derive_vars.push_back(derive_name);
+    m_sprayDeriveVars.push_back(derive_name);
   }
   if (derive_plot_species == 1 && SPRAY_FUEL_NUM > 1) {
-    for (auto& fuel_name : spray_fuel_names) {
-      spray_derive_vars.push_back("spray_mass_" + fuel_name);
+    for (auto& fuel_name : m_sprayFuelNames) {
+      m_sprayDeriveVars.push_back("spray_mass_" + fuel_name);
     }
   }
 
   if (particle_verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    Print() << "Spray fuel species " << spray_fuel_names[0];
+    Print() << "Spray fuel species " << m_sprayFuelNames[0];
 #if SPRAY_FUEL_NUM > 1
     for (int i = 1; i < SPRAY_FUEL_NUM; ++i) {
-      Print() << ", " << spray_fuel_names[i];
+      Print() << ", " << m_sprayFuelNames[i];
     }
 #endif
     Print() << std::endl;
@@ -254,8 +254,7 @@ SprayParticleContainer::readSprayParams(
 }
 
 void
-SprayParticleContainer::spraySetup(
-  SprayData& sprayData, const Real* body_force)
+SprayParticleContainer::spraySetup(SprayData& sprayData, const Real* body_force)
 {
 #if NUM_SPECIES > 1
   Vector<std::string> spec_names;
@@ -264,18 +263,18 @@ SprayParticleContainer::spraySetup(
   for (int i = 0; i < SPRAY_FUEL_NUM; ++i) {
     for (int ns = 0; ns < NUM_SPECIES; ++ns) {
       std::string gas_spec = spec_names[ns];
-      if (gas_spec == spray_fuel_names[i]) {
+      if (gas_spec == m_sprayFuelNames[i]) {
         sprayData.indx[i] = ns;
       }
-      if (gas_spec == spray_dep_names[i]) {
+      if (gas_spec == m_sprayDepNames[i]) {
         sprayData.dep_indx[i] = ns;
       }
     }
     if (sprayData.indx[i] < 0) {
-      Abort("Fuel " + spray_fuel_names[i] + " not found in species list");
+      Abort("Fuel " + m_sprayFuelNames[i] + " not found in species list");
     }
     if (sprayData.dep_indx[i] < 0) {
-      Abort("Fuel " + spray_dep_names[i] + " not found in species list");
+      Abort("Fuel " + m_sprayDepNames[i] + " not found in species list");
     }
   }
 #else
