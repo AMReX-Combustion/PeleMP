@@ -62,7 +62,10 @@ struct SBVects
   // Breakup: Total number of created droplets
   amrex::Gpu::HostVector<amrex::Real> numDens_h;
   amrex::Gpu::DeviceVector<amrex::Real> numDens_d;
-  SBVects(const int Np)
+
+  SBVects() = default;
+
+  void build(const int Np)
   {
     norm_h.assign(AMREX_SPACEDIM * Np, 0.);
     vel_h.assign(AMREX_SPACEDIM * Np, 0.);
@@ -110,7 +113,7 @@ struct SBVects
     amrex::Gpu::copyAsync(
       amrex::Gpu::hostToDevice, phi3_h.begin(), phi3_h.end(), phi3_d.begin());
   }
-  SBVects() = delete;
+
   SBVects(const SBVects&) = delete;
 
   void retrieve_data()
