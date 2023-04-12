@@ -30,6 +30,9 @@ SprayParticleContainer::injectParticles(
     return false;
   }
   SprayJet* js = m_sprayJets[0].get();
+  if (!js->jet_active(time)) {
+    return false;
+  }
   if (prob_parm.inject_N > 0) {
     const int time_indx = interpolateInjectTime(
       time, prob_parm.inject_N, prob_parm.inject_time.dataPtr());
