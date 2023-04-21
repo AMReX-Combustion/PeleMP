@@ -112,8 +112,8 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
             const Real max_mag_vdx = amrex::max(AMREX_D_DECL(
               std::abs(p.rdata(SprayComps::pstateVel)) * dxi[0],
               std::abs(p.rdata(SprayComps::pstateVel + 1)) * dxi[1],
-              std::abs(p.rdata(SprayComps::pstateVel + 2)) * dxi[2]))
-              Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
+              std::abs(p.rdata(SprayComps::pstateVel + 2)) * dxi[2]));
+            Real dt_part = (max_mag_vdx > 0.) ? (cfl / max_mag_vdx) : 1.E50;
             return dt_part;
           }
           return -1.;
@@ -282,11 +282,9 @@ SprayParticleContainer::updateParticles(
         GasPhaseVals gpv;
         GpuArray<Real, SPRAY_FUEL_NUM>
           cBoilT; // Boiling temperature at current pressure
-        eos.molecular_weight(gpv.mw_fluid.data());
-        eos.inv_molecular_weight(gpv.invmw.data());
+        eos.molecular_weight(gpv.mw.data());
         for (int n = 0; n < NUM_SPECIES; ++n) {
-          gpv.mw_fluid[n] *= SPU.mass_conv;
-          gpv.invmw[n] /= SPU.mass_conv;
+          gpv.mw[n] *= SPU.mass_conv;
         }
         GpuArray<IntVect, AMREX_D_PICK(2, 4, 8)>
           indx_array; // array of adjacent cells

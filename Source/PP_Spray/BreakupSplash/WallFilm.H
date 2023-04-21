@@ -81,12 +81,13 @@ calculateFilmSource(
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> L_fuel = {{0.0}};
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> mi_dot = {{0.0}};
   amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_film; // Liquid mass fractions
-  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Psat = {{0.0}};
+  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> X_vapor = {{0.0}};
   amrex::Real T_film = p.rdata(SprayComps::pstateT);
   amrex::Real rho_film = 0.;
   amrex::Real Tcrit = 0.;
   amrex::Real cp_film = 0.;
   amrex::Real lambda_film = 0.;
+  amrex::Real mw_film = 0.;
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
     amrex::Real minT = amrex::min(T_film, cBoilT[spf]);
     Y_film[spf] = p.rdata(SprayComps::pstateY + spf);
@@ -94,7 +95,9 @@ calculateFilmSource(
     cp_film += Y_film[spf] * fdat.cp[spf];
     lambda_film += Y_film[spf] * fdat.lambdaL(minT, spf);
     Tcrit += Y_film[spf] * fdat.critT[spf];
+    mw_film += Y_film[spf] / gpv.mw[fdat.indx[spf]];
   }
+  mw_film = 1. / mw_film;
   rho_film = 1. / rho_film;
   T_film = amrex::min(0.999 * Tcrit, T_film);
   amrex::Real film_height = p.rdata(SprayComps::pstateFilmHght);
@@ -119,11 +122,11 @@ calculateFilmSource(
   amrex::Real cp_skin = 0.; // Average C_p in modeled skin phase
   amrex::Real mw_skin = 0.; // Average molar mass of skin phase
   amrex::Real B_M = 0.;     // Mass Spalding number
-  amrex::Real sumXVap = 0.; // Sum of Y_L Psat_f / mw_f
+  amrex::Real sumXVap = 0.; // Sum of X_v
   calcVaporState(
-    fdat, gpv, rule, T_film, C_eps, Y_film.data(), h_film.data(), cp_n.data(),
-    cBoilT, Y_skin.data(), Psat.data(), L_fuel.data(), B_M, sumXVap, cp_skin,
-    mw_skin);
+    fdat, gpv, rule, T_film, C_eps, mw_film, Y_film.data(), h_film.data(),
+    cp_n.data(), cBoilT, Y_skin.data(), X_vapor.data(), L_fuel.data(), B_M,
+    sumXVap, cp_skin, mw_skin);
   amrex::Real lambda_skin = 0.;
   amrex::Real mu_skin = 0.;
   amrex::Real xi_skin = 0.;
@@ -162,11 +165,9 @@ calculateFilmSource(
       // Convert mass diffusion coefficient from mixture average
       // to binary for fuel only, not concerned with other species
       Ddiag[fspec] *= mw_skin * gpv.invmw[fspec] * SPU.rhod_conv;
-      if (
-        Y_film[spf] > 1.E-12 && Psat[spf] > gpv.X_fluid[fdspec] * gpv.p_fluid) {
+      if (X_vapor[spf] > 0.) {
         // Normalize mass diffusivity by fuel vapor molar fraction
-        amrex::Real cur_rhoD =
-          Ddiag[fspec] * Y_film[spf] * gpv.invmw[fspec] * Psat[spf] / sumXVap;
+        amrex::Real cur_rhoD = X_vapor[spf] * Ddiag[fspec] / sumXVap;
         mi_dot[spf] = -amrex::max(h_mass * std::pow(cur_rhoD, 2. / 3.), 0.);
         m_dot += mi_dot[spf];
         sumL += mi_dot[spf] * L_fuel[spf];
