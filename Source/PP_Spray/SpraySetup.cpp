@@ -178,8 +178,6 @@ SprayParticleContainer::readSprayParams(
   }
 
   // Must use same reference temperature for all fuels
-  // TODO: This means the reference temperature must be the same for all fuel
-  // species
   pp.get("fuel_ref_temp", spray_ref_T);
   //
   // Set if spray ascii files should be written
@@ -246,9 +244,6 @@ SprayParticleContainer::readSprayParams(
 #endif
     Print() << std::endl;
   }
-  //
-  // Force other processors to wait till directory is built.
-  //
   Gpu::streamSynchronize();
   ParallelDescriptor::Barrier();
 }
