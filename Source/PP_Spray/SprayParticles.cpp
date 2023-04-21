@@ -247,11 +247,9 @@ SprayParticleContainer::updateParticles(
         auto eos = pele::physics::PhysicsType::eos();
         SprayUnits SPU;
         GasPhaseVals gpv;
-        eos.molecular_weight(gpv.mw_fluid.data());
-        eos.inv_molecular_weight(gpv.invmw.data());
+        eos.molecular_weight(gpv.mw.data());
         for (int n = 0; n < NUM_SPECIES; ++n) {
-          gpv.mw_fluid[n] *= SPU.mass_conv;
-          gpv.invmw[n] /= SPU.mass_conv;
+          gpv.mw[n] *= SPU.mass_conv;
         }
         GpuArray<IntVect, AMREX_D_PICK(2, 4, 8)>
           indx_array; // array of adjacent cells
