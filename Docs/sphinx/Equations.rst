@@ -22,16 +22,15 @@ Firstly, spray modeling in `PeleMP` relies on the following assumptions:
 
 The evaporation models follow the work by Abramzon and Sirignano [#abram]_ and the multicomponent evaporation is based on work by Tonini. [#ton]_ Details regarding the energy balance are provided in Ge et al. [#Ge]_
 
-The subscript notation for this section is: :math:`d` relates to the liquid droplet, :math:`v` relates to the vapor state that is in equilibrium with the liquid and gas phase, :math:`L` relates to the liquid phase, and :math:`g` relates to the gas phase.The subscript :math:`r` relates to the reference state with which to approximate the thermophysical and transport properties.
-This reference state is assumed to be in the evaporating film that surrounds the droplet state is approximated as
+The subscript notation for this section is: :math:`d` relates to the liquid droplet, :math:`v` relates to the vapor state that is in equilibrium with the liquid and gas phase, :math:`L` relates to the liquid phase, and :math:`g` relates to the gas phase. The subscript :math:`r` relates to the reference state with which to approximate the thermophysical and transport properties. This reference state is assumed to be in the evaporating film that surrounds the droplet state and is approximated as
 
 .. math::
-   T_r = T_d + A (T_g - T_d)
+   T_r &= T_d + A (T_g - T_d)
 
-   Y_{r,n} = Y_{v,n} + A (Y_{g,n} - Y_{v,n})
+   Y_{r,n} &= Y_{v,n} + A (Y_{g,n} - Y_{v,n})
 
 where :math:`A = 1/3` according the the one-third rule.
-Additional nomenclature: :math:`M_n` is the molar mass of species :math:`n`, :math:`\overline{M}` is the average molar mass of a mixture, :math:`\mathcal{R}` is the universal gas constant, :math:`N_L` is the number of liquid species, and :math:`N_s` is the number of gas phase species. :math:`Y_n` and :math:`\xi_n` are the mass and molar fractions of species :math:`n`, respectively.
+Additional nomenclature: :math:`M_n` is the molar mass of species :math:`n`, :math:`\overline{M}` is the average molar mass of a mixture, :math:`\mathcal{R}` is the universal gas constant, :math:`N_L` is the number of liquid species, and :math:`N_s` is the number of gas phase species. :math:`Y_n` and :math:`\chi_n` are the mass and molar fractions of species :math:`n`, respectively.
 The user is required to provide a reference temperature for the liquid properties, :math:`T^*`, the critical temperature for each liquid species, :math:`T_{c,n}`, the boiling temperature for each liquid species at atmospheric pressure, :math:`T^*_{b,n}`, the latent heat and liquid specific heat at the reference temperature, :math:`h_{L,n}(T^*)` and :math:`c_{p,L,n}(T^*)`, respectively.
 Note: this reference temperature is a constant value for all species and is not related to the reference state denoted by the subscript :math:`r`.
 
@@ -97,17 +96,17 @@ The procedure is as follows for updating the spray droplet:
 #. Estimate the mass fractions in the vapor state using Raoult's law
 
    .. math::
-      Y_{v,n} &= \frac{\xi_{v,n} M_n}{\overline{M}_v + \overline{M}_g (1 - \xi_{v,\sum})} \forall n \in N_L
+      Y_{v,n} &= \frac{\chi_{v,n} M_n}{\overline{M}_v + \overline{M}_g (1 - \chi_{v,{\rm{sum}}})} \; \forall n \in N_L
 
-      \xi_{v,\sum} = \sum^{N_L}_{n=0} \xi_{v,n}
+      \chi_{v,{\rm{sum}}} &= \sum^{N_L}_{n=0} \chi_{v,n}
 
-      \xi_{v,n} &= \frac{\xi_{d,n} p_{{\rm{sat}},n}}{p_g}
+      \chi_{v,n} &= \frac{\chi_{d,n} p_{{\rm{sat}},n}}{p_g}
 
-      \xi_{d,n} &= \frac{Y_{d,n}}{M_n}\left(\sum^{N_L}_{k=0} \frac{Y_{d,k}}{M_k}\right)^{-1}
+      \chi_{d,n} &= \frac{Y_{d,n}}{M_n}\left(\sum^{N_L}_{k=0} \frac{Y_{d,k}}{M_k}\right)^{-1}
 
-      \overline{M}_v &= \sum^{N_L}_{n=0} \xi_{v,n} M_n
+      \overline{M}_v &= \sum^{N_L}_{n=0} \chi_{v,n} M_n
 
-   If :math:`\xi_{g,n} p_g > p_{{\rm{sat}},n}`, then :math:`\xi_{v,n} = Y_{v,n} = 0` only for that particular species in the equations above. The mass fractions in the reference state for the fuel are computed using the one-third rule and the remaining reference mass fractions are normalized gas phase mass fractions to ensure they sum to 1
+   If :math:`\chi_{g,n} p_g > p_{{\rm{sat}},n}`, then :math:`\chi_{v,n} = Y_{v,n} = 0` for that particular species in the equations above, since that means the gas phase is saturated. The mass fractions in the reference state for the fuel are computed using the one-third rule and the remaining reference mass fractions are normalized gas phase mass fractions to ensure they sum to 1
 
    .. math::
       Y_{r,n} = \left\{\begin{array}{c l}
@@ -126,22 +125,27 @@ The procedure is as follows for updating the spray droplet:
 
 #. Transport properties are computed using the reference state: dynamic viscosity, :math:`\mu_r`, thermal conductivity, :math:`\lambda_r`, and mass diffusion coefficient for species :math:`n`, :math:`D_{r,n}`.
 
-#. It is important to note that `PelePhysics` provides mixture averaged mass diffusion coefficient :math:`\rho_r \overline{D}_{r,n}`, which is converted into the binary mass diffusion coefficient using :math:`\rho_r D_{r,n} = \rho_r \overline{D}_{r,n} \overline{M}_r / M_n`. Additionally, the mass diffusion coefficient is normalized by the total fuel vapor molar fraction
+#. It is important to note that `PelePhysics` provides mixture averaged mass diffusion coefficient :math:`\overline{(\rho D)}_{r,n}`, which is converted into the binary mass diffusion coefficient using
 
    .. math::
-      \rho_r D_{r,n}^* = \frac{\xi_{v,n} \rho_r D_{r,n}}{\xi_{v,\sum}} \forall n \in N_L
+      (\rho D)_{r,n} = \overline{(\rho D)}_{r,n} \overline{M}_r / M_n.
+
+   Mass diffusion coefficient is then normalized by the total fuel vapor molar fraction
+
+   .. math::
+      (\rho D)^*_{r,n} = \frac{\chi_{v,n} (\rho D)_{r,n}}{\chi_{v,{\rm{sum}}}} \; \forall n \in N_L
 
    and the total is
 
    .. math::
-      \rho_r D_r = \sum_{n=0}^{N_L} \rho_r D_{r,n}^*
+      (\rho D)_r = \sum_{n=0}^{N_L} (\rho D)_{r,n}^*
 
 #. The momentum source is a function of the drag force
 
    .. math::
       \mathbf{F}_d = \frac{1}{2} \rho_r C_D A_d \left\|\Delta \mathbf{u}\right\| \Delta \mathbf{u}
 
-   where :math:`\Delta \mathbf{u} = \mathbf{u}_g - \mathbf{u}_d`, :math:`A_d = \pi/4 d_d^2` is the frontal area of the droplet, and :math:`C_D` is the drag coefficient for a sphere, which is estimated using the standard drag curve for an immersed sphere
+   where :math:`\Delta \mathbf{u} = \mathbf{u}_g - \mathbf{u}_d`, :math:`A_d = \pi d_d^2/4` is the frontal area of the droplet, and :math:`C_D` is the drag coefficient for a sphere, which is estimated using the standard drag curve for an immersed sphere
 
    .. math::
       C_D = \frac{24}{{\rm{Re}}_d}\left\{\begin{array}{c l}
@@ -164,7 +168,7 @@ The procedure is as follows for updating the spray droplet:
 
       {\rm{Pr}}_r &= \frac{\mu_r c_{p,r}}{\lambda_r}
 
-      {\rm{Sc}}_r &= \frac{\mu_r}{\rho_r D_r}
+      {\rm{Sc}}_r &= \frac{\mu_r}{(\rho D)_r}
 
       {\rm{Sh}}_0 &= 1 + (1 + {\rm{Re}}_d {\rm{Sc}}_r)^{1/3} F_2
 
@@ -184,12 +188,12 @@ The procedure is as follows for updating the spray droplet:
      where
 
      .. math::
-        \phi = \frac{c_{p,r} \rho_r D_r {\rm{Sh}}^*}{\lambda_r {\rm{Nu}}^*}
+        \phi = \frac{c_{p,r} (\rho D)_r {\rm{Sh}}^*}{\lambda_r {\rm{Nu}}^*}
 
      Note the dependence of :math:`{\rm{Nu}}^*` on :math:`B_T` means an iterative scheme is required to solve for both. The droplet vaporization rate and heat transfer become
 
      .. math::
-        \dot{m}_n &= -\pi \rho_r D_{r,n}^* d_d {\rm{Sh}}^* \log(1 + B_M). \; \forall n \in N_L
+        \dot{m}_n &= -\pi (\rho D)_{r,n}^* d_d {\rm{Sh}}^* \log(1 + B_M). \; \forall n \in N_L
 
         \mathcal{Q}_d &= \pi \lambda_r d_d (T_g - T_d) {\rm{Nu}}^* \frac{\log(1 + B_T)}{B_T}
 
@@ -220,8 +224,37 @@ The procedure is as follows for updating the spray droplet:
 
     :math:`N_{d}` is the number of droplets per computational parcel, and :math:`V_{\rm{cell}}` is the volume for the cell of interest. Note that the cell volume can vary depending on AMR level and if an EB is present.
 
-.. [#abram] "Droplet vaporization model for spray combustion calculations", B. Abramzon and W. A. Sirignano, Int. J. Heat Mass Transfer, Vol. 32, No. 9, pp. 1605-1618 (1989)
+Soot Equations
+--------------
+In `PeleMP`, soot formation, growth, and oxidation is modeled using the hybrid-method of moments (HMOM) model developed by Mueller et al. [#mueller]_. This approach combines the numerical ease of the method of moments with interpolative closure (MOMIC) with the ability to capture the bimodal nature of the soot number density function (NDF) provided by the direct quadrature method of moments (DQMOM). :math:`M_{x,y}` is the moment of the soot NDF, where :math:`x` is the order for volume and :math:`y` for surface area; these terms are modeled according to
+
+.. math::
+   M_{x,y} = N_0 V_0^x S_0^y + \exp{\left(\sum_{r=0}^R \sum_{k = 0}^r a_{r,k} x^k y^{r-k}\right)},
+
+where :math:`R` is the order of the polynomial interpolation, :math:`a_{r,k}` are the interpolation coefficients, :math:`N_0` is the weight of the delta function, and :math:`V_0` and :math:`S_0` are the volume and surface area of the nucleated spherical soot particles, respectively. The location of the delta function is fixed at coordinates :math:`V_0` and :math:`S_0` and assumed to be equal to the nucleated particle size.
+The nucleated particle volume and surface area are fixed according to :math:`V_0 = 2 W_C C_{\rm{dimer}} / \rho_{\rm{soot}}` and :math:`S_0 = (36 \pi)^{1/3} V_0^{2/3}`, where :math:`W_C` is the molar mass of carbon, :math:`C_{\rm{dimer}}` is the average number of carbon atoms per dimer, and :math:`\rho_{\rm{soot}}` is the density of soot (:math:`\rho_{\rm{soot}} = 1800 {\text{ kg/m}}^3`). If the first-order polynomial interpolation of the moments (:math:`R=1`) is used, the above equation reduces to
+
+.. math::
+   M_{x,y} = N_0 V_0^x S_0^y + N_L V_L^x S_L^y,
+
+where :math:`V_L` and :math:`S_L` are the mean volume and surface area of the second mode (large particles). For first-order polynomial interpolation, four transport equations are solved: :math:`M_{0,0}` (number density), :math:`M_{1,0}` (volume fraction, also denoted as :math:`f_v`), :math:`M_{0,1}`, and :math:`N_0`.
+The governing equations for the soot moments are [#bisetti]_
+
+.. math::
+   \frac{\partial M_{x,y}}{\partial t} + \frac{\partial M_{x,y} \mathbf{u}_g}{\partial \mathbf{X}} = -\frac{\partial \boldsymbol{J}_{M}}{\partial \mathbf{X}} + \dot{M}_{x,y},
+
+where :math:`\boldsymbol{J}_{M}` is the soot mass flux and :math:`\dot{M}_{x,y}` is the soot source term.
+The current formulation ignores the molecular diffusion and thermophoretic effects of the soot, making the first term of the right-hand side zero.
+
+For more details regarding the HMOM model, users are encouraged to consult the references cited.
+
+.. [#abram] "Droplet vaporization model for spray combustion calculations", B. Abramzon and W. A. Sirignano, Int. J. Heat Mass Transf., Vol. 32, No. 9, pp. 1605-1618 (1989)
 
 .. [#ton] "Fuel spray modeling in direct-injection diesel and gasoline engines", S. Tonini, Dissertation, City University London (2006)
 
-.. [#Ge] "Development of a CPU/GPU portable software library for Lagrangian-Eulerian simulations of liquid sprays", W. Ge and R. Sankaran and J. H. Chen, Int. J. Multiph. Flow, Vol. 128, Issn 0301-9322, 103293 (2020)
+.. [#Ge] "Development of a CPU/GPU portable software library for Lagrangian-Eulerian simulations of liquid sprays", W. Ge and R. Sankaran and J. H. Chen, Int. J. Multiph. Flow, Vol. 128 (2020)
+
+.. [#mueller] "Hybrid Method of Moments for modeling soot formation and growth", M. E. Mueller and G. Blanquart and H. Pitsch, Comb. Flame, Vol. 156, No. 6, pp. 1143-1155 (2009)
+
+.. [#bisetti] "On the formation and early evolution of soot in turbulent nonpremixed flames", F. Bisetti and G. Blanquart and M. E. Mueller and H. Pitsch, Comb. Flame, Vol. 159, No. 1, pp. 317-335 (2012)
+
