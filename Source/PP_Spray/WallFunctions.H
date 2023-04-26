@@ -203,7 +203,7 @@ impose_wall(
   const amrex::IntVect& ijkc_prev,
   splash_breakup* N_SB,
   const SBPtrs& rf,
-  const amrex::Real rem_dt)
+  const amrex::Real film_h)
 {
   amrex::Real par_dot = 2.;
   amrex::RealVect normal;
@@ -256,7 +256,7 @@ impose_wall(
         if (isActive) {
           droplet_splashing(
             p, pid, dx, plo, fdat, p_fluid, normpos, vel_part, par_dot, normal,
-            cBoilT, N_SB, rf, true, rem_dt);
+            cBoilT, N_SB, rf, film_h;
         } else {
           // Otherwise, just reflect particle
           normpos = refl_pos;

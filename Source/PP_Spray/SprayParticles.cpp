@@ -420,8 +420,6 @@ SprayParticleContainer::updateParticles(
           Real new_time = static_cast<Real>(cur_iter + 1) * sub_dt;
           // Modify particle position by whole time step
           if (do_move && !fdat->fixed_parts && p.id() > 0 && !is_film) {
-            // Remaining time in current timestep
-            Real rem_dt = flow_dt - new_time;
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
               const Real cvel = p.rdata(SprayComps::pstateVel + dir);
               p.pos(dir) += sub_dt * cvel;
@@ -434,6 +432,8 @@ SprayParticleContainer::updateParticles(
               if (left_dom) {
                 p.id() = -1;
               } else {
+                // TODO: Add methods for determining this
+                Real film_h = 0.;
                 // Next reflect particles off BC or EB walls if necessary
                 impose_wall(
                   isActive, pid, p, *fdat, dx, plo, phi, bndry_lo, bndry_hi,
@@ -442,7 +442,7 @@ SprayParticleContainer::updateParticles(
                   flags_array, bcent_fab, bnorm_fab, volfrac_fab,
                   fdat->min_eb_vfrac,
 #endif
-                  ijkc, N_SB, rf_d, rem_dt);
+                  ijkc, N_SB, rf_d, film_h);
               }
             } // if (at_bounds || fe_interp)
             // Update indices

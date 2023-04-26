@@ -164,7 +164,7 @@ calculateFilmSource(
       const int fdspec = fdat.dep_indx[spf];
       // Convert mass diffusion coefficient from mixture average
       // to binary for fuel only, not concerned with other species
-      Ddiag[fspec] *= mw_skin * gpv.invmw[fspec] * SPU.rhod_conv;
+      Ddiag[fspec] *= mw_skin / gpv.mw[fspec] * SPU.rhod_conv;
       if (X_vapor[spf] > 0.) {
         // Normalize mass diffusivity by fuel vapor molar fraction
         amrex::Real cur_rhoD = X_vapor[spf] * Ddiag[fspec] / sumXVap;
