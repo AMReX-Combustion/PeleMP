@@ -6,52 +6,6 @@
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
-bool
-interpolateFilm(
-  const amrex::IntVect& ijkc,
-  const amrex::IntVect& bflags,
-  amrex::RealVect& film_normal,
-#ifdef AMREX_USE_EB
-  bool eb_in_box,
-  amrex::Array4<const amrex::EBCellFlag> const& flags,
-  amrex::Array4<const amrex::Real> const& bnorm,
-#endif
-  amrex::IntVect* indx_array,
-  amrex::Real* weights)
-{
-  bool do_fe_interp = false;
-#ifdef AMREX_USE_EB
-  if (eb_in_box) {
-    if (flags(ijkc).isSingleValued()) {
-      do_fe_interp = true;
-      film_normal = {AMREX_D_DECL(bnorm(ijkc, 0), bnorm(ijkc, 1), bnorm(ijkc, 2))};
-    }
-  } else
-#endif
-  {
-    amrex::Real magsum = 0.;
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      if (bflags[dir] < 0) {
-        film_normal[dir] = 1.;
-        magsum += 1.;
-      } else if (bflags[dir] > 0) {
-        film_normal[dir] = -1.;
-        magsum += 1.;
-      }
-    }
-    film_normal /= std::sqrt(magsum);
-  }
-  // TODO: Consider providing more indices in case in a small vol cell
-  for (int aindx = 0; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
-    indx_array[aindx] = ijkc;
-    weights[aindx] = 0.;
-  }
-  weights[0] = 1.;
-  return do_fe_interp;
-}
-
-AMREX_GPU_DEVICE
-AMREX_FORCE_INLINE
 void
 calculateFilmSource(
   const amrex::Real flow_dt,

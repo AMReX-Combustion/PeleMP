@@ -316,23 +316,15 @@ SprayParticleContainer::updateParticles(
           }
           // Flag for whether we are near EB boundaries
           bool do_fe_interp = false;
-          if (is_film) {
-            do_fe_interp = interpolateFilm(
-              ijkc, bflags, film_normal,
 #ifdef AMREX_USE_EB
-              eb_in_box, flags_array, bnorm_fab,
-#endif
-              indx_array.data(), weights.data());
-          }
-#ifdef AMREX_USE_EB
-          else if (eb_in_box) {
+          if (eb_in_box) {
             do_fe_interp = eb_interp(
               p, isVirt, ijkc, ijk, dx, dxi, lx, plo, bflags, flags_array,
               ccent_fab, bcent_fab, bnorm_fab, volfrac_fab, fdat->min_eb_vfrac,
               indx_array.data(), weights.data());
-          }
+          } else
 #endif
-          else {
+          {
             trilinear_interp(
               ijk, lx, indx_array.data(), weights.data(), bflags);
           }
@@ -373,26 +365,7 @@ SprayParticleContainer::updateParticles(
           }
 #ifdef AMREX_USE_EB
           if (flags_array(cur_indx).isSingleValued()) {
-            if (volfrac_fab(cur_indx) < fdat->min_eb_vfrac) {
-              Real min_dis = 1.E12;
-              for (int aindx = 0; aindx < AMREX_D_PICK(2, 4, 8); ++aindx) {
-                IntVect cindx = indx_array[aindx];
-                if (volfrac_fab(cindx) > fdat->min_eb_vfrac) {
-                  Real dis = 0.;
-                  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                    dis += std::pow(
-                      p.pos(dir) - plo[dir] -
-                        static_cast<Real>(cindx[dir]) * dx[dir],
-                      2);
-                  }
-                  if (dis < min_dis) {
-                    min_dis = dis;
-                    cur_indx = cindx;
-                  }
-                }
-              }
-            }
-            cvol /= volfrac_fab(cur_indx);
+            cvol *= 1. / (volfrac_fab(cur_indx));
           }
 #endif
           Real cur_coef = -cvol * sub_dt / flow_dt;
