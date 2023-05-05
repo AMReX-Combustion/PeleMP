@@ -411,8 +411,7 @@ SprayParticleContainer::updateParticles(
                   isActive, pid, p, *fdat, dx, plo, phi, bndry_lo, bndry_hi,
                   bflags, cBoilT.data(), gpv.p_fluid, eb_in_box,
 #ifdef AMREX_USE_EB
-                  flags_array, bcent_fab, bnorm_fab, volfrac_fab,
-                  fdat->min_eb_vfrac,
+                  flags_array, bcent_fab, bnorm_fab,
 #endif
                   ijkc, N_SB, rf_d, film_h);
               }
