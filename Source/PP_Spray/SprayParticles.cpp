@@ -259,10 +259,25 @@ SprayParticleContainer::updateParticles(
       volfrac_fab = volfrac->array(pti);
     }
 #endif
+    bool do_splash_box = (do_splash && (eb_in_box || at_bounds));
+    FArrayBox wf_fab;
+    Array4<Real> wf_arr;
+    if (do_splash_box) {
+      wf_fab.resize(src_box, 1, The_Async_Arena());
+      wf_fab.setVal<RunOn::Device>(0.);
+      wf_arr = wf_fab.array();
+      // TODO: Adjust this for EB faces
+      Real face_area = AMREX_D_TERM(dx[0], *dx[1], *dx[2]);
+      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
+        ParticleType& p = pstruct[pid];
+        if (p.id() > 0 && p.rdata(SprayComps::pstateFilmHght) > 0.) {
+          fillFilmFab(wf_arr, p, face_area, plo, dx);
+        }
+      });
+    }
     // Data structures for creating new particles during splashing/breakup
     Gpu::HostVector<splash_breakup> N_SB_h;
     Gpu::DeviceVector<splash_breakup> N_SB_d;
-    bool do_splash_box = (do_splash && (eb_in_box || at_bounds));
     SBVects refv;
     SBPtrs rf_d;
     if (do_breakup || do_splash_box) {
@@ -404,8 +419,10 @@ SprayParticleContainer::updateParticles(
               if (left_dom) {
                 p.id() = -1;
               } else {
-                // TODO: Add methods for determining this
                 Real film_h = 0.;
+                if (do_splash_box) {
+                  film_h = wf_arr(ijkc, 0);
+                }
                 // Next reflect particles off BC or EB walls if necessary
                 impose_wall(
                   isActive, pid, p, *fdat, dx, plo, phi, bndry_lo, bndry_hi,
