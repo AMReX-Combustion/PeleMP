@@ -233,6 +233,9 @@ SprayParticleContainer::updateParticles(
       const Box state_box = pti.growntilebox(state_ghosts);
       bool at_bounds = tile_at_bndry(tile_box, bndry_lo, bndry_hi, domain);
       const Long Np = pti.numParticles();
+      if (Np == 0) {
+        continue;
+      }
       AoS& pbox = pti.GetArrayOfStructs();
       ParticleType* pstruct = pbox().data();
       const SprayData* fdat = d_sprayData;

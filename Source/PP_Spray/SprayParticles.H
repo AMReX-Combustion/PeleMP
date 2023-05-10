@@ -299,12 +299,17 @@ public:
       amrex::MultiFab::Add(
         actSource, tmpSource, 0, 0, actSource.nComp(), nghost); // NOLINT
     } else {
-      for (amrex::MFIter mfi(actSource, amrex::TilingIfNotGPU()); mfi.isValid();
-           ++mfi) {
-        const amrex::Box vbox = mfi.growntilebox(nghost);
-        auto const& tmp_array = tmpSource.array(mfi);
-        auto const& act_array = actSource.array(mfi);
-        addSpraySrc(vbox, tmp_array, act_array);
+#ifdef AMREX_USE_OMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+      {
+        for (amrex::MFIter mfi(actSource, amrex::TilingIfNotGPU());
+             mfi.isValid(); ++mfi) {
+          const amrex::Box vbox = mfi.growntilebox(nghost);
+          auto const& tmp_array = tmpSource.array(mfi);
+          auto const& act_array = actSource.array(mfi);
+          addSpraySrc(vbox, tmp_array, act_array);
+        }
       }
     }
     tmpSource.setVal(0.);
