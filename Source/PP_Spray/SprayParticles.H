@@ -92,7 +92,7 @@ public:
     const amrex::Real T_part,
     const amrex::Real* Y_part,
     const int level,
-    const int num_redist,
+    const int num_redist = 1,
     const amrex::Real num_ppp = 1.);
 
   /// \brief Setup spray parameters
