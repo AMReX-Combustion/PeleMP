@@ -56,7 +56,10 @@ SprayParticleContainer::sprayInjection(
     spray_jet->m_sumInjTime = dt;
     return;
   }
-
+#ifdef SPRAY_NFLDM
+  Normal normDist;
+  normDist.init(0., 1.);
+#endif
   amrex::ParticleLocData pld;
   std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
     host_particles;
@@ -92,6 +95,11 @@ SprayParticleContainer::sprayInjection(
       T_part, Y_part);
     if (make_new_part && dia_part > min_dia) {
       amrex::RealVect part_loc, part_vel;
+#ifdef SPRAY_NFLDM
+    // Remove spread and swirl
+    theta_spread = 0.;
+    phi_swirl = 0.;
+#endif
       spray_jet->transform_loc_vel(
         theta_spread, phi_radial, cur_rad, umag, phi_swirl, part_vel, part_loc);
       ParticleType p;
@@ -114,6 +122,13 @@ SprayParticleContainer::sprayInjection(
         rho_part = fdat->rhoL(T_part, 0);
         p.rdata(SprayComps::pstateY) = 1.;
       }
+#ifdef SPRAY_NFLDM
+      p.rdata(SprayComps::pstateVAxial) = spray_jet->jet_vel();
+      p.rdata(SprayComps::pstateVpRadial) = 0.;
+      p.rdata(SprayComps::pstateUpRadial) = 0.;
+      p.rdata(SprayComps::pstateUURadial) = 0.;
+      p.rdata(SprayComps::pstateNran) = normDist.get_dia();
+#endif
       // Add particles as if they have advanced some random portion of
       // dt
       amrex::Real pmov = amrex::Random();

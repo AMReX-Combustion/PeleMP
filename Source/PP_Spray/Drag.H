@@ -1,6 +1,10 @@
 #ifndef DRAG_H
 #define DRAG_H
 
+#ifdef SPRAY_NFLDM
+#include "NFLDMUpdate.H"
+#endif
+
 // Compute the heat transfer coefficient using the
 // corrected Nusselt number and B_T value
 AMREX_GPU_DEVICE
@@ -143,6 +147,10 @@ calculateSpraySource(
   GasPhaseVals& gpv,
   const SprayData& fdat,
   SprayParticleContainer::ParticleType& p,
+#ifdef SPRAY_NFLDM
+  const amrex::Real dia_jet,
+  const amrex::Real U_jet,
+#endif
   pele::physics::transport::TransParm<
     pele::physics::EosType,
     pele::physics::TransportType> const* trans_parm)

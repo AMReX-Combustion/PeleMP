@@ -108,6 +108,14 @@ public:
         amrex::Abort("Jet center outside of problem domain");
       }
     }
+#ifdef SPRAY_NFLDM
+  if (m_cent != amrex::RealVect::TheZeroVector()) {
+    amrex::Abort("Jet must be centered at (0, 0, 0) if NFLDM is turned on");
+  }
+  if (m_norm[2] != 1.) {
+    amrex::Abort("Jet must be normal in z-direction if NFLDM is turned on");
+  }
+#endif
   }
 
   void set_mass_frac(const amrex::Real* Y_jet)

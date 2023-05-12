@@ -203,6 +203,10 @@ SprayParticleContainer::updateParticles(
   }
   // Particle components indices
   SprayComps SPI = m_sprayIndx;
+#ifdef SPRAY_NFLDM
+  const Real dia_jet = m_sprayJets[0]->jet_dia();
+  const Real U_jet = m_sprayJets[0]->jet_vel();
+#endif
   // Start the ParIter, which loops over separate sets of particles in different
   // boxes
 #ifdef AMREX_USE_OMP
@@ -305,7 +309,11 @@ SprayParticleContainer::updateParticles(
               indx_array.data(), weights.data());
             // Solve for avg mw and pressure at droplet location
             gpv.define();
-            calculateSpraySource(sub_dt, gpv, *fdat, p, ltransparm);
+            calculateSpraySource(sub_dt, gpv, *fdat,
+#ifdef SPRAY_NFLDM
+                                 dia_jet, U_jet,
+#endif
+                                 p, ltransparm);
             IntVect cur_indx = ijkc;
             Real cvol = inv_vol;
 #ifdef AMREX_USE_EB
