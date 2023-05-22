@@ -1,5 +1,6 @@
 #ifndef SPRAYINJECTTEMPLATE_H
 #define SPRAYINJECTTEMPLATE_H
+#include "Distributions.H"
 #include "SprayParticles.H"
 
 /*

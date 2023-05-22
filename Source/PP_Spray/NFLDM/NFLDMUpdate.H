@@ -37,8 +37,8 @@ updateNFLDM(
     std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
   amrex::Real rhoAC = SelfSimRho(dt);
   // Azimuthal angle relative to the jet center
-  amrex::Real theta_azi = std::atan2(pos[1], pos[0]);
-  const amrex::Real Nran = p.rdata(SprayComps::PstateNran);
+  amrex::Real theta = std::atan2(pos[1], pos[0]);
+  const amrex::Real Nran = p.rdata(SprayComps::pstateNran);
   amrex::Real tau_p = rho_part * dia_part * dia_part / (18. * mu_fluid);
   // Covariance of UpRadial
   amrex::Real UURadial = p.rdata(SprayComps::pstateUURadial);

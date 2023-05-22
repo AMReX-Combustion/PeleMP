@@ -373,7 +373,7 @@ calculateSpraySource(
     if (isub == 1) {
       dt = flow_dt / static_cast<amrex::Real>(nsub);
 #ifdef SPRAY_NFLDM
-      if (dt > 8.E-7) {
+      if (dt > 8.E-7 && do_nfldm) {
         nsub = static_cast<int>(std::ceil(flow_dt / 8.E-7));
         dt = flow_dt / static_cast<amrex::Real>(nsub);
       }
@@ -382,7 +382,7 @@ calculateSpraySource(
     const amrex::Real part_dt = fdat.dtmod * dt;
     if (!fdat.fixed_parts) {
 #ifdef SPRAY_NFLDM
-      if (do_nfdlm) {
+      if (do_nfldm) {
         updateNFLDM(p, dia_part, U_jet, dia_jet, part_dt, rho_part, mu_skin, pmass, part_pos, vel_part, gpv.fluid_mom_src);
       } else
 #endif
