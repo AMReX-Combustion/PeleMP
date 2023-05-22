@@ -280,7 +280,11 @@ calculateSpraySource(
     amrex::Real drag_force_p =
       0.75 * rho_skin * drag_coef * diff_vel_mag / (dia_part * rho_part);
     part_vel_src = drag_force_p * diff_vel + fdat.body_force;
-    if (fdat.mom_trans) {
+    bool do_nfldm = false;
+#ifdef SPRAY_NFLDM
+    do_nfldm = updateNFLDM(p, U_jet, dia_jet, dt, rho_part, mu_skin, pmass, vel_part, part_vel_src, gpv.fluid_mom_src);
+#endif
+    if (fdat.mom_trans && do_nfldm) {
       gpv.fluid_mom_src += drag_force * diff_vel;
 #ifndef PELELM_USE_SPRAY
       // s_d,mu dot u_d

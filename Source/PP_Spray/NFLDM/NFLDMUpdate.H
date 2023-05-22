@@ -12,7 +12,11 @@ updateNFLDM(
   const amrex::Real dia_jet,
   const amrex::Real dt,
   const amrex::Real rho_part,
-  const amrex::Real mu_fluid)
+  const amrex::Real mu_fluid,
+  const amrex::Real pmass,
+  const amrex::RealVect& vel_part,
+  amrex::RealVect& part_vel_src,
+  amrex::RealVect& fluid_mom_src)
 {
   amrex::Real radial_loc0 =
     std::sqrt(p.pos(0) * p.pos(0) + p.pos(1) * p.pos(1));
@@ -52,14 +56,9 @@ updateNFLDM(
   amrex::Real Uz = SelfSimUz(z_norm, rh_norm, r_norm, U0, dia_jet);
   p.rdata(SprayComps::pstateVAxial) = VAxial + dt * (Uz - VAxial) / tau_p;
   p.rdata(SprayComps::pstateUURadial) = SelfSimUrpUrp(z_norm, rh_norm, U0);
-  // Update positions in Cartesian coordinates
-  p.pos(0) = radial_loc * std::cos(theta);
-  p.pos(1) = radial_loc * std::sin(theta);
-  p.pos(2) = axial_loc;
-  // Update velocities in Cartesian coordinates
-  p.rdata(SprayComps::pstateVel) = VpRadial * std::cos(theta);
-  p.rdata(SprayComps::pstateVel + 1) = VpRadial * std::sin(theta);
-  p.rdata(SprayComps::pstateVel + 2) = p.rdata(SprayComps::pstateVAxial);
+  amrex::RealVect new_vel = {VpRadial * std::cos(theta), VpRadial * std::sin(theta), p.rdata(SprayComps::pstateVAxial)};
+  part_vel_src = (new_vel - vel_part) / dt;
+  fluid_mom_src += pmass * part_vel_src;
   return true;
 }
 
