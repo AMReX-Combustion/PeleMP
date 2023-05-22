@@ -6,28 +6,39 @@
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 bool
+useNFLDM(const amrex::RealVect pos,
+         const amrex::Real dia_jet)
+{
+  amrex::Real radial_loc0 =
+    std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+  if (pos[2] / dia_jet > 60. || radial_loc0 / dia_jet > 3.8) {
+    return false;
+  }
+  return true;
+}
+
+AMREX_GPU_DEVICE
+AMREX_FORCE_INLINE
+void
 updateNFLDM(
   SprayParticleContainer::ParticleType& p,
+  const amrex::Real dia_part,
   const amrex::Real U_jet,
   const amrex::Real dia_jet,
   const amrex::Real dt,
   const amrex::Real rho_part,
   const amrex::Real mu_fluid,
   const amrex::Real pmass,
-  const amrex::RealVect& vel_part,
-  amrex::RealVect& part_vel_src,
+  amrex::RealVect& pos,
+  amrex::RealVect& vel_part,
   amrex::RealVect& fluid_mom_src)
 {
   amrex::Real radial_loc0 =
-    std::sqrt(p.pos(0) * p.pos(0) + p.pos(1) * p.pos(1));
-  if (p.pos(2) / dia_jet > 60. || radial_loc0 / dia_jet > 3.8) {
-    return false;
-  }
+    std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
   amrex::Real rhoAC = SelfSimRho(dt);
-  amrex::Real dia_part = p.rdata(SprayComps::pstateDia);
   // Azimuthal angle relative to the jet center
-  amrex::Real theta_azi = std::atan2(p.pos(1), p.pos(0));
-  amrex::Real Nran = p.rdata(SprayComps::PstateNran);
+  amrex::Real theta_azi = std::atan2(pos[1], pos[0]);
+  const amrex::Real Nran = p.rdata(SprayComps::PstateNran);
   amrex::Real tau_p = rho_part * dia_part * dia_part / (18. * mu_fluid);
   // Covariance of UpRadial
   amrex::Real UURadial = p.rdata(SprayComps::pstateUURadial);
@@ -47,7 +58,7 @@ updateNFLDM(
 
   // Update radial and axial locations, not sure why some things are done out of
   // order
-  amrex::Real axial_loc = p.pos(2) + dt * VAxial;
+  amrex::Real axial_loc = pos[2] + dt * VAxial;
   amrex::Real radial_loc = radial_loc0 + dt * VpRadial;
   amrex::Real z_norm = axial_loc / dia_jet;
   amrex::Real r_norm = radial_loc / dia_jet;
@@ -57,9 +68,11 @@ updateNFLDM(
   p.rdata(SprayComps::pstateVAxial) = VAxial + dt * (Uz - VAxial) / tau_p;
   p.rdata(SprayComps::pstateUURadial) = SelfSimUrpUrp(z_norm, rh_norm, U0);
   amrex::RealVect new_vel = {VpRadial * std::cos(theta), VpRadial * std::sin(theta), p.rdata(SprayComps::pstateVAxial)};
-  part_vel_src = (new_vel - vel_part) / dt;
-  fluid_mom_src += pmass * part_vel_src;
-  return true;
+  fluid_mom_src += pmass * (new_vel - vel_part) / dt;
+  vel_part = new_vel;
+  pos[0] = radial_loc * std::cos(theta);
+  pos[1] = radial_loc * std::sin(theta);
+  pos[2] = axial_loc;
 }
 
 #endif

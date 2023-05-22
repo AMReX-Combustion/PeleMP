@@ -197,6 +197,9 @@ calculateSpraySource(
     rho_part += Y_part[spf] / fdat.rhoL(amrex::min(T_part, cBoilT[spf]), spf);
   }
   rho_part = 1. / rho_part;
+#ifdef SPRAY_NFLDM
+  amrex::RealVect part_pos = p.pos();
+#endif
   amrex::Real dt = flow_dt;
   int isub = 1;
   int nsub = 1;
@@ -282,9 +285,9 @@ calculateSpraySource(
     part_vel_src = drag_force_p * diff_vel + fdat.body_force;
     bool do_nfldm = false;
 #ifdef SPRAY_NFLDM
-    do_nfldm = updateNFLDM(p, U_jet, dia_jet, dt, rho_part, mu_skin, pmass, vel_part, part_vel_src, gpv.fluid_mom_src);
+    do_nfldm = useNFLDM(part_pos, dia_jet);
 #endif
-    if (fdat.mom_trans && do_nfldm) {
+    if (fdat.mom_trans && !do_nfldm) {
       gpv.fluid_mom_src += drag_force * diff_vel;
 #ifndef PELELM_USE_SPRAY
       // s_d,mu dot u_d
@@ -369,13 +372,26 @@ calculateSpraySource(
     }
     if (isub == 1) {
       dt = flow_dt / static_cast<amrex::Real>(nsub);
+#ifdef SPRAY_NFLDM
+      if (dt > 8.E-7) {
+        nsub = static_cast<int>(std::ceil(flow_dt / 8.E-7));
+        dt = flow_dt / static_cast<amrex::Real>(nsub);
+      }
+#endif
     }
     const amrex::Real part_dt = fdat.dtmod * dt;
     if (!fdat.fixed_parts) {
-      // Update particle velocity
-      AMREX_D_TERM(vel_part[0] += part_dt * part_vel_src[0];
-                   , vel_part[1] += part_dt * part_vel_src[1];
-                   , vel_part[2] += part_dt * part_vel_src[2];);
+#ifdef SPRAY_NFLDM
+      if (do_nfdlm) {
+        updateNFLDM(p, dia_part, U_jet, dia_jet, part_dt, rho_part, mu_skin, pmass, part_pos, vel_part, gpv.fluid_mom_src);
+      } else
+#endif
+        {
+          // Update particle velocity
+          AMREX_D_TERM(vel_part[0] += part_dt * part_vel_src[0];
+                       , vel_part[1] += part_dt * part_vel_src[1];
+                       , vel_part[2] += part_dt * part_vel_src[2];);
+        }
     }
     if (fdat.mass_trans) {
       T_part += part_dt * part_temp_src;
