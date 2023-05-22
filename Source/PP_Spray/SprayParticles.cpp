@@ -309,7 +309,7 @@ SprayParticleContainer::updateParticles(
               indx_array.data(), weights.data());
             // Solve for avg mw and pressure at droplet location
             gpv.define();
-            calculateSpraySource(sub_dt, gpv, *fdat, p
+            calculateSpraySource(sub_dt, gpv, *fdat, p,
 #ifdef SPRAY_NFLDM
                                  dia_jet, U_jet,
 #endif
