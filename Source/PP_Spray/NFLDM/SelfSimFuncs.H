@@ -96,11 +96,12 @@ SelfSimUrpUrp(
         (-6.764E-3 +
          rh_norm *
            (0.038 +
-            rh_norm * (-0.04557 +
-                       rh_norm * (0.02381 +
-                                  rh_norm * (-6.358E-3 +
-                                             rh_norm * (8.549 - 6.606E-5 *
-                                                                  rh_norm))))));
+            rh_norm *
+              (-0.04557 +
+               rh_norm *
+                 (0.02381 +
+                  rh_norm *
+                    (-6.358E-3 + rh_norm * (8.549E-4 - 6.606E-5 * rh_norm))))));
     vvNorm = amrex::max(0., vvNorm);
     if (rh_norm > 1.) {
       return vvNorm * U0 * U0;
