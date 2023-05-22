@@ -309,11 +309,11 @@ SprayParticleContainer::updateParticles(
               indx_array.data(), weights.data());
             // Solve for avg mw and pressure at droplet location
             gpv.define();
-            calculateSpraySource(sub_dt, gpv, *fdat,
+            calculateSpraySource(sub_dt, gpv, *fdat, p
 #ifdef SPRAY_NFLDM
                                  dia_jet, U_jet,
 #endif
-                                 p, ltransparm);
+                                 ltransparm);
             IntVect cur_indx = ijkc;
             Real cvol = inv_vol;
 #ifdef AMREX_USE_EB
