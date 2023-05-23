@@ -61,7 +61,7 @@ updateNFLDM(
   amrex::Real r_norm = radial_loc / dia_jet;
   amrex::Real rh_norm = SelfSimNormRadius(z_norm, r_norm);
   amrex::Real U0 = SelfSimU0(z_norm, U_jet);
-  amrex::Real Uz = SelfSimUz(z_norm, rh_norm, r_norm, U0, dia_jet);
+  amrex::Real Uz = SelfSimUz(z_norm, rh_norm, r_norm, U0);
   p.rdata(SprayComps::pstateVAxial) = VAxial + dt * (Uz - VAxial) / tau_p;
   p.rdata(SprayComps::pstateUURadial) = SelfSimUrpUrp(z_norm, rh_norm, U0);
   amrex::RealVect new_vel = {

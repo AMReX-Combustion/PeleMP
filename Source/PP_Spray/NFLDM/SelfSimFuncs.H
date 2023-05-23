@@ -57,8 +57,7 @@ SelfSimUz(
   const amrex::Real z_norm,
   const amrex::Real rh_norm,
   const amrex::Real r_norm,
-  const amrex::Real U0,
-  const amrex::Real dia_jet)
+  const amrex::Real U0)
 {
   if (rh_norm < 3.4) {
     // Flat hat weighting
@@ -118,7 +117,7 @@ SelfSimUrpUrp(
       vvNormFit0 = amrex::max(0., vvNormFit0);
       amrex::Real rh_norm2 = std::pow(rh_norm, 2);
       vvNorm = (1. - rh_norm2) * vvNormFit0 + vvNorm * rh_norm2;
-      return U0 * U0 * vvNorm;
+      return vvNorm * U0 * U0;
     }
   } else {
     return 0.;
