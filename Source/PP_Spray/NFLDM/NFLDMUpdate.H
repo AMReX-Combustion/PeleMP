@@ -6,11 +6,9 @@
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 bool
-useNFLDM(const amrex::RealVect pos,
-         const amrex::Real dia_jet)
+useNFLDM(const amrex::RealVect pos, const amrex::Real dia_jet)
 {
-  amrex::Real radial_loc0 =
-    std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+  amrex::Real radial_loc0 = std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
   if (pos[2] / dia_jet > 60. || radial_loc0 / dia_jet > 3.8) {
     return false;
   }
@@ -33,8 +31,7 @@ updateNFLDM(
   amrex::RealVect& vel_part,
   amrex::RealVect& fluid_mom_src)
 {
-  amrex::Real radial_loc0 =
-    std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
+  amrex::Real radial_loc0 = std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
   amrex::Real rhoAC = SelfSimRho(dt);
   // Azimuthal angle relative to the jet center
   amrex::Real theta = std::atan2(pos[1], pos[0]);
@@ -62,12 +59,14 @@ updateNFLDM(
   amrex::Real radial_loc = radial_loc0 + dt * VpRadial;
   amrex::Real z_norm = axial_loc / dia_jet;
   amrex::Real r_norm = radial_loc / dia_jet;
-  amrex::Real rh_norm = SelfSimNormRadius(z_norm, radial_loc);
+  amrex::Real rh_norm = SelfSimNormRadius(z_norm, r_norm);
   amrex::Real U0 = SelfSimU0(z_norm, U_jet);
   amrex::Real Uz = SelfSimUz(z_norm, rh_norm, r_norm, U0, dia_jet);
   p.rdata(SprayComps::pstateVAxial) = VAxial + dt * (Uz - VAxial) / tau_p;
   p.rdata(SprayComps::pstateUURadial) = SelfSimUrpUrp(z_norm, rh_norm, U0);
-  amrex::RealVect new_vel = {VpRadial * std::cos(theta), VpRadial * std::sin(theta), p.rdata(SprayComps::pstateVAxial)};
+  amrex::RealVect new_vel = {
+    VpRadial * std::cos(theta), VpRadial * std::sin(theta),
+    p.rdata(SprayComps::pstateVAxial)};
   fluid_mom_src += pmass * (new_vel - vel_part) / dt;
   vel_part = new_vel;
   pos[0] = radial_loc * std::cos(theta);

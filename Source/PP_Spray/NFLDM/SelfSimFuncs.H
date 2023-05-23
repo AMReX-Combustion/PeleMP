@@ -23,12 +23,13 @@ SelfSimRho(const amrex::Real dt)
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 amrex::Real
-SelfSimNormRadius(const amrex::Real z_norm, const amrex::Real radial_loc)
+SelfSimNormRadius(const amrex::Real z_norm, const amrex::Real r_norm)
 {
+  // Original fit was for 90 um jet diameter
   if (z_norm <= 10.) {
-    return radial_loc / (1.23E-6 * z_norm + 3.875E-5);
+    return 90.E-6 * r_norm / (1.23E-6 * z_norm + 3.875E-5);
   } else {
-    return radial_loc / (2.652E-6 * z_norm + 2.453E-5);
+    return 90.E-6 * r_norm / (2.652E-6 * z_norm + 2.453E-5);
   }
 }
 
@@ -38,8 +39,11 @@ AMREX_FORCE_INLINE
 amrex::Real
 SelfSimU0(const amrex::Real z_norm, const amrex::Real U_jet)
 {
+  // Original fit was for inlet velocity of 458 m
   if (z_norm >= 15.) {
-    return 441.3 + z_norm * (2.47 + z_norm * (-0.09747 + z_norm * 6.661E-4));
+    return U_jet *
+           (441.3 + z_norm * (2.47 + z_norm * (-0.09747 + z_norm * 6.61E-4))) /
+           458.;
   } else {
     return U_jet;
   }
@@ -89,7 +93,7 @@ SelfSimUrpUrp(
   const amrex::Real z_norm, const amrex::Real rh_norm, const amrex::Real U0)
 {
   const amrex::Real entryLength = 18.;
-  if (z_norm > entryLength || rh_norm > 3.35) {
+  if (z_norm > entryLength && rh_norm < 3.35) {
     amrex::Real vvNorm =
       2.501E-3 +
       rh_norm *
