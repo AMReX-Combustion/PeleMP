@@ -21,11 +21,11 @@ SprayParticleContainer::SprayParticleIO(
       "spray_mf_" + m_sprayFuelNames[sp];
   }
 #ifdef SPRAY_NFLDM
-  real_comps_names[SprayComps::pstateVAxial] = "v_axial";
-  real_comps_names[SprayComps::pstateVpRadial] = "vp_radial";
-  real_comps_names[SprayComps::pstateUpRadial] = "up_radial";
-  real_comps_names[SprayComps::pstateUURadial] = "uu_radial";
-  real_comps_names[SprayComps::pstateNran] = "Nran";
+  real_comp_names[SprayComps::pstateVAxial] = "v_axial";
+  real_comp_names[SprayComps::pstateVpRadial] = "vp_radial";
+  real_comp_names[SprayComps::pstateUpRadial] = "up_radial";
+  real_comp_names[SprayComps::pstateUURadial] = "uu_radial";
+  real_comp_names[SprayComps::pstateNran] = "Nran";
 #endif
   Vector<std::string> int_comp_names;
   Checkpoint(dir, "particles", is_checkpoint, real_comp_names, int_comp_names);
