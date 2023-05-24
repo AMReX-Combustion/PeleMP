@@ -28,7 +28,7 @@ protected:
   int temp_col = 1;
   int vel_col = 2;
   int data_len;
-  std::unique_ptr<DistBase> normDist;
+  std::unique_ptr<Normal> normDist;
   amrex::Vector<amrex::Real> jet_radius_vec;
   std::array<amrex::Vector<amrex::Real>, 3> mean_vals;
   std::array<amrex::Vector<amrex::Real>, 3> std_vals;
@@ -55,8 +55,7 @@ ThisJet::ThisJet(const std::string& jet_name, const amrex::Geometry& geom)
   pp.query("start_time", m_startTime);
   pp.query("end_time", m_endTime);
   pp.get("mass_flow_rate", m_massFlow);
-  std::string dist_type = "Normal";
-  normDist = DistBase::create(dist_type);
+  normDist = std::make_unique<Normal>();
   normDist->init(1., 1.);
   std::string infile;
   pp.get("injection_file", infile);
