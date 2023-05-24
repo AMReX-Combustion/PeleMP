@@ -287,7 +287,7 @@ calculateSpraySource(
 #ifdef SPRAY_NFLDM
     do_nfldm = useNFLDM(part_pos, dia_jet);
 #endif
-    if (fdat.mom_trans && !do_nfldm) {
+    if (fdat.mom_trans) {
       gpv.fluid_mom_src += drag_force * diff_vel;
 #ifndef PELELM_USE_SPRAY
       // s_d,mu dot u_d
@@ -383,15 +383,17 @@ calculateSpraySource(
     if (!fdat.fixed_parts) {
 #ifdef SPRAY_NFLDM
       if (do_nfldm) {
-        updateNFLDM(p, dia_part, U_jet, dia_jet, part_dt, rho_part, mu_skin, pmass, part_pos, vel_part, gpv.fluid_mom_src);
+        updateNFLDM(
+          p, dia_part, U_jet, dia_jet, part_dt, rho_part, mu_skin, pmass,
+          part_pos, vel_part);
       } else
 #endif
-        {
-          // Update particle velocity
-          AMREX_D_TERM(vel_part[0] += part_dt * part_vel_src[0];
-                       , vel_part[1] += part_dt * part_vel_src[1];
-                       , vel_part[2] += part_dt * part_vel_src[2];);
-        }
+      {
+        // Update particle velocity
+        AMREX_D_TERM(vel_part[0] += part_dt * part_vel_src[0];
+                     , vel_part[1] += part_dt * part_vel_src[1];
+                     , vel_part[2] += part_dt * part_vel_src[2];);
+      }
     }
     if (fdat.mass_trans) {
       T_part += part_dt * part_temp_src;

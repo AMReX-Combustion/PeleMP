@@ -28,8 +28,7 @@ updateNFLDM(
   const amrex::Real mu_fluid,
   const amrex::Real pmass,
   amrex::RealVect& pos,
-  amrex::RealVect& vel_part,
-  amrex::RealVect& fluid_mom_src)
+  amrex::RealVect& vel_part)
 {
   amrex::Real radial_loc0 = std::sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
   amrex::Real rhoAC = SelfSimRho(dt);
@@ -68,7 +67,6 @@ updateNFLDM(
   amrex::RealVect new_vel = {
     VpRadial * std::cos(theta), VpRadial * std::sin(theta),
     p.rdata(SprayComps::pstateVAxial)};
-  fluid_mom_src += pmass * dvpz_dt;
   vel_part = new_vel;
   pos[0] = radial_loc * std::cos(theta);
   pos[1] = radial_loc * std::sin(theta);
