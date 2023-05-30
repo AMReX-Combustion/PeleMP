@@ -218,7 +218,5 @@ SprayParticleContainer::InitSprayParticles(
   m_sprayJets.resize(1);
   std::string jet_name = "jet1";
   m_sprayJets[0] = std::make_unique<ThisJet>(jet_name, Geom(0));
-  // Start without any particles
-  m_injectVel = m_sprayJets[0]->jet_vel();
   return;
 }

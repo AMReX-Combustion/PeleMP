@@ -125,12 +125,14 @@ SprayParticleContainer::estTimestep(int level, Real cfl) const
     Real ldt_cpu = amrex::get<0>(hv);
     dt = amrex::min(dt, ldt_cpu);
   }
-  ParallelDescriptor::ReduceRealMin(dt);
   // Check if the velocity of particles being injected is greater than existing
   // particle velocities
-  if (m_injectVel > 0.) {
-    dt = amrex::min(dt, cfl * dx[0] / m_injectVel);
+  for (auto& sj : m_sprayJets) {
+    if (sj->jet_vel() > 0.) {
+      dt = amrex::min(dt, cfl * dx[0] / sj->jet_vel());
+    }
   }
+  ParallelDescriptor::ReduceRealMin(dt);
   return dt;
 }
 
