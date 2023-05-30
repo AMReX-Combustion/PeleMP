@@ -386,7 +386,6 @@ private:
   SprayComps m_sprayIndx;
   // Particle CFL, used for injection cases with LMeX
   amrex::Real m_partCFL;
-  amrex::Real m_injectVel = 0.;
   amrex::Vector<std::unique_ptr<SprayJet>> m_sprayJets;
 };
 
