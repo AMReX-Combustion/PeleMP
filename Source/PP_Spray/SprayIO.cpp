@@ -5,10 +5,7 @@ using namespace amrex;
 
 void
 SprayParticleContainer::SprayParticleIO(
-  const int level,
-  const bool is_checkpoint,
-  const int write_ascii,
-  const std::string& dir)
+  const int level, const bool is_checkpoint, const std::string& dir)
 {
   Vector<std::string> real_comp_names(NSR_SPR);
   AMREX_D_TERM(real_comp_names[SprayComps::pstateVel] = "xvel";
@@ -30,7 +27,7 @@ SprayParticleContainer::SprayParticleIO(
   Vector<std::string> int_comp_names;
   Checkpoint(dir, "particles", is_checkpoint, real_comp_names, int_comp_names);
   // Here we write ascii information every time we write a plot file
-  if (level == 0 && write_ascii == 1) {
+  if (level == 0 && SprayParticleContainer::write_ascii_files) {
     size_t num_end_loc = dir.find_last_of("0123456789") + 1;
     // Remove anything following numbers, like .temp
     std::string dirout = dir.substr(0, num_end_loc);

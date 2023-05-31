@@ -11,8 +11,8 @@ amr.n_cell           = 32 224 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-pelec.lo_bc        = "Hard" "NoSlipWall" "Hard"
-pelec.hi_bc        = "Hard" "Hard" "Hard"
+pelec.lo_bc        = "FOExtrap" "NoSlipWall" "FOExtrap"
+pelec.hi_bc        = "FOExtrap" "FOExtrap" "FOExtrap"
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -63,8 +63,6 @@ particles.v = 0
 particles.derive_plot_vars = 1
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-# Set so that SprayParticleInitInsert.cpp is used to initialize
-particles.init_function = 1
 particles.write_ascii_files = 0
 
 # Number of particles per parcel
