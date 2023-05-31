@@ -10,7 +10,7 @@ geometry.prob_hi     = 1. 1. 1.        # x_hi y_hi (z_hi)
 peleLM.lo_bc = Interior Interior
 peleLM.hi_bc = Interior Interior
 
-particles.cfl = 4.
+particles.cfl = 2.
 
 #amr.restart = chk00005
 #amr.check_int = 10
@@ -34,7 +34,6 @@ prob.reynolds = 1600.
 prob.mach = 0.1
 prob.density_ratio = 10000.
 prob.st_mod = 20.
-# Particle parameters, only used if particles.init_function = 1
 prob.num_particles = (128, 128, 128)
 
 #-------------------------PeleLM CONTROL----------------------------
@@ -81,8 +80,6 @@ particles.N2_rho = 11379.8
 particles.N2_psat = 4.07857 1501.268 -78.67 1.E5
 
 particles.use_splash_model = false
-
-particles.init_function = 1
 
 particles.v             = 0
 particles.mom_transfer  = 0
