@@ -48,7 +48,7 @@ pelec.sum_interval   = -1  # timesteps between computing mass
 pelec.v              = 0   # verbosity in Castro.cpp
 amr.v                = 1   # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -60,7 +60,6 @@ pelec.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 0 # Gas phase has no spray momentum source term
 particles.mass_transfer = 0 # No evaporation takes place
-particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_ascii_files = 0 # Do not write ascii output files
 
 particles.fuel_ref_temp = 300.

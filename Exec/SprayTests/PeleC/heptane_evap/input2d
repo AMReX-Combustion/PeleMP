@@ -34,7 +34,7 @@ pelec.cfl            = 0.8     # cfl number for hyperbolic system
 pelec.init_shrink    = 0.3     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-#pelec.fixed_dt       = 1.e-5  
+#pelec.fixed_dt       = 1.e-5
 
 
 # DIAGNOSTICS & VERBOSITY
@@ -44,7 +44,7 @@ amr.v                = 1       # verbosity in Amr.cpp
 #amr.data_log         = datlog
 #amr.grid_log        = grdlog  # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -58,7 +58,6 @@ particles.derive_plot_vars = 1
 particles.fixed_parts = 1
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.init_function = 0
 particles.init_file = "initsprayfile"
 particles.write_ascii_files = 1
 
