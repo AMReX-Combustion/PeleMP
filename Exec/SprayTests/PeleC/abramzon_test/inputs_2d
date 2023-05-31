@@ -12,8 +12,8 @@ amr.n_cell           = 256 16
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-pelec.lo_bc        = "Hard" "Interior"
-pelec.hi_bc        = "Hard" "Interior"
+pelec.lo_bc        = "FOExtrap" "Interior"
+pelec.hi_bc        = "FOExtrap" "Interior"
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -54,7 +54,6 @@ particles.derive_plot_vars = 0
 particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.init_function = 0
 particles.init_file = "initspraydata"
 particles.write_ascii_files = 1
 
