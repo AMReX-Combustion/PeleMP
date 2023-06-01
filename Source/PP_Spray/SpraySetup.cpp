@@ -12,12 +12,12 @@ SprayComps SprayParticleContainer::m_sprayIndx;
 Real SprayParticleContainer::spray_cfl = 0.5;
 bool SprayParticleContainer::write_ascii_files = false;
 bool SprayParticleContainer::plot_spray_src = false;
-std::string SprayParticleContainer::spray_init_file = "";
 Real SprayParticleContainer::m_maxNumPPP = 100.;
 Real SprayParticleContainer::m_breakupPPPFact = 0.5;
 Real SprayParticleContainer::m_khrtB0 = 0.61;
 Real SprayParticleContainer::m_khrtB1 = 7.;
 Real SprayParticleContainer::m_khrtC3 = 1.;
+std::string SprayParticleContainer::spray_init_file;
 
 void
 getInpCoef(
