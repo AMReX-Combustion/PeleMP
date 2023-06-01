@@ -5,8 +5,8 @@ stop_time = 0.0038
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     =  0. 0. 0.
-geometry.prob_hi     = 1.2 8.4 1.2
+geometry.prob_lo     =  -0.6 0. -0.6
+geometry.prob_hi     = 0.6 8.4 0.6
 amr.n_cell           = 32 224 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -114,14 +114,14 @@ spray.jet1.dist_type = Uniform
 spray.jet1.diameter = 4.5E-4
 spray.jet1.jet_dia = 9.E-3
 spray.jet1.spread_angle = 21.
-spray.jet1.jet_cent = 0.6 0. 0.6
+spray.jet1.jet_cent = 0. 0. 0.
 spray.jet1.jet_norm = 0. 1. 0.
 
-# These are only used if an injection reference file is not set
-# Have to be specified anyway
-spray.jet1.jet_vel = 6.E4
-spray.jet1.mass_flow_rate = 2.3
+# These are necessary if an injection reference file is not set
+# spray.jet1.jet_vel = 6.E4
+# spray.jet1.mass_flow_rate = 2.3
 
-# Mass flow rate and velocity can be interpolated
-# from data table
-prob.inject_file = references/roi.dat
+# ROI file can be generated at
+# https://www.cmt.upv.es/#/ecn/download/InjectionRateGenerator/InjectionRateGenerator
+spray.jet1.roi_file = references/roi.dat
+spray.jet1.cd = 0.89
