@@ -124,7 +124,7 @@ SprayParticleContainer::sprayInjection(
         p.rdata(SprayComps::pstateY) = 1.;
       }
 #ifdef SPRAY_NFLDM
-      p.rdata(SprayComps::pstateVAxial) = spray_jet->jet_vel();
+      p.rdata(SprayComps::pstateVAxial) = spray_jet->max_jet_vel();
       p.rdata(SprayComps::pstateVpRadial) = 0.;
       p.rdata(SprayComps::pstateUpRadial) = 0.;
       p.rdata(SprayComps::pstateUURadial) = 0.;

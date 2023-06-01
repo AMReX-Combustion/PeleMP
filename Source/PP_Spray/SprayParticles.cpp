@@ -207,7 +207,7 @@ SprayParticleContainer::updateParticles(
   SprayComps SPI = m_sprayIndx;
 #ifdef SPRAY_NFLDM
   const Real dia_jet = m_sprayJets[0]->jet_dia();
-  const Real U_jet = m_sprayJets[0]->jet_vel();
+  const Real U_jet = m_sprayJets[0]->max_jet_vel();
 #endif
   // Start the ParIter, which loops over separate sets of particles in different
   // boxes
