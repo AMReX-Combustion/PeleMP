@@ -161,7 +161,7 @@ SprayParticleContainer::updateParticles(
   AMREX_ASSERT(OnSameGrids(level, source));
   bool isActive = !(isVirt || isGhost);
   bool do_splash = (m_sprayData->do_splash && isActive && do_move);
-  bool do_breakup = (m_sprayData->do_breakup > 0 && isActive && do_move);
+  bool do_breakup = (m_sprayData->do_breakup > 0);
   Real B0 = m_khrtB0;
   Real B1 = m_khrtB1;
   Real C3 = m_khrtC3;
@@ -213,12 +213,14 @@ SprayParticleContainer::updateParticles(
     num_iter = static_cast<int>(std::ceil(spray_cfl_lev / sub_cfl));
     sub_dt = flow_dt / static_cast<Real>(num_iter);
   }
-  Real avg_inject_d3 = 0.;
-  if (isActive && m_sprayData->do_breakup == 2) {
+  Real avg_inject_mass = 0.;
+  if (isActive && m_sprayData->do_breakup == 2 && isActive) {
     int numJets = static_cast<int>(m_sprayJets.size());
     for (int jindx = 0; jindx < numJets; ++jindx) {
-      Real injDia = m_sprayJets[jindx].get()->get_avg_dia();
-      avg_inject_d3 += std::pow(injDia, 3) / static_cast<Real>(numJets);
+      Real injDia = m_sprayJets[jindx]->get_avg_dia();
+      Real injN = m_sprayJets[jindx]->num_ppp();
+      avg_inject_mass +=
+        injN * std::pow(injDia, 3) / static_cast<Real>(numJets);
     }
   }
   // Particle components indices
@@ -294,7 +296,9 @@ SprayParticleContainer::updateParticles(
       Gpu::DeviceVector<splash_breakup> N_SB_d;
       SBVects refv;
       SBPtrs rf_d;
-      if (do_breakup || do_splash_box) {
+      bool make_new_drops =
+        ((do_breakup || do_splash_box) && isActive && do_move);
+      if (make_new_drops) {
         N_SB_h.assign(Np, splash_breakup::no_change);
         N_SB_d.resize(Np);
         Gpu::copyAsync(
@@ -381,14 +385,14 @@ SprayParticleContainer::updateParticles(
                   Reyn_d, sub_dt, cBoilT.data(), gpv, *fdat, p);
               }
               if (cur_iter == num_iter - 1) {
-                if (fdat->do_breakup == 1) {
+                if (fdat->do_breakup == 1 && make_new_drops) {
                   // Determine if parcel must be split into multiple parcels
                   splitDropletTAB(pid, p, max_ppp, N_SB, rf_d, Utan_total);
                 } else {
                   // Update breakup for KH-RT model
                   updateBreakupKHRT(
-                    pid, p, Reyn_d, flow_dt, cBoilT.data(), avg_inject_d3, B0,
-                    B1, C3, gpv, *fdat, N_SB, rf_d);
+                    pid, p, Reyn_d, flow_dt, cBoilT.data(), avg_inject_mas, B0,
+                    B1, C3, gpv, *fdat, N_SB, rf_d, make_new_drops);
                 }
               }
             }
@@ -461,7 +465,7 @@ SprayParticleContainer::updateParticles(
           } // End of subcycle loop
         }   // End of p.id() > 0 check
       });   // End of loop over particles
-      if (do_splash_box || do_breakup) {
+      if (make_new_drops) {
         Gpu::copy(
           Gpu::deviceToHost, N_SB_d.begin(), N_SB_d.end(), N_SB_h.begin());
         bool get_new_parts = false;
