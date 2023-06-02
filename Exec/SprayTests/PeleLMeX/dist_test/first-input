@@ -10,7 +10,7 @@ geometry.prob_hi     = 10. 10. 10.        # x_hi y_hi (z_hi)
 peleLM.lo_bc = Interior SlipWallAdiab
 peleLM.hi_bc = Interior SlipWallAdiab
 
-particles.cfl = 4.
+particles.cfl = 2.
 
 #amr.restart = chk00005
 #amr.check_int = 10
@@ -42,7 +42,6 @@ prob.P_mean = 101325.0
 prob.init_T = 500.
 prob.init_vel = 0.0
 
-# Particle parameters, only used if particles.init_function = 1
 prob.num_particles = (256, 256, 256)
 prob.init_redist   = 1
 prob.part_temp     = 300.
@@ -94,24 +93,22 @@ nodal_proj.verbose = 0
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.derive_plot_vars = 0
+
+particles.fuel_ref_temp = 298.15
+
 particles.fuel_species = NC10H22
 # Properties for decane, in MKS
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
-particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E5
-particles.fuel_cp = 2.1921E3 # Cp at 298 K
-particles.fuel_rho = 640.
+particles.NC10H22_crit_temp = 617.8 # K
+particles.NC10H22_boil_temp = 447.27 # K
+particles.NC10H22_latent = 3.5899E5
+particles.NC10H22_cp = 2.1921E3 # Cp at 298 K
+particles.NC10H22_rho = 640.
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to Pa
 particles.NC10H22_psat = 4.07857 1501.268 -78.67 1.E5
 
 particles.use_splash_model = false
-
-# particles.init_function = 0
-# particles.init_file = "initspraydata"
-particles.init_function = 1
 
 particles.v             = 2
 particles.mom_transfer  = 1

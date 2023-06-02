@@ -3,99 +3,125 @@
 
 using namespace amrex;
 
-std::string SprayParticleContainer::spray_fuel_names[SPRAY_FUEL_NUM];
-std::string SprayParticleContainer::spray_dep_names[SPRAY_FUEL_NUM];
-Vector<std::string> SprayParticleContainer::spray_derive_vars;
+std::string SprayParticleContainer::m_sprayFuelNames[SPRAY_FUEL_NUM];
+std::string SprayParticleContainer::m_sprayDepNames[SPRAY_FUEL_NUM];
+Vector<std::string> SprayParticleContainer::m_sprayDeriveVars;
+SprayData* SprayParticleContainer::m_sprayData = nullptr;
+SprayData* SprayParticleContainer::d_sprayData = nullptr;
+SprayComps SprayParticleContainer::m_sprayIndx;
+Real SprayParticleContainer::spray_cfl = 0.5;
+bool SprayParticleContainer::write_ascii_files = false;
+bool SprayParticleContainer::plot_spray_src = false;
+std::string SprayParticleContainer::spray_init_file;
 
 void
 getInpCoef(
   Real* coef,
   const ParmParse& ppp,
-  const std::string& fuel_name,
+  const std::string* fuel_names,
   const std::string& varname,
-  const int spf)
+  bool is_required = false)
 {
-  std::string psat_read = fuel_name + "_" + varname;
-  std::vector<Real> inp_coef(4, 0.);
-  ppp.queryarr(psat_read.c_str(), inp_coef);
-  for (int i = 0; i < 4; ++i) {
-    coef[4 * spf + i] = inp_coef[i];
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    std::string var_read = fuel_names[spf] + "_" + varname;
+    int numvals = ppp.countval(var_read.c_str());
+    // If 4 values are specified, assume fit coefficients
+    if (numvals == 4) {
+      std::vector<Real> inp_coef(4, 0.);
+      if (is_required) {
+        ppp.getarr(var_read.c_str(), inp_coef);
+      } else {
+        ppp.queryarr(var_read.c_str(), inp_coef);
+      }
+      for (int i = 0; i < 4; ++i) {
+        coef[4 * spf + i] = inp_coef[i];
+      }
+    } else if (numvals == 1) {
+      // If 1 value is specified, assume constant value
+      Real inp_coef = 0.;
+      for (int i = 0; i < 4; ++i) {
+        coef[4 * spf + i] = 0.;
+      }
+      if (is_required) {
+        ppp.get(var_read.c_str(), inp_coef);
+      } else {
+        ppp.query(var_read.c_str(), inp_coef);
+      }
+      coef[4 * spf] = inp_coef;
+    }
   }
 }
 
 void
-SprayParticleContainer::readSprayParams(
-  int& particle_verbose,
-  Real& particle_cfl,
-  int& write_spray_ascii_files,
-  int& plot_spray_src,
-  int& init_function,
-  std::string& init_file,
-  SprayData& sprayData,
-  const Real& max_cfl)
+getInpVal(
+  Real* coef,
+  const ParmParse& ppp,
+  const std::string* fuel_names,
+  const std::string& varname)
 {
-  amrex::ParmParse pp("particles");
-  //
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+    std::string var_read = fuel_names[spf] + "_" + varname;
+    ppp.get(var_read.c_str(), coef[spf]);
+  }
+}
+
+void
+SprayParticleContainer::readSprayParams(int& particle_verbose)
+{
+  m_sprayData = new SprayData{};
+  d_sprayData =
+    static_cast<SprayData*>(amrex::The_Arena()->alloc(sizeof(SprayData)));
+  ParmParse pp("particles");
   // Control the verbosity of the Particle class
   pp.query("v", particle_verbose);
 
-  pp.query("mass_transfer", sprayData.mass_trans);
-  pp.query("mom_transfer", sprayData.mom_trans);
-  pp.query("fixed_parts", sprayData.fixed_parts);
-  pp.query("cfl", particle_cfl);
-  if (particle_cfl > max_cfl) {
-    std::string errorstr =
-      "particles.cfl must be <= " + std::to_string(max_cfl);
-    Abort(errorstr);
+  pp.query("mass_transfer", m_sprayData->mass_trans);
+  pp.query("mom_transfer", m_sprayData->mom_trans);
+  pp.query("fixed_parts", m_sprayData->fixed_parts);
+#ifdef PELELM_USE_SPRAY
+  Real max_cfl = 2.;
+#else
+  Real max_cfl = 0.5;
+#endif
+  pp.query("cfl", spray_cfl);
+  if (spray_cfl > max_cfl) {
+    Abort("particles.cfl must be <= " + std::to_string(max_cfl));
   }
   // Number of fuel species in spray droplets
   // Must match the number specified at compile time
   const int nfuel = pp.countval("fuel_species");
   if (nfuel != SPRAY_FUEL_NUM) {
-    amrex::Abort(
-      "Number of fuel species in input file must match SPRAY_FUEL_NUM");
+    Abort("Number of fuel species in input file must match SPRAY_FUEL_NUM");
   }
 
   std::vector<std::string> fuel_names;
   std::vector<std::string> dep_fuel_names;
-  std::vector<Real> crit_T;
-  std::vector<Real> boil_T;
-  std::vector<Real> spraycp;
-  std::vector<Real> latent;
-  std::vector<Real> sprayrho;
-  std::vector<Real> mu(nfuel, 0.);
-  std::vector<Real> lambda(nfuel, 0.);
   bool has_dep_spec = false;
   {
     pp.getarr("fuel_species", fuel_names);
-    pp.getarr("fuel_crit_temp", crit_T);
-    pp.getarr("fuel_boil_temp", boil_T);
-    pp.getarr("fuel_cp", spraycp);
-    pp.getarr("fuel_latent", latent);
-    pp.getarr("fuel_rho", sprayrho);
-    pp.queryarr("fuel_mu", mu);
-    pp.queryarr("fuel_lambda", lambda);
     if (pp.contains("dep_fuel_species")) {
       has_dep_spec = true;
       pp.getarr("dep_fuel_species", dep_fuel_names);
     }
+    getInpVal(m_sprayData->critT.data(), pp, fuel_names.data(), "crit_temp");
+    getInpVal(m_sprayData->boilT.data(), pp, fuel_names.data(), "boil_temp");
+    getInpVal(m_sprayData->cp.data(), pp, fuel_names.data(), "cp");
+    getInpVal(m_sprayData->ref_latent.data(), pp, fuel_names.data(), "latent");
+
+    getInpCoef(
+      m_sprayData->lambda_coef.data(), pp, fuel_names.data(), "lambda");
+    getInpCoef(m_sprayData->psat_coef.data(), pp, fuel_names.data(), "psat");
+    getInpCoef(
+      m_sprayData->rho_coef.data(), pp, fuel_names.data(), "rho", true);
+    getInpCoef(m_sprayData->mu_coef.data(), pp, fuel_names.data(), "mu");
     for (int i = 0; i < nfuel; ++i) {
-      spray_fuel_names[i] = fuel_names[i];
+      m_sprayFuelNames[i] = fuel_names[i];
       if (has_dep_spec) {
-        spray_dep_names[i] = dep_fuel_names[i];
+        m_sprayDepNames[i] = dep_fuel_names[i];
       } else {
-        spray_dep_names[i] = spray_fuel_names[i];
+        m_sprayDepNames[i] = m_sprayFuelNames[i];
       }
-      sprayData.critT[i] = crit_T[i];
-      sprayData.boilT[i] = boil_T[i];
-      sprayData.cp[i] = spraycp[i];
-      sprayData.latent[i] = latent[i];
-      sprayData.ref_latent[i] = latent[i];
-      sprayData.rho[i] = sprayrho[i];
-      sprayData.mu[i] = mu[i];
-      sprayData.lambda[i] = lambda[i];
-      getInpCoef(sprayData.psat_coef.data(), pp, fuel_names[i], "psat", i);
-      getInpCoef(sprayData.rho_coef.data(), pp, fuel_names[i], "rho", i);
+      m_sprayData->latent[i] = m_sprayData->ref_latent[i];
     }
   }
 
@@ -109,29 +135,14 @@ SprayParticleContainer::readSprayParams(
   pp.query("use_splash_model", splash_model);
   if (splash_model) {
     Abort("Splash model is not fully implemented");
-    if (
-      !pp.contains("fuel_sigma") || !pp.contains("wall_temp") ||
-      !pp.contains("fuel_mu")) {
-      Print()
-        << "fuel_sigma, wall_temp, and fuel_mu must be set for splash model. "
-        << "Set use_splash_model = false to turn off splash model."
-        << std::endl;
-      Abort();
-    }
-    // Set the fuel surface tension and contact angle
-    pp.get("fuel_sigma", sprayData.sigma);
-    // TODO: Have this retrieved from proper boundary data
-    pp.get("wall_temp", sprayData.wall_T);
   }
 
   // Must use same reference temperature for all fuels
-  // TODO: This means the reference temperature must be the same for all fuel
-  // species
   pp.get("fuel_ref_temp", spray_ref_T);
   //
   // Set if spray ascii files should be written
   //
-  pp.query("write_ascii_files", write_spray_ascii_files);
+  pp.query("write_ascii_files", write_ascii_files);
   //
   // Set if gas phase spray source term should be written
   //
@@ -139,26 +150,22 @@ SprayParticleContainer::readSprayParams(
   //
   // Used in initData() on startup to read in a file of particles.
   //
-  pp.query("init_file", init_file);
-  //
-  // Used in initData() on startup to set the particle field using the
-  // SprayParticlesInitInsert.cpp problem specific function
-  //
-  pp.query("init_function", init_function);
+  pp.query("init_file", spray_init_file);
 #ifdef AMREX_USE_EB
   //
   // Spray source terms are only added to cells with a volume fraction higher
   // than this value
   //
-  pp.query("min_eb_vfrac", sprayData.min_eb_vfrac);
+  pp.query("min_eb_vfrac", m_sprayData->min_eb_vfrac);
 #endif
 
-  sprayData.num_ppp = parcel_size;
-  sprayData.ref_T = spray_ref_T;
+  m_sprayData->num_ppp = parcel_size;
+  m_sprayData->ref_T = spray_ref_T;
 
   // List of known derived spray quantities
   std::vector<std::string> derive_names = {
     "spray_mass",      // Total liquid mass in a cell
+    "spray_density",   // Liquid mass divided by cell volume
     "spray_num",       // Number of spray droplets in a cell
     "spray_vol",       // Total liquid volume in a cell
     "spray_surf_area", // Total liquid surface area in a cell
@@ -174,31 +181,30 @@ SprayParticleContainer::readSprayParams(
   // If derive_spray_vars if present, add above spray quantities in the same
   // order
   for (const auto& derive_name : derive_names) {
-    spray_derive_vars.push_back(derive_name);
+    m_sprayDeriveVars.push_back(derive_name);
   }
   if (derive_plot_species == 1 && SPRAY_FUEL_NUM > 1) {
-    for (auto& fuel_name : spray_fuel_names) {
-      spray_derive_vars.push_back("spray_mass_" + fuel_name);
+    for (auto& fuel_name : m_sprayFuelNames) {
+      m_sprayDeriveVars.push_back("spray_mass_" + fuel_name);
     }
   }
 
   if (particle_verbose >= 1 && ParallelDescriptor::IOProcessor()) {
-    amrex::Print() << "Spray fuel species " << spray_fuel_names[0];
+    Print() << "Spray fuel species " << m_sprayFuelNames[0];
+#if SPRAY_FUEL_NUM > 1
     for (int i = 1; i < SPRAY_FUEL_NUM; ++i) {
-      amrex::Print() << ", " << spray_fuel_names[i];
+      Print() << ", " << m_sprayFuelNames[i];
     }
-    amrex::Print() << std::endl;
-    amrex::Print() << "Number of particles per parcel " << parcel_size
-                   << std::endl;
+#endif
+    Print() << std::endl;
+    Print() << "Number of particles per parcel " << parcel_size << std::endl;
   }
-  //
-  // Force other processors to wait till directory is built.
-  //
+  Gpu::streamSynchronize();
   ParallelDescriptor::Barrier();
 }
 
 void
-SprayParticleContainer::spraySetup(SprayData& sprayData)
+SprayParticleContainer::spraySetup(const Real* body_force)
 {
 #if NUM_SPECIES > 1
   Vector<std::string> spec_names;
@@ -207,34 +213,65 @@ SprayParticleContainer::spraySetup(SprayData& sprayData)
   for (int i = 0; i < SPRAY_FUEL_NUM; ++i) {
     for (int ns = 0; ns < NUM_SPECIES; ++ns) {
       std::string gas_spec = spec_names[ns];
-      if (gas_spec == spray_fuel_names[i]) {
-        sprayData.indx[i] = ns;
+      if (gas_spec == m_sprayFuelNames[i]) {
+        m_sprayData->indx[i] = ns;
       }
-      if (gas_spec == spray_dep_names[i]) {
-        sprayData.dep_indx[i] = ns;
+      if (gas_spec == m_sprayDepNames[i]) {
+        m_sprayData->dep_indx[i] = ns;
       }
     }
-    if (sprayData.indx[i] < 0) {
-      amrex::Print() << "Fuel " << spray_fuel_names[i]
-                     << " not found in species list" << std::endl;
-      amrex::Abort();
+    if (m_sprayData->indx[i] < 0) {
+      Abort("Fuel " + m_sprayFuelNames[i] + " not found in species list");
     }
-    if (sprayData.dep_indx[i] < 0) {
-      amrex::Print() << "Fuel " << spray_dep_names[i]
-                     << " not found in species list" << std::endl;
-      amrex::Abort();
+    if (m_sprayData->dep_indx[i] < 0) {
+      Abort("Fuel " + m_sprayDepNames[i] + " not found in species list");
     }
   }
 #else
-  sprayData.indx[0] = 0;
-  sprayData.dep_indx[0] = 0;
+  m_sprayData->indx[0] = 0;
+  m_sprayData->dep_indx[0] = 0;
 #endif
   SprayUnits SPU;
   Vector<Real> fuelEnth(NUM_SPECIES);
   auto eos = pele::physics::PhysicsType::eos();
-  eos.T2Hi(sprayData.ref_T, fuelEnth.data());
+  eos.T2Hi(m_sprayData->ref_T, fuelEnth.data());
   for (int ns = 0; ns < SPRAY_FUEL_NUM; ++ns) {
-    const int fspec = sprayData.indx[ns];
-    sprayData.latent[ns] -= fuelEnth[fspec] * SPU.eng_conv;
+    const int fspec = m_sprayData->indx[ns];
+    m_sprayData->latent[ns] -= fuelEnth[fspec] * SPU.eng_conv;
   }
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    m_sprayData->body_force[dir] = body_force[dir];
+  }
+  Gpu::copy(Gpu::hostToDevice, m_sprayData, m_sprayData + 1, d_sprayData);
+  Gpu::streamSynchronize();
+  ParallelDescriptor::Barrier();
+}
+
+void
+SprayParticleContainer::SprayInitialize(
+#ifdef PELELM_USE_SPRAY
+  ProbParm const& prob_parm,
+#else
+  ProbParmHost const& prob_parm,
+  ProbParmDevice const& prob_parm_d,
+#endif
+  const std::string& restart_dir)
+{
+  bool init_sprays = false;
+  if (restart_dir.empty() && spray_init_file.empty()) {
+    init_sprays = true;
+  }
+  InitSprayParticles(
+    init_sprays, prob_parm
+#ifndef PELELM_USE_SPRAY
+    ,
+    prob_parm_d
+#endif
+  );
+  if (!spray_init_file.empty()) {
+    InitFromAsciiFile(spray_init_file, NSR_SPR);
+  } else if (!restart_dir.empty()) {
+    Restart(restart_dir, "particles");
+  }
+  PostInitRestart(restart_dir);
 }

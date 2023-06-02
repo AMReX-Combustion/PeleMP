@@ -10,7 +10,7 @@ public:
 
   void init(const std::string& a_prefix) override;
 
-  void init(const amrex::Real& mean_d, const amrex::Real& std) override;
+  void init(const amrex::Real& diam);
 
   amrex::Real get_dia() override;
   amrex::Real get_avg_dia() override;
@@ -26,7 +26,7 @@ public:
 
   void init(const std::string& a_prefix) override;
 
-  void init(const amrex::Real& mean_d, const amrex::Real& std) override;
+  void init(const amrex::Real& mean_d, const amrex::Real& std);
 
   amrex::Real get_dia() override;
   amrex::Real get_avg_dia() override;
@@ -43,7 +43,7 @@ public:
 
   void init(const std::string& a_prefix) override;
 
-  void init(const amrex::Real& mean_d, const amrex::Real& std) override;
+  void init(const amrex::Real& mean_d, const amrex::Real& std);
 
   amrex::Real get_dia() override;
   amrex::Real get_avg_dia() override;
@@ -61,7 +61,7 @@ public:
 
   void init(const std::string& a_prefix) override;
 
-  void init(const amrex::Real& mean_d, const amrex::Real& k) override;
+  void init(const amrex::Real& mean_d, const amrex::Real& k);
 
   amrex::Real get_dia() override;
   amrex::Real get_avg_dia() override;
@@ -69,5 +69,22 @@ public:
 private:
   amrex::Real m_mean = 0.;
   amrex::Real m_k = 0.;
+};
+
+class ChiSquared : public DistBase::Register<ChiSquared>
+{
+public:
+  static std::string identifier() { return "ChiSquared"; }
+
+  void init(const std::string& a_prefix) override;
+
+  void init(const amrex::Real& d32);
+
+  amrex::Real get_dia() override;
+  amrex::Real get_avg_dia() override;
+
+private:
+  amrex::GpuArray<amrex::Real, 100> rvals = {{0.0}};
+  amrex::Real m_d32 = 0.;
 };
 #endif

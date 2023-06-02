@@ -48,7 +48,7 @@ pelec.sum_interval   = -1  # timesteps between computing mass
 pelec.v              = 0   # verbosity in Castro.cpp
 amr.v                = 1   # verbosity in Amr.cpp
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -60,17 +60,17 @@ pelec.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 0 # Gas phase has no spray momentum source term
 particles.mass_transfer = 0 # No evaporation takes place
-particles.init_function = 1 # Use SprayParticlesInitInsert.cpp for initialization
 particles.write_ascii_files = 0 # Do not write ascii output files
+
+particles.fuel_ref_temp = 300.
 
 particles.fuel_species = O2
 # These properties don't matter since there is no evaporation
-particles.fuel_crit_temp = 540. # K
-particles.fuel_boil_temp = 371.6 # K
-particles.fuel_ref_temp = 300.
-particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
-particles.fuel_cp = 2.2483e7 # @ 298 K
-particles.fuel_rho = 11.7682
+particles.O2_crit_temp = 540. # K
+particles.O2_boil_temp = 371.6 # K
+particles.O2_latent = 3.63E9 # Latent enthalpy at 298 K
+particles.O2_cp = 2.2483e7 # @ 298 K
+particles.O2_rho = 11.7682
 particles.use_splash_model = false
 
 # CHECKPOINT FILES

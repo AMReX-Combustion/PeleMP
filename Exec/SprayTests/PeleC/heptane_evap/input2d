@@ -34,7 +34,7 @@ pelec.cfl            = 0.8     # cfl number for hyperbolic system
 pelec.init_shrink    = 0.3     # scale back initial timestep
 pelec.change_max     = 1.1     # max time step growth
 pelec.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-#pelec.fixed_dt       = 1.e-5  
+#pelec.fixed_dt       = 1.e-5
 
 
 # DIAGNOSTICS & VERBOSITY
@@ -44,7 +44,7 @@ amr.v                = 1       # verbosity in Amr.cpp
 #amr.data_log         = datlog
 #amr.grid_log        = grdlog  # name of grid logging file
 
-# REFINEMENT / REGRIDDING 
+# REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
@@ -58,22 +58,19 @@ particles.derive_plot_vars = 1
 particles.fixed_parts = 1
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-particles.init_function = 0
 particles.init_file = "initsprayfile"
+particles.write_ascii_files = 1
+
+particles.fuel_ref_temp = 300.
 
 particles.fuel_species = NC7H16
 # properties for decane
-particles.fuel_crit_temp = 540. # K
-particles.fuel_boil_temp = 371.6 # K
-# If we want the reference point to be same as the boiling temperature
-# particles.fuel_ref_temp = 371.6
-# particles.fuel_latent = 3.27336E9
-# particles.fuel_cp = 2.558E7
-particles.fuel_ref_temp = 300.
-particles.fuel_latent = 3.63E9 # Latent enthalpy at 298 K
-particles.fuel_cp = 2.2483E7 # @ 298 K
-particles.fuel_rho = 0.6814
-particles.write_ascii_files = 1
+particles.NC7H16_crit_temp = 540. # K
+particles.NC7H16_boil_temp = 371.6 # K
+particles.NC7H16_ref_temp = 300.
+particles.NC7H16_latent = 3.63E9 # Latent enthalpy at 298 K
+particles.NC7H16_cp = 2.2483E7 # @ 298 K
+particles.NC7H16_rho = 0.6814
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to dyne/cm^2

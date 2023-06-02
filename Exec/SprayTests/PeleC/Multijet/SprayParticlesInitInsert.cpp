@@ -17,15 +17,17 @@ SprayParticleContainer::injectParticles(
     return false;
   }
   amrex::ignore_unused(nstep, finest_level, prob_parm, prob_parm_d);
+  bool inject = false;
   for (int jindx = 0; jindx < m_sprayJets.size(); ++jindx) {
     SprayJet* js = m_sprayJets[jindx].get();
     if (js->jet_active(time)) {
-      sprayInjection(time, js, dt, 0);
+      sprayInjection(time, js, dt);
+      inject = true;
     }
   }
 
   // Redistribute is done outside of this function
-  return true;
+  return inject;
 }
 
 void
@@ -43,7 +45,7 @@ SprayParticleContainer::InitSprayParticles(
   amrex::Real jet_start_time = 0.;
   amrex::Real jet_end_time = 10000.;
   amrex::Real spread_angle = 20.;
-  amrex::Real Y_jet[SPRAY_FUEL_NUM] = {0.0};
+  amrex::GpuArray<amrex::Real, SPRAY_FUEL_NUM> Y_jet = {{0.0}};
   ps.get("jet_vel", jet_vel);
   ps.query("jet_start", jet_start_time);
   ps.query("jet_end", jet_end_time);
@@ -90,8 +92,9 @@ SprayParticleContainer::InitSprayParticles(
     for (int k = 0; k < jetz; ++k) {
       amrex::Real zloc = zlo + div_lenz * (static_cast<amrex::Real>(k) + 0.5);
       amrex::RealVect jet_cent(AMREX_D_DECL(xloc, yloc, zloc));
+      std::string jet_name = "jet" + std::to_string(jindx);
       m_sprayJets[jindx] = std::make_unique<SprayJet>(
-        Geom(0), jet_cent, jet_norm, spread_angle, jet_dia, jet_vel,
+        jet_name, Geom(0), jet_cent, jet_norm, spread_angle, jet_dia, jet_vel,
         mass_flow_rate, part_temp, Y_jet, dist_type, jet_start_time,
         jet_end_time);
       jindx++;

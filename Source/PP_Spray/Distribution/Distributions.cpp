@@ -10,9 +10,9 @@ Uniform::init(const std::string& a_prefix)
 }
 
 void
-Uniform::init(const amrex::Real& mean, const amrex::Real& /*std*/)
+Uniform::init(const amrex::Real& diam)
 {
-  m_diam = mean;
+  m_diam = diam;
 }
 
 amrex::Real
@@ -111,4 +111,64 @@ amrex::Real
 Weibull::get_avg_dia()
 {
   return m_mean;
+}
+
+void
+ChiSquared::init(const std::string& a_prefix)
+{
+  amrex::ParmParse pp(a_prefix);
+  amrex::Real d32 = 0.;
+  pp.get("d32", d32);
+  init(d32);
+}
+
+void
+ChiSquared::init(const amrex::Real& d32)
+{
+  m_d32 = d32;
+  amrex::Real xiend = 12.;
+  amrex::Real dxi = xiend / 100.;
+  amrex::Real rend =
+    1. - std::exp(-xiend) * (1. + xiend * (1. + xiend * (0.5 + xiend / 6.)));
+  for (int i = 0; i < 100; i++) {
+    amrex::Real xi = dxi * (i + 1);
+    amrex::Real rval =
+      1. - std::exp(-xi) * (1. + xi * (1. + xi * (0.5 + xi / 6.)));
+    rvals[i] = rval / rend;
+  }
+}
+
+amrex::Real
+ChiSquared::get_dia()
+{
+  amrex::Real dmean = m_d32 / 3.;
+  amrex::Real dxi = 12. / 100.;
+  amrex::Real fact = amrex::Random();
+  int curn = 0;
+  amrex::Real curr = rvals[0];
+  amrex::Real curxi = 0.;
+  while (fact > curr) {
+    curn++;
+    curr = rvals[curn];
+    curxi += dxi;
+  }
+  return curxi * dmean;
+}
+
+amrex::Real
+ChiSquared::get_avg_dia()
+{
+  // Rough estimate of mean
+  amrex::Real dmean = m_d32 / 3.;
+  amrex::Real dxi = 12. / 100.;
+  amrex::Real fact = 0.5;
+  int curn = 0;
+  amrex::Real curr = rvals[0];
+  amrex::Real curxi = 0.;
+  while (fact > curr) {
+    curn++;
+    curr = rvals[curn];
+    curxi += dxi;
+  }
+  return curxi * dmean;
 }

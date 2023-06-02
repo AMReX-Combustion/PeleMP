@@ -10,7 +10,7 @@ geometry.prob_hi     = 1. 1. 1.        # x_hi y_hi (z_hi)
 peleLM.lo_bc = Interior Interior
 peleLM.hi_bc = Interior Interior
 
-particles.cfl = 4.
+particles.cfl = 2.
 
 #amr.restart = chk00005
 #amr.check_int = 10
@@ -34,7 +34,6 @@ prob.reynolds = 1600.
 prob.mach = 0.1
 prob.density_ratio = 10000.
 prob.st_mod = 20.
-# Particle parameters, only used if particles.init_function = 1
 prob.num_particles = (128, 128, 128)
 
 #-------------------------PeleLM CONTROL----------------------------
@@ -67,22 +66,20 @@ amrex.fpe_trap_overflow = 1
 #--------------------SPRAY PARTICLE DATA-----------------------
 peleLM.do_spray_particles = 1
 particles.derive_plot_vars = 1
+particles.fuel_ref_temp = 298.15
 particles.fuel_species = N2
 # Properties for decane, in MKS
-particles.fuel_crit_temp = 617.8 # K
-particles.fuel_boil_temp = 447.27 # K
-particles.fuel_ref_temp = 298.15
-particles.fuel_latent = 3.5899E5
-particles.fuel_cp = 2.1921E3 # Cp at 298 K
-particles.fuel_rho = 11379.8
+particles.N2_crit_temp = 617.8 # K
+particles.N2_boil_temp = 447.27 # K
+particles.N2_latent = 3.5899E5
+particles.N2_cp = 2.1921E3 # Cp at 298 K
+particles.N2_rho = 11379.8
 # Coefficients for saturation pressure using Antoine equation
 # These are from the NIST website
 # Last coefficient converts units, in this case bar, to Pa
 particles.N2_psat = 4.07857 1501.268 -78.67 1.E5
 
 particles.use_splash_model = false
-
-particles.init_function = 1
 
 particles.v             = 0
 particles.mom_transfer  = 0

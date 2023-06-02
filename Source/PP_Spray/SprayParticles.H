@@ -12,7 +12,7 @@
 #include "prob_parm.H"
 #endif
 
-#define NSR_SPR (AMREX_SPACEDIM + 3 + SPRAY_FUEL_NUM)
+#define NSR_SPR (SprayComps::pstateNum)
 #define NSI_SPR 0
 #define NAR_SPR 0
 #define NAI_SPR 0
@@ -38,44 +38,34 @@ public:
   using HostVectReal = amrex::Gpu::HostVector<amrex::Real>;
   using HostVectInt = amrex::Gpu::HostVector<int>;
 
-  SprayParticleContainer(
-    amrex::AmrCore* amr,
-    amrex::BCRec* _phys_bc,
-    const SprayData& fdat,
-    const SprayComps& SPI,
-    amrex::Real part_cfl = -1.)
+  SprayParticleContainer(amrex::AmrCore* amr, amrex::BCRec* _phys_bc)
     : amrex::AmrParticleContainer<NSR_SPR, NSI_SPR, NAR_SPR, NAI_SPR>(amr),
-      phys_bc(_phys_bc),
-      m_sprayData(new SprayData{}),
-      d_sprayData(nullptr),
-      m_sprayIndx(SPI),
-      m_partCFL(part_cfl),
-      m_injectVel(0.)
+      phys_bc(_phys_bc)
   {
-    d_sprayData =
-      static_cast<SprayData*>(amrex::The_Arena()->alloc(sizeof(SprayData)));
-    m_sprayData->build(fdat);
-    amrex::Gpu::copy(
-      amrex::Gpu::hostToDevice, m_sprayData, m_sprayData + 1, d_sprayData);
     init_bcs();
   }
 
-  ~SprayParticleContainer() override
+  static void SprayCleanUp()
   {
     delete m_sprayData;
     amrex::The_Arena()->free(d_sprayData);
   }
 
+  /// \brief Generalized injection routine for a single SprayJet
   void sprayInjection(
     const amrex::Real time,
     SprayJet* spray_jet,
     const amrex::Real sim_dt,
-    const int level,
-    int startInjProc = 0,
-    int numInjProcs = 1,
-    const int min_parcel =
-      1); // Minimum number of parcels added during injection
+    const int level);
 
+  /// \brief General initialization routine for uniformly distributed droplets
+  /// @param num_part Number of parcels to initialize in each direction
+  /// @param vel_part Droplet velocity
+  /// @param dia_part Droplet diameter
+  /// @param T_part Droplet temperature
+  /// @param Y_part Pointer to array of droplet mass fractions
+  /// @param level Current AMR level
+  /// @param num_redist Number of redistributes to do during initialization
   void uniformSprayInit(
     const amrex::IntVect num_part,
     const amrex::RealVect vel_part,
@@ -83,110 +73,72 @@ public:
     const amrex::Real T_part,
     const amrex::Real* Y_part,
     const int level,
-    const int numRedist);
+    const int num_redist = 1);
 
-  static void spraySetup(SprayData& sprayData);
+  /// \brief Setup spray parameters
+  static void spraySetup(const amrex::Real* body_force);
 
-  static void readSprayParams(
-    int& particle_verbose,
-    amrex::Real& particle_cfl,
-    int& write_spray_ascii_files,
-    int& plot_spray_src,
-    int& init_function,
-    std::string& init_file,
-    SprayData& sprayData,
-    const amrex::Real& max_cfl =
-      0.5); // Only overwrite this if particles are subcycled
+  /// \brief Read in spray parameters from input file
+  static void readSprayParams(int& particle_verbose);
 
+  /// \brief Spray particle write routine, writes plot, checkpoint, ascii, and
+  /// injection data files
   void SprayParticleIO(
-    const int level,
-    const bool is_checkpoint,
-    const int write_ascii,
-    const std::string& dir)
-  {
-    const int pstateVel = m_sprayIndx.pstateVel;
-    const int pstateT = m_sprayIndx.pstateT;
-    const int pstateDia = m_sprayIndx.pstateDia;
-    const int pstateY = m_sprayIndx.pstateY;
-    const int pstateTime = m_sprayIndx.pstateTime;
-    amrex::Vector<std::string> real_comp_names(NSR_SPR);
-    AMREX_D_TERM(real_comp_names[pstateVel] = "xvel";
-                 , real_comp_names[pstateVel + 1] = "yvel";
-                 , real_comp_names[pstateVel + 2] = "zvel";);
-    real_comp_names[pstateT] = "temperature";
-    real_comp_names[pstateDia] = "diam";
-    for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp) {
-      real_comp_names[pstateY + sp] = "spray_mf_" + spray_fuel_names[sp];
-    }
-    real_comp_names[pstateTime] = "time";
-    amrex::Vector<std::string> int_comp_names;
-    Checkpoint(
-      dir, "particles", is_checkpoint, real_comp_names, int_comp_names);
-    // Here we write ascii information every time we write a checkpoint file
-    if (level == 0 && write_ascii == 1) {
-      // TODO: Would be nice to be able to use file_name_digits
-      // instead of doing this
-      size_t num_end_loc = dir.find_last_of("0123456789") + 1;
-      // Remove anything following numbers, like .temp
-      std::string dirout = dir.substr(0, num_end_loc);
-      size_t num_start_loc = dirout.find_last_not_of("0123456789") + 1;
-      std::string numstring = dirout.substr(num_start_loc, dirout.length());
-      std::string dir_path = dir;
-      size_t num_end_path = dir_path.find_last_of("/") + 1;
-      std::string part_dir_path = dir_path.substr(0, num_end_path);
-      std::string fname = part_dir_path + "spray" + numstring + ".p3d";
-      WriteAsciiFile(fname);
-    }
-  }
+    const int level, const bool is_checkpoint, const std::string& dir);
 
-  ///
-  /// Derive grid variables related to sprays
-  ///
+  /// \brief Derive grid variables related to sprays
   void computeDerivedVars(
     amrex::MultiFab& mf_var, const int level, const int start_indx);
 
-  ///
-  /// Compute a maximum time step based on the particle velocities and a
+  /// \brief Compute a maximum time step based on the particle velocities and a
   /// particle CFL number
-  ///
-  amrex::Real estTimestep(int level, amrex::Real cfl) const;
+  amrex::Real estTimestep(int level) const;
 
-  ///
-  /// Reset the particle ID in case we need to reinitialize the particles
-  ///
+  /// \brief Reset the particle ID in case we need to reinitialize the particles
   static inline void resetID(const int id) { ParticleType::NextID(id); }
 
-  // This returns the number of ghost cells for making ghost particles
-  // level - Level N
-  // finest_level - Maximum level
-  // amr_ncycle - Number of AMR subcycles taken on the Eulerian mesh
-  // cfl - Particle CFL number on level N
-  // depos_width - Number of source term cells influenced by a particle
-  // NOTE: This is called on level N-1 to make ghost particles on level N
-  // from valid particles on level N-1
+  /// \brief Returns the number of ghost cells for making ghost particles. This
+  /// is called on level N-1 to make ghost particles on level N from valid
+  /// particles on level N-1
+  /// @param level Level N
+  /// @param finest_level Maximum level
+  /// @param amr_ncycle Number of AMR subcycles taken on the Eulerian mesh
+  /// @param cfl Particle CFL number on level N
+  /// @param depos_width Number of cells adjacent to the cell containing the
+  /// particle needed to interpolate the particle source term to the mesh
   static inline int getGhostPartCells(
     const int level,
     const int finest_level,
     const int amr_ncycle,
     const amrex::Real& cfl = 0.5,
-    const int depos_width = 1)
+    const int depos_width = 0)
   {
     if (level - 1 < finest_level) {
-      return depos_width + static_cast<int>(std::round(
-                             cfl * static_cast<amrex::Real>(amr_ncycle)));
+      return amrex::max(
+        1, depos_width + static_cast<int>(std::round(
+                           cfl * static_cast<amrex::Real>(amr_ncycle))));
     }
     return 0;
   }
 
-  // This returns the number of ghost cells needed for a MultiFab
-  // used to interpolate a state to a particle location
+  /// \brief Returns the number of ghost cells needed for a MultiFab used to
+  /// interpolate a state to a particle location
+  /// @param level Level N
+  /// @param finest_level Maximum level
+  /// @param amr_ncycle Number of AMR subcycles taken on the Eulerian mesh
+  /// @param cfl Particle CFL number on level N
+  /// @param interp_width Number of cells adjacent to the cell containing the
+  /// particle needed to interpolated the state to the particle location; this
+  /// is 1 for trilinear interpolation
+  /// @param depos_width Number of cells adjacent to the cell containing the
+  /// particle needed to interpolate the particle source term to the mesh
   static inline int getStateGhostCells(
     const int level,
     const int finest_level,
     const int amr_ncycle,
     const amrex::Real& cfl = 0.5,
     const int interp_width = 1,
-    const int depos_width = 1)
+    const int depos_width = 0)
   {
     int ghost_state = interp_width + static_cast<int>(std::round(cfl));
     if (level > 0) {
@@ -199,16 +151,23 @@ public:
     return ghost_state;
   }
 
-  // This returns the number of ghost cells needed for a MultiFab
-  // used to interpolate a state to a particle location
+  /// \brief Returns the number of ghost cells needed for a particle to
+  /// distribute the source terms to a Eulerian mesh
+  /// @param level Level N
+  /// @param finest_level Maximum level
+  /// @param amr_ncycle Number of AMR subcycles taken on the Eulerian mesh
+  /// @param cfl Particle CFL number on level N
+  /// @param depos_width Number of cells adjacent to the cell containing the
+  /// particle needed to interpolate the particle source term to the mesh
   static inline int getSourceGhostCells(
     const int level,
     const int finest_level,
     const int amr_ncycle,
     const amrex::Real& cfl = 0.5,
-    const int depos_width = 1)
+    const int depos_width = 0)
   {
-    int ghost_source = depos_width + static_cast<int>(std::round(cfl));
+    int ghost_source =
+      amrex::max(1, depos_width + static_cast<int>(std::round(cfl)));
     if (level > 0) {
       // If ghost particles are present, we need to accommodate those
       const int ghost_part_cells =
@@ -218,9 +177,7 @@ public:
     return ghost_source;
   }
 
-  ///
-  /// Update the particles but do not move particles
-  ///
+  /// \brief Update but do not move particles
   void moveKick(
     amrex::MultiFab& state,
     amrex::MultiFab& source,
@@ -234,12 +191,9 @@ public:
     pele::physics::transport::TransParm<
       pele::physics::EosType,
       pele::physics::TransportType> const* ltransparm,
-    const amrex::Real spray_cfl_lev = -1.,
-    amrex::MultiFab* u_mac = nullptr);
+    const amrex::Real spray_cfl_lev = -1.);
 
-  ///
-  /// Update and move positions of the particles
-  ///
+  /// \brief Update and move particles
   void moveKickDrift(
     amrex::MultiFab& state,
     amrex::MultiFab& source,
@@ -254,12 +208,9 @@ public:
     pele::physics::transport::TransParm<
       pele::physics::EosType,
       pele::physics::TransportType> const* ltransparm,
-    const amrex::Real spray_cfl_lev = -1.,
-    amrex::MultiFab* u_mac = nullptr);
+    const amrex::Real spray_cfl_lev = -1.);
 
-  ///
-  /// Update particles
-  ///
+  /// \brief Update particle data and solve gas-phase source terms
   void updateParticles(
     const int& level,
     amrex::MultiFab& state,
@@ -274,97 +225,85 @@ public:
     pele::physics::transport::TransParm<
       pele::physics::EosType,
       pele::physics::TransportType> const* ltransparm,
-    const amrex::Real spray_cfl_lev,
-    amrex::MultiFab* u_mac);
+    const amrex::Real spray_cfl_lev);
 
-  // Modify particles based on walls
-  // This creates new particles from splashing,
-  // consolidates particles to wall films,
-  // and removes particles that have left the domain
-  void wallImpingement(
-    const int& level,
-    const amrex::Real& flow_dt,
-    const amrex::Real& time,
-#ifdef AMREX_USE_EB
-    const amrex::FabArray<amrex::EBCellFlagFab>& flagmf,
-    const amrex::MultiCutFab* bndrycent,
-    const amrex::MultiCutFab* bndrynorm,
-#endif
-    const int state_ghosts,
-    const int source_ghosts,
-    const bool isActive);
-
-  ///
-  /// Sum boundary and copy temporary source term
-  ///
+  /// \brief Sum boundary and copy temporary source term
+  /// @param source_ghosts Number of ghost cells needed for source terms
+  /// @param level Current AMR level
+  /// @param tmpSource MultiFab containing the temporary spray source data
+  /// @param actSource MultiFab where final source data should end up
   inline void transferSource(
     const int& source_ghosts,
     const int& level,
-    amrex::MultiFab& tmp_source,
-    amrex::MultiFab& source)
+    amrex::MultiFab& tmpSource,
+    amrex::MultiFab& actSource)
   {
     BL_PROFILE("ParticleContainer::transferSource()");
     AMREX_ALWAYS_ASSERT(level >= 0);
-    const int nghost = amrex::min(source.nGrow(), source_ghosts);
+    const int nghost = amrex::min(actSource.nGrow(), source_ghosts);
 #ifdef PELELM_USE_SPRAY
-    const int ncomp = tmp_source.nComp();
+    const int ncomp = tmpSource.nComp();
     if (level > 0) {
       amrex::MultiFab tmp_mf(
         this->m_gdb->ParticleBoxArray(level),
         this->m_gdb->ParticleDistributionMap(level), ncomp, source_ghosts);
       tmp_mf.setVal(0.);
       tmp_mf.ParallelAdd(
-        tmp_source, 0, 0, ncomp, source_ghosts, source_ghosts,
+        tmpSource, 0, 0, ncomp, source_ghosts, source_ghosts,
         Geom(level).periodicity());
-      tmp_source.ParallelCopy(
+      tmpSource.ParallelCopy(
         tmp_mf, 0, 0, ncomp, source_ghosts, source_ghosts,
         Geom(level).periodicity());
     } else
 #endif
     {
-      tmp_source.SumBoundary(Geom(level).periodicity());
+      tmpSource.SumBoundary(Geom(level).periodicity());
     }
-    if (tmp_source.nComp() == source.nComp()) {
-      amrex::MultiFab::Add(source, tmp_source, 0, 0, source.nComp(), nghost);
+    if (tmpSource.nComp() == actSource.nComp()) {
+      amrex::MultiFab::Add(
+        actSource, tmpSource, 0, 0, actSource.nComp(), nghost); // NOLINT
     } else {
-      for (amrex::MFIter mfi(source, amrex::TilingIfNotGPU()); mfi.isValid();
-           ++mfi) {
-        const amrex::Box vbox = mfi.growntilebox(nghost);
-        auto const& spraydot = tmp_source.array(mfi);
-        auto const& ext_src = source.array(mfi);
-        addSpraySrc(vbox, spraydot, ext_src);
+#ifdef AMREX_USE_OMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+      {
+        for (amrex::MFIter mfi(actSource, amrex::TilingIfNotGPU());
+             mfi.isValid(); ++mfi) {
+          const amrex::Box vbox = mfi.growntilebox(nghost);
+          auto const& tmp_array = tmpSource.array(mfi);
+          auto const& act_array = actSource.array(mfi);
+          addSpraySrc(vbox, tmp_array, act_array);
+        }
       }
     }
-    tmp_source.setVal(0.);
+    tmpSource.setVal(0.);
   }
 
-  ///
-  /// Add spray source term data (with components AMREX_SPACEDIM +
-  /// SPRAY_FUEL_NUM + 2) to data containing total number of conservative
-  /// variables
-  ///
-  inline void addSpraySrc(
+  /// \brief Add spray source term data with components pstateNum to data
+  /// containing total number of conservative variables
+  static void addSpraySrc(
     const amrex::Box& vbox,
-    amrex::Array4<const amrex::Real> const& spraydot,
-    amrex::Array4<amrex::Real> const& ext_src)
+    amrex::Array4<const amrex::Real> const& tmp_array,
+    amrex::Array4<amrex::Real> const& act_array)
   {
     SprayData* fdat = d_sprayData;
     SprayComps SPI = m_sprayIndx;
     amrex::ParallelFor(
       vbox, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-          ext_src(i, j, k, SPI.momIndx + dir) +=
-            spraydot(i, j, k, SPI.momSrcIndx + dir);
+          act_array(i, j, k, SPI.momIndx + dir) +=
+            tmp_array(i, j, k, SPI.momSrcIndx + dir);
         }
-        ext_src(i, j, k, SPI.rhoIndx) += spraydot(i, j, k, SPI.rhoSrcIndx);
-        ext_src(i, j, k, SPI.engIndx) += spraydot(i, j, k, SPI.engSrcIndx);
+        act_array(i, j, k, SPI.rhoIndx) += tmp_array(i, j, k, SPI.rhoSrcIndx);
+        act_array(i, j, k, SPI.engIndx) += tmp_array(i, j, k, SPI.engSrcIndx);
         for (int sp = 0; sp < SPRAY_FUEL_NUM; ++sp) {
           const int ecomp = SPI.specIndx + fdat->dep_indx[sp];
-          ext_src(i, j, k, ecomp) += spraydot(i, j, k, SPI.specSrcIndx + sp);
+          act_array(i, j, k, ecomp) += tmp_array(i, j, k, SPI.specSrcIndx + sp);
         }
       });
   }
 
+  /// \brief Problem specific injection routine, calls #sprayInjection
   bool injectParticles(
     amrex::Real time,
     amrex::Real dt,
@@ -379,6 +318,19 @@ public:
 #endif
   );
 
+  /// \brief Generalized initializer routine. Calls #InitSprayParticles and
+  /// #PostInitRestart
+  void SprayInitialize(
+#ifdef PELELM_USE_SPRAY
+    ProbParm const& prob_parm,
+#else
+    ProbParmHost const& prob_parm,
+    ProbParmDevice const& prob_parm_d,
+#endif
+    const std::string& restart_dir = "");
+
+  /// \brief Problem specific initialization routine. Typically initializes the
+  /// SprayJet pointers or calls #uniformSprayInit
   void InitSprayParticles(
     const bool init_parts,
 #ifdef PELELM_USE_SPRAY
@@ -389,25 +341,53 @@ public:
 #endif
   );
 
-  static std::string spray_fuel_names[SPRAY_FUEL_NUM];
-  static std::string spray_dep_names[SPRAY_FUEL_NUM];
-  static amrex::Vector<std::string> spray_derive_vars;
+  /// \brief Should be called after Restart or initialize routine. Reads
+  /// injection data files if they are present. Checks to ensure all jet names
+  /// are unique
+  /// @param dir Name of restart directory
+  void PostInitRestart(const std::string& dir = "");
+
+  /// \brief Return the number of derived spray variables
+  static int NumDeriveVars()
+  {
+    return static_cast<int>(m_sprayDeriveVars.size());
+  }
+
+  /// \brief Return derive variable names
+  static amrex::Vector<std::string>& DeriveVarNames()
+  {
+    return m_sprayDeriveVars;
+  }
+
+  /// \brief Return host spray data pointer
+  static SprayData* getSprayData() { return m_sprayData; }
+
+  /// \brief Return fuel species index
+  static int getFuelIndx(const int spf) { return m_sprayData->dep_indx[spf]; }
+
+  /// \brief Return spray indices
+  static SprayComps getSprayComps() { return m_sprayIndx; }
+
+  static void AssignSprayComps(SprayComps scomps) { m_sprayIndx = scomps; }
+
+  static std::string m_sprayFuelNames[SPRAY_FUEL_NUM];
+  static std::string m_sprayDepNames[SPRAY_FUEL_NUM];
+  static amrex::Vector<std::string> m_sprayDeriveVars;
+  static SprayData* m_sprayData;
+  static SprayData* d_sprayData;
+  static SprayComps m_sprayIndx;
+  static amrex::Real spray_cfl;
+  static bool write_ascii_files;
+  static bool plot_spray_src;
+  static std::string spray_init_file;
 
 private:
-  ///
-  /// This defines reflect_lo and reflect_hi from phys_bc
-  ///
+  /// \brief This defines reflect_lo and reflect_hi from phys_bc
   void init_bcs();
 
   amrex::BCRec* phys_bc;
   bool reflect_lo[AMREX_SPACEDIM];
   bool reflect_hi[AMREX_SPACEDIM];
-  SprayData* m_sprayData;
-  SprayData* d_sprayData;
-  SprayComps m_sprayIndx;
-  // Particle CFL, used for injection cases with LMeX
-  amrex::Real m_partCFL;
-  amrex::Real m_injectVel;
   amrex::Vector<std::unique_ptr<SprayJet>> m_sprayJets;
 };
 
