@@ -1,0 +1,197 @@
+==============================================================================
+ PeleLMeX Job Information
+==============================================================================
+number of MPI processes: 16
+
+
+==============================================================================
+ Build Information
+==============================================================================
+build date:    2023-05-30 12:00:12.184366
+build machine: Linux login12 5.14.21-150400.24.46_12.0.72-cray_shasta_c #1 SMP Thu May 4 03:49:17 UTC 2023 (7c7b442) x86_64 x86_64 x86_64 GNU/Linux
+build dir:     /lustre/orion/cmb138/proj-shared/w0g/test_rad/PeleLMeX/Submodules/PeleMP/Exec/JetTests/PeleLMeX/xburner_rad
+AMReX dir:     /lustre/orion/cmb138/proj-shared/w0g/test_rad/PeleLMeX/Submodules/amrex
+
+COMP:          hip
+COMP version:  
+C++ compiler:  
+C++ flags:     
+
+PeleLMeX     git describe: e13971a-dirty
+AMReX        git describe: 22.12-4-g821c5ba7d
+PelePhysics  git describe: v0.1-1052-gdb368023
+AMREX-Hydro  git describe: v0.1-1052-gdb368023
+
+
+==============================================================================
+ Grid Information
+==============================================================================
+ level: 0
+   number of boxes = 8
+   maximum zones   = 64 64 128 
+
+ level: 1
+   number of boxes = 28
+   maximum zones   = 128 128 256 
+
+
+
+==============================================================================
+ Inputs File Parameters
+==============================================================================
+geometry.is_periodic = 0 0 0
+geometry.coord_sys = 0
+geometry.prob_lo = 0.0 0.0 0.0
+geometry.prob_hi = 0.06 0.06 0.12
+peleLM.lo_bc = Symmetry Symmetry Inflow
+peleLM.hi_bc = SlipWallAdiab SlipWallAdiab Outflow
+amr.n_cell = 64 64 128
+amr.v = 1
+amr.max_level = 1
+amr.regrid_int = 20
+amr.n_error_buf = 1 1 2 2
+amr.grid_eff = 0.7
+amr.ref_ratio = 2 2 2
+amr.blocking_factor = 16
+amr.max_grid_size = 128
+prob.norm_dir = 2
+prob.init_vel = 0.
+prob.P_mean = 101325.
+prob.ref_temp = 300.
+prob.fuel_name = C2H4
+prob.ign_name = N-C7H16
+prob.ign_Y = 0.
+prob.fuel_temp = 375.
+prob.oxid_temp = 300.
+prob.wall_temp = 300.
+prob.fuel_dia = 0.012
+prob.wall_thick = 0.001
+prob.vel_ramp_time = 0.
+prob.fuel_vel = 0.0398
+prob.oxid_vel = 0.309
+prob.oxid_dia = 1.
+prob.oxid_vel_flat = 1
+prob.fuel_vel_flat = 1
+prob.oxid_O2(nvals = 1)  :: [0.233]
+prob.oxid_N2(nvals = 1)  :: [0.767]
+peleLM.do_soot_solve = 1
+soot.incept_pah = A2
+soot.v = 0
+soot.temp_cutoff = 500.
+soot.conserve_mass = false
+soot.num_subcycles = 10
+soot.max_subcycles = 100
+fab.init_snan = 1
+fab.do_initval = 1
+peleLM.do_rad_solve = 1
+pelerad.composite_solve = 0
+pelerad.use_hypre = 0
+pelerad.verbose = 0
+pelerad.max_iter = 200
+pelerad.max_coarsening_level = 3
+pelerad.reltol = 1.0e-4
+pelerad.abstol = 1.0e-4
+pelerad.bottom_reltol = 1.0e-4
+pelerad.agglomeration = 1
+pelerad.consolidation = 1
+pelerad.bottom_verbose = 0
+pelerad.maxorder(nvals = 1)  :: [2]
+pelerad.linop_maxorder = 2
+pelerad.max_fmg_iter = 2
+pelerad.lo_bc = Neumann Neumann Robin
+pelerad.hi_bc = Robin Robin Robin
+peleLM.v = 1
+peleLM.incompressible = 0
+peleLM.use_wbar = 0
+peleLM.sdc_iterMax = 1
+peleLM.floor_species = 1
+peleLM.num_init_iter = 4
+peleLM.plot_react = 0
+amr.restart = checkfiles/chk54100
+amr.check_file = checkfiles/chk
+amr.check_int = 1000
+amr.plot_int = 1000
+amr.dt_shrink = 0.1
+amr.max_step = 58100
+amr.stop_time = 4.
+amr.cfl = 0.05
+amr.derive_plot_vars = RhoRT mass_fractions rhominsumrhoY
+peleLM.chem_integrator = ReactorCvode
+peleLM.use_typ_vals_chem = 0
+cvode.solve_type = magma_direct
+amr.refinement_indicators = inBox
+amr.inBox.max_level = 1
+amr.inBox.in_box_lo = 0. 0. 0.
+amr.inBox.in_box_hi = 0.018 0.018 0.1
+amr.gradT.max_level(nvals = 1)  :: [2]
+amr.gradT.adjacent_difference_greater(nvals = 1)  :: [300.]
+amr.gradT.field_name(nvals = 1)  :: [temp]
+peleLM.fuel_name = C2H4
+amrex.v = 1
+amrex.verbose = 1
+amrex.max_gpu_streams = 4
+device.v = 0
+device.verbose = 0
+device.numThreads.x = 0
+device.numThreads.y = 0
+device.numThreads.z = 0
+device.numBlocks.x = 0
+device.numBlocks.y = 0
+device.numBlocks.z = 0
+device.graph_init = 0
+device.graph_init_nodes = 10000
+amrex.regtest_reduction = 0
+amrex.signal_handling = 1
+amrex.throw_exception = 0
+amrex.call_addr2line = 1
+amrex.abort_on_unused_inputs = 0
+amrex.handle_sigterm = 0
+amrex.fpe_trap_invalid = 0
+amrex.fpe_trap_zero = 0
+amrex.fpe_trap_overflow = 0
+amrex.use_gpu_aware_mpi = 0
+amrex.the_arena_init_size = 51527024640
+amrex.the_device_arena_init_size = 8388608
+amrex.the_managed_arena_init_size = 8388608
+amrex.the_pinned_arena_init_size = 8388608
+amrex.the_arena_release_threshold = 9223372036854775807
+amrex.the_device_arena_release_threshold = 9223372036854775807
+amrex.the_managed_arena_release_threshold = 9223372036854775807
+amrex.the_pinned_arena_release_threshold = 68702699520
+amrex.the_async_arena_release_threshold = 9223372036854775807
+amrex.the_arena_is_managed = 0
+amrex.abort_on_out_of_gpu_memory = 0
+DistributionMapping.v = 0
+DistributionMapping.verbose = 0
+DistributionMapping.efficiency = 0.90000000000000002
+DistributionMapping.sfc_threshold = 0
+DistributionMapping.node_size = 0
+DistributionMapping.verbose_mapper = 0
+fab.initval = nan
+fabarray.maxcomp = 25
+vismf.v = 0
+vismf.headerversion = 1
+vismf.groupsets = 0
+vismf.setbuf = 1
+vismf.usesingleread = 0
+vismf.usesinglewrite = 0
+vismf.checkfilepositions = 0
+vismf.usepersistentifstreams = 0
+vismf.usesynchronousreads = 0
+vismf.usedynamicsetselection = 1
+vismf.iobuffersize = 2097152
+vismf.allowsparsewrites = 1
+amrex.async_out = 0
+amrex.async_out_nfiles = 64
+machine.verbose = 0
+machine.very_verbose = 0
+tiny_profiler.device_synchronize_around_region = 0
+tiny_profiler.verbose = 0
+tiny_profiler.v = 0
+amrex.use_profiler_syncs = 0
+amr.n_proper = 1
+amr.refine_grid_layout = 1
+amr.refine_grid_layout_x = 1
+amr.refine_grid_layout_y = 1
+amr.refine_grid_layout_z = 1
+amr.check_input = 1

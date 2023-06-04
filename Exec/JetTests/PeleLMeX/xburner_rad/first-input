@@ -1,0 +1,181 @@
+#----------------------DOMAIN DEFINITION------------------------
+geometry.is_periodic = 0 0 0               # For each dir, 0: non-perio, 1: periodic
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ
+geometry.prob_lo     = 0.0 0.0 0.0        # x_lo y_lo (z_lo)
+geometry.prob_hi     = 0.06 0.06 0.12
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# Interior, Inflow, Outflow, Symmetry,
+# SlipWallAdiab, NoSlipWallAdiab, SlipWallIsotherm, NoSlipWallIsotherm
+peleLM.lo_bc = Symmetry Symmetry Inflow
+peleLM.hi_bc = SlipWallAdiab SlipWallAdiab Outflow
+
+#-------------------------AMR CONTROL----------------------------
+amr.n_cell          = 64 64 128      # Level 0 number of cells in each direction
+amr.v               = 1                # AMR verbose
+amr.max_level       = 1                # maximum level number allowed
+#amr.max_level       = 0                # maximum level number allowed
+amr.regrid_int      = 20                # how often to regrid
+#amr.regrid_int      = -1                # how often to regrid
+amr.n_error_buf     = 1 1 2 2          # number of buffer cells in error est
+amr.grid_eff        = 0.7              # what constitutes an efficient grid
+amr.ref_ratio = 2 2 2
+amr.blocking_factor = 16
+amr.max_grid_size = 128
+
+#--------------------------- Problem -------------------------------
+prob.norm_dir = 2
+prob.init_vel = 0.
+prob.P_mean = 101325.
+prob.ref_temp = 300.
+prob.fuel_name = C2H4
+prob.ign_name = N-C7H16
+prob.ign_Y = 0.
+#prob.fuel_temp = 300.
+#prob.ign_Y = 0.1
+#prob.ign_Y_start = 0.
+#prob.ign_Y = 0.0195
+#prob.fuel_temp = 300.
+#prob.fuel_temp = 350.
+prob.fuel_temp = 375.
+#prob.fuel_temp = 425.
+#prob.fuel_temp = 350.
+prob.oxid_temp = 300.
+prob.wall_temp = 300.
+prob.fuel_dia = 0.012
+prob.wall_thick = 0.001
+#prob.oxid_dia = 0.055
+prob.vel_ramp_time = 0.
+# If flat profile is used
+#prob.fuel_vel = 0.0681
+#prob.fuel_vel = 0.04
+prob.fuel_vel = 0.0398
+prob.oxid_vel = 0.309
+# If developed velocity profile is used
+#prob.fuel_vel = 0.0681
+# prob.fuel_vel = 0.0398
+# prob.oxid_vel = 0.0890
+# prob.fuel_dia = 0.0111
+#prob.oxid_dia = 0.1016
+# prob.fuel_vel = 0.0118
+# prob.oxid_vel = 0.0916
+# prob.fuel_dia = 0.02032
+prob.oxid_dia = 1.
+prob.oxid_vel_flat = 1
+prob.fuel_vel_flat = 1
+prob.oxid_O2 = 0.233
+prob.oxid_N2 = 0.767
+
+#--------------------SOOT MODELING------------------------
+peleLM.do_soot_solve = 1
+#peleLM.restart_reset_soot = true
+soot.incept_pah = A2 # Soot inception species
+soot.v = 0
+soot.temp_cutoff = 500.
+soot.conserve_mass = false
+soot.num_subcycles = 10
+soot.max_subcycles = 100
+# soot.do_nucl = false
+#soot.do_cond = false
+#soot.do_coag = false
+#soot.do_oxid = false
+# soot.do_growth = false
+
+#-------------------RADIATION MODELING--------------------
+fab.init_snan = 1
+fab.do_initval = 1
+peleLM.do_rad_solve = 1
+pelerad.composite_solve = 0
+pelerad.use_hypre = 0
+pelerad.verbose = 0
+pelerad.max_iter = 200
+pelerad.max_coarsening_level = 3
+pelerad.reltol = 1.0e-4
+pelerad.abstol = 1.0e-4
+pelerad.bottom_reltol = 1.0e-4
+pelerad.agglomeration = 1
+pelerad.consolidation = 1
+pelerad.bottom_verbose = 0
+pelerad.maxorder = 2
+pelerad.linop_maxorder = 2
+pelerad.max_fmg_iter = 2
+pelerad.lo_bc = Neumann Neumann Robin
+pelerad.hi_bc = Robin Robin Robin
+
+#-------------------------PeleLM CONTROL----------------------------
+peleLM.v = 1
+peleLM.incompressible = 0
+peleLM.use_wbar = 0
+peleLM.sdc_iterMax = 1
+peleLM.floor_species = 1
+#peleLM.advection_scheme = Godunov_BDS
+
+# peleLM.do_temporals = 0
+# peleLM.temporal_int = 2
+#peleLM.mass_balance = 1
+peleLM.num_init_iter = 4
+peleLM.plot_react = 0
+
+#amr.restart = checkfiles/chk02800
+amr.restart = checkfiles/chk58100
+#amr.initDataPlt = checkfiles/plt0030705
+amr.check_file = checkfiles/chk
+amr.check_int = 100
+# amr.plot_per = 0.01
+amr.plot_int = 100
+#amr.dt_shrink = 1.
+amr.dt_shrink = 0.1
+amr.max_step = 58200
+amr.stop_time = 4.
+amr.cfl = 0.05
+amr.derive_plot_vars = RhoRT mass_fractions rhominsumrhoY
+#amr.fixed_dt = 5.E-5
+#amr.fixed_dt = 1.E-6
+
+# --------------- INPUTS TO CHEMISTRY REACTOR ---------------
+#ode.verbose = 4
+#ode.clean_init_massfrac = true
+#peleLM.chem_integrator = "ReactorNull"
+peleLM.chem_integrator = "ReactorCvode"
+#peleLM.typical_values_reset_int = 40000
+#cvode.solve_type = GMRES
+#ode.clean_init_massfrac = true
+peleLM.use_typ_vals_chem = 0
+# ode.rtol = 1.E-6
+# ode.atol = 1.E-5
+# cvode.max_order = 4
+#cvode.solve_type = sparse_direct
+#cvode.solve_type = dense_direct
+cvode.solve_type = magma_direct
+#peleLM.use_typ_vals_chem = 0          # Use species/temp typical values in CVODE
+#ode.rtol = 1.0e-4                     # Relative tolerance of the chemical solve
+#ode.atol = 1.0e-6                     # Absolute tolerance factor applied on typical values
+# ode.rtol = 1.0e-6
+# ode.atol = 1.0e-5
+#cvode.solve_type = GMRES
+#cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton direction) 
+#cvode.max_order = 4                  # CVODE max BDF order.
+#ode.atol = 1.E-12
+
+# mac_proj.verbose = 0
+# mac_proj.atol = 1.E-14
+# mac_proj.rtol = 1.E-11
+# nodal_proj.verbose = 0
+# nodal_proj.atol        = 6.0e-14     # tolerence for projections
+# nodal_proj.rtol        = 6.0e-11
+
+#--------------------REFINEMENT CONTROL------------------------
+amr.refinement_indicators = inBox
+amr.inBox.max_level = 1
+amr.inBox.in_box_lo = 0. 0. 0.
+amr.inBox.in_box_hi = 0.018 0.018 0.1
+amr.gradT.max_level     = 2
+amr.gradT.adjacent_difference_greater = 300.
+amr.gradT.field_name    = temp
+peleLM.fuel_name = C2H4
+
+#amrex.abort_on_out_of_gpu_memory = 1
+# amrex.regtest_reduction = 1
+# amrex.fpe_trap_invalid = 1
+# amrex.fpe_trap_zero = 1
+# amrex.fpe_trap_overflow = 1
