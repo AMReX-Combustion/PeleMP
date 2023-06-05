@@ -8,7 +8,7 @@ VERBOSE         = FALSE
 TINY_PROFILE    = TRUE
 
 # Compilation
-COMP            = llvm
+COMP            = clang
 USE_MPI         = TRUE
 USE_OMP         = FALSE
 USE_CUDA        = FALSE
@@ -26,6 +26,6 @@ USE_SOOT = TRUE
 NUM_SOOT_MOMENTS = 3
 
 # PeleRad
-USE_PELERAD = TRUE
+USE_PELERAD = FALSE
 
 include $(PELELMEX_HOME)/Utils/Make.PeleLMeX
