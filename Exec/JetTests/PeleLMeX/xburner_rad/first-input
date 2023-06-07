@@ -85,6 +85,7 @@ soot.max_subcycles = 100
 fab.init_snan = 1
 fab.do_initval = 1
 peleLM.do_rad_solve = 1
+pelerad.kppath = "/ccs/home/gwjgavin/Pele_dev/PeleRad/data/kpDB/"
 pelerad.composite_solve = 0
 pelerad.use_hypre = 0
 pelerad.verbose = 0

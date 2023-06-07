@@ -4,7 +4,7 @@
 DIM             = 3
 DEBUG           = FALSE
 PRECISION       = DOUBLE
-VERBOSE         = TRUE
+VERBOSE         = FALSE
 TINY_PROFILE    = TRUE
 
 # Compilation
@@ -27,5 +27,7 @@ NUM_SOOT_MOMENTS = 3
 
 # PeleRad
 USE_PELERAD = TRUE
+# need this flag on Frontier
+HIPCC_FLAGS += -lstdc++fs
 
 include $(PELELMEX_HOME)/Utils/Make.PeleLMeX
