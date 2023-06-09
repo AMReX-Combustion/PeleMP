@@ -56,7 +56,7 @@ SprayParticleContainer::SprayParticleIO(
     }
     ParallelDescriptor::Barrier();
     // Each jet contains name, injection number density, outstanding mass and
-    // time, and minimum parcels for injection
+    // time, minimum parcels for injection, and total injected mass and time
     for (int jindx = 0; jindx < numjets; ++jindx) {
       SprayJet* js = m_sprayJets[jindx].get();
       int jet_proc = js->Proc();
@@ -70,7 +70,8 @@ SprayParticleContainer::SprayParticleIO(
           FileOpenFailed(filename);
         }
         file << js->jet_name() << " " << js->m_sumInjMass << " "
-             << js->m_sumInjTime << " " << js->m_minParcel << "\n";
+             << js->m_sumInjTime << " " << js->m_minParcel << " "
+             << js->m_totalInjMass << " " << js->m_totalInjTime << "\n";
         file.flush();
         file.close();
         if (!file.good()) {
@@ -112,9 +113,11 @@ SprayParticleContainer::PostInitRestart(const std::string& dir)
       Vector<Real> in_inj_mass(in_numjets);
       Vector<Real> in_inj_time(in_numjets);
       Vector<Real> in_min_parcel(in_numjets);
+      Vector<Real> in_total_mass(in_numjets);
+      Vector<Real> in_total_time(in_numjets);
       for (int i = 0; i < in_numjets; ++i) {
         JetDataFile >> in_jet_names[i] >> in_inj_mass[i] >> in_inj_time[i] >>
-          in_min_parcel[i];
+          in_min_parcel[i] >> in_total_mass >> in_total_time;
       }
       for (int ijets = 0; ijets < in_numjets; ++ijets) {
         std::string in_name = in_jet_names[ijets];
@@ -124,6 +127,8 @@ SprayParticleContainer::PostInitRestart(const std::string& dir)
             js->m_sumInjMass = in_inj_mass[ijets];
             js->m_sumInjTime = in_inj_time[ijets];
             js->m_minParcel = in_min_parcel[ijets];
+            js->m_totalInjMass = in_total_mass[ijets];
+            js->m_totalInjTime = in_total_time[ijets];
           }
         }
       }
