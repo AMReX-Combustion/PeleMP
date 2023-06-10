@@ -12,7 +12,7 @@ amr.n_cell = 32 32 32
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 pelec.lo_bc        = "Interior" "NoSlipWall" "Interior"
-pelec.hi_bc        = "Interior" "Hard" "Interior"
+pelec.hi_bc        = "Interior" "FOExtrap" "Interior"
 
 # WHICH PHYSICS
 pelec.do_hydro = 1
@@ -64,8 +64,6 @@ pelec.do_spray_particles = 1
 particles.v = 0
 particles.mom_transfer = 1
 particles.mass_transfer = 1
-# Set so that SprayParticleInitInsert.cpp is used to initialize
-particles.init_function = 1
 particles.write_ascii_files = 0
 
 # Number of particles per parcel

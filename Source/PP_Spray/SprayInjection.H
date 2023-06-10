@@ -3,14 +3,8 @@
 #include "SprayParticles.H"
 
 /*
- This is generalized injection routine.
- We have 2 spherical coordinate systems
- 1: Jet spherical coordinates for the center of the jet relative to
- Cartesian. This is the jet_angle (theta_1) and azimuthal angles (phi_1)
- 2: Spread spherical coordinates for spread of particle relative
- center of jet. This uses the spread_angle
- Within these coordinates, theta is the inclination angle and phi is
- the azimuthal
+ These are generalized initialization and injection routines to be called in a
+ problem-specific SprayParticlesInitInsert.cpp file, when necessary.
 */
 
 void
@@ -50,7 +44,7 @@ SprayParticleContainer::sprayInjection(
   // Minimum number of parcels we want injected at a time
   const amrex::Real min_inj_parcel = spray_jet->m_minParcel;
   amrex::Real dt = sim_dt;
-  amrex::Real mdot = spray_jet->mass_flow_rate();
+  amrex::Real mdot = spray_jet->mass_flow_rate(time);
   amrex::Real inject_mass = mdot * sim_dt;
   // See if there is uninjected mass from previous time steps
   if (spray_jet->m_sumInjMass > 0.) {
@@ -88,6 +82,9 @@ SprayParticleContainer::sprayInjection(
     amrex::Real phi_radial = 0.;
     amrex::Real cur_rad = (radp - 0.5) * spray_jet->jet_dia();
 #endif
+    // phi_radial - azimuthal angle, called phi_j in docs
+    // theta_spread - inclination angle, called theta_j in docs
+    // phi_swirl - azimuthal swirling component, called phi_s in docs
     amrex::Real umag, theta_spread, phi_swirl, dia_part, T_part;
     amrex::Real Y_part[SPRAY_FUEL_NUM];
     bool make_new_part = spray_jet->get_new_particle(
@@ -138,9 +135,11 @@ SprayParticleContainer::sprayInjection(
   amrex::Real est_mdot = cur_mass / dt;
   // If we are over-injecting mass, increase the minimum parcels needed for
   // injection
-  if (est_mdot - mdot > 0.05 * mdot) {
+  if (est_mdot - mdot > 0.5 * mdot) {
     spray_jet->m_minParcel += 1.;
   }
+  spray_jet->m_totalInjMass += cur_mass;
+  spray_jet->m_totalInjTime += dt;
   for (auto& kv : host_particles) {
     auto grid = kv.first.first;
     auto tile = kv.first.second;
@@ -181,13 +180,11 @@ SprayParticleContainer::uniformSprayInit(
   const amrex::Real T_part,
   const amrex::Real* Y_part,
   const int level,
-  const int numRedist)
+  const int num_redist)
 {
   const int MyProc = amrex::ParallelDescriptor::MyProc();
   const int NProcs = amrex::ParallelDescriptor::NProcs();
-  int NRedist = numRedist;
-  // TODO: This might be overkill but issues persisted at high Summit node
-  // counts
+  int NRedist = num_redist;
   if (NRedist < 0) {
     NRedist = 1;
     if (NProcs <= 1024) {
@@ -316,6 +313,5 @@ SprayParticleContainer::uniformSprayInit(
     }
     Redistribute();
   } // for (int which ...
-  amrex::Gpu::streamSynchronize();
 }
 #endif

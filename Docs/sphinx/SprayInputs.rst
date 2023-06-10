@@ -7,7 +7,7 @@ Spray Flags and Inputs
 
 * In the ``GNUmakefile``, specify ``USE_PARTICLES = TRUE`` and ``SPRAY_FUEL_NUM = N`` where ``N`` is the number of liquid species being used in the simulation.
 
-* Depending on the gas phase solver, spray solving functionality can be turned on in the input file using ``pelec.do_spray_particles = 1`` or ``pelelm.do_spray_particles = 1``.
+* Depending on the gas phase solver, spray solving functionality can be turned on in the input file using ``pelec.do_spray_particles = 1`` or ``peleLM.do_spray_particles = 1``.
 
 * The units for `PeleLM` and `PeleLMeX` are MKS while the units for `PeleC` are CGS. This is the same for the spray inputs. E.g. when running a spray simulation coupled with `PeleC`, the units for ``particles.fuel_cp`` must be in erg/g.
 
@@ -67,9 +67,6 @@ Spray Flags and Inputs
    |``write_ascii_files``  |Output ascii files of spray    |No           |``0``              |
    |                       |data                           |             |                   |
    +-----------------------+-------------------------------+-------------+-------------------+
-   |``init_function``      |Initialize with                |No           |``1``              |
-   |                       |``InitSprayParticles()``       |             |                   |
-   +-----------------------+-------------------------------+-------------+-------------------+
    |``cfl``                |Particle CFL number for        |No           |``0.5``            |
    |                       |limiting time step             |             |                   |
    +-----------------------+-------------------------------+-------------+-------------------+
@@ -118,8 +115,6 @@ Templates to facilitate and simplify spray injection are available in `PeleMP`. 
     m_sprayJets.resize(num_jets);
     std::string jet_name = "jet1";
     m_sprayJets[0] = std::make_unique<SprayJet>(jet_name, Geom(0));
-    // Start without any particles
-    m_injectVel = m_sprayJets[0]->jet_vel();
     return;
   }
 
@@ -206,8 +201,8 @@ Care must be taken to ensure the amount of mass injected during a time step matc
    .. math::
       N_{P, \rm{inj}} = m_{\rm{inj}} / (N_{d} m_{d, \rm{avg}})
 
-  * If :math:`N_{P, \rm{inj}} < N_{P, \min}`, the mass and time is accumulated as :math:`m_{\rm{acc}} = m_{\rm{inj}}` and :math:`t_{\rm{acc}} = t_{\rm{inj}}` and no injection occurs this time step
+  * If :math:`N_{P, \rm{inj}} < N_{P, \min}`, the mass and time is accumulated as :math:`m_{\rm{acc}} = m_{\rm{inj}}` and :math:`t_{\rm{acc}} = t_{\rm{inj}}` and no injection occurs this time step.
 
   * Otherwise, :math:`m_{\rm{inj}}` mass is injected and convected over time :math:`t_{\rm{inj}}` and :math:`m_{\rm{acc}}` and :math:`t_{\rm{acc}}` are reset.
 
-#. If injection occurs, the amount of mass injected, :math:`m_{\rm{actual}}`, is summed and compared with the desired mass flow rate. If :math:`m_{\rm{actual}} / t_{\rm{inj}} - \dot{m}_{\rm{inj}} > 0.05 \dot{m}_{\rm{inj}}`, then :math:`N_{P,\min}` is increased by one to reduce the liklihood of over-injecting in the future. A balance is necessary: the higher the minimum number of parcels, the less likely to over-inject mass but the number of time steps between injections can potentially grow as well.
+4. If injection occurs, the amount of mass injected, :math:`m_{\rm{actual}}`, is summed and compared with the desired mass flow rate. If :math:`m_{\rm{actual}} / t_{\rm{inj}} - \dot{m}_{\rm{inj}} > 0.05 \dot{m}_{\rm{inj}}`, then :math:`N_{P,\min}` is increased by one to reduce the liklihood of over-injecting in the future. A balance is necessary: the higher the minimum number of parcels, the less likely to over-inject mass but the number of time steps between injections can potentially grow as well.

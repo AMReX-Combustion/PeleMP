@@ -17,11 +17,6 @@ struct ProbParmDevice
 
 struct ProbParmHost
 {
-  unsigned int inject_N = 0;
-  amrex::Vector<amrex::Real> inject_time;
-  amrex::Vector<amrex::Real> inject_mass;
-  amrex::Vector<amrex::Real> inject_vel;
-  std::string input_file = "";
 };
 
 #endif

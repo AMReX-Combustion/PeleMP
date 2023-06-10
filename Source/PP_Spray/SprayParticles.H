@@ -38,27 +38,14 @@ public:
   using HostVectReal = amrex::Gpu::HostVector<amrex::Real>;
   using HostVectInt = amrex::Gpu::HostVector<int>;
 
-  SprayParticleContainer(
-    amrex::AmrCore* amr,
-    amrex::BCRec* _phys_bc,
-    const SprayData& fdat,
-    const SprayComps& SPI,
-    amrex::Real part_cfl = -1.)
+  SprayParticleContainer(amrex::AmrCore* amr, amrex::BCRec* _phys_bc)
     : amrex::AmrParticleContainer<NSR_SPR, NSI_SPR, NAR_SPR, NAI_SPR>(amr),
-      phys_bc(_phys_bc),
-      m_sprayData(new SprayData{}),
-      m_sprayIndx(SPI),
-      m_partCFL(part_cfl)
+      phys_bc(_phys_bc)
   {
-    d_sprayData =
-      static_cast<SprayData*>(amrex::The_Arena()->alloc(sizeof(SprayData)));
-    std::memcpy(m_sprayData, &(fdat), sizeof(SprayData));
-    amrex::Gpu::copy(
-      amrex::Gpu::hostToDevice, m_sprayData, m_sprayData + 1, d_sprayData);
     init_bcs();
   }
 
-  ~SprayParticleContainer() override
+  static void SprayCleanUp()
   {
     delete m_sprayData;
     amrex::The_Arena()->free(d_sprayData);
@@ -72,6 +59,13 @@ public:
     const int level);
 
   /// \brief General initialization routine for uniformly distributed droplets
+  /// @param num_part Number of parcels to initialize in each direction
+  /// @param vel_part Droplet velocity
+  /// @param dia_part Droplet diameter
+  /// @param T_part Droplet temperature
+  /// @param Y_part Pointer to array of droplet mass fractions
+  /// @param level Current AMR level
+  /// @param num_redist Number of redistributes to do during initialization
   void uniformSprayInit(
     const amrex::IntVect num_part,
     const amrex::RealVect vel_part,
@@ -79,29 +73,18 @@ public:
     const amrex::Real T_part,
     const amrex::Real* Y_part,
     const int level,
-    const int numRedist);
+    const int num_redist = 1);
 
   /// \brief Setup spray parameters
-  static void spraySetup(SprayData& sprayData, const amrex::Real* body_force);
+  static void spraySetup(const amrex::Real* body_force);
 
   /// \brief Read in spray parameters from input file
-  static void readSprayParams(
-    int& particle_verbose,
-    amrex::Real& particle_cfl,
-    int& write_spray_ascii_files,
-    int& plot_spray_src,
-    int& init_function,
-    std::string& init_file,
-    SprayData& sprayData,
-    const amrex::Real& max_cfl = 0.5);
+  static void readSprayParams(int& particle_verbose);
 
   /// \brief Spray particle write routine, writes plot, checkpoint, ascii, and
   /// injection data files
   void SprayParticleIO(
-    const int level,
-    const bool is_checkpoint,
-    const int write_ascii,
-    const std::string& dir);
+    const int level, const bool is_checkpoint, const std::string& dir);
 
   /// \brief Derive grid variables related to sprays
   void computeDerivedVars(
@@ -109,7 +92,7 @@ public:
 
   /// \brief Compute a maximum time step based on the particle velocities and a
   /// particle CFL number
-  amrex::Real estTimestep(int level, amrex::Real cfl) const;
+  amrex::Real estTimestep(int level) const;
 
   /// \brief Reset the particle ID in case we need to reinitialize the particles
   static inline void resetID(const int id) { ParticleType::NextID(id); }
@@ -131,8 +114,9 @@ public:
     const int depos_width = 0)
   {
     if (level - 1 < finest_level) {
-      return depos_width + static_cast<int>(std::round(
-                             cfl * static_cast<amrex::Real>(amr_ncycle)));
+      return amrex::max(
+        1, depos_width + static_cast<int>(std::round(
+                           cfl * static_cast<amrex::Real>(amr_ncycle))));
     }
     return 0;
   }
@@ -182,7 +166,8 @@ public:
     const amrex::Real& cfl = 0.5,
     const int depos_width = 0)
   {
-    int ghost_source = depos_width + static_cast<int>(std::round(cfl));
+    int ghost_source =
+      amrex::max(1, depos_width + static_cast<int>(std::round(cfl)));
     if (level > 0) {
       // If ghost particles are present, we need to accommodate those
       const int ghost_part_cells =
@@ -192,7 +177,7 @@ public:
     return ghost_source;
   }
 
-  /// \brief Update the particles but do not move particles
+  /// \brief Update but do not move particles
   void moveKick(
     amrex::MultiFab& state,
     amrex::MultiFab& source,
@@ -206,10 +191,9 @@ public:
     pele::physics::transport::TransParm<
       pele::physics::EosType,
       pele::physics::TransportType> const* ltransparm,
-    const amrex::Real spray_cfl_lev = -1.,
-    amrex::MultiFab* u_mac = nullptr);
+    const amrex::Real spray_cfl_lev = -1.);
 
-  /// \brief Update and move positions of the particles
+  /// \brief Update and move particles
   void moveKickDrift(
     amrex::MultiFab& state,
     amrex::MultiFab& source,
@@ -224,8 +208,7 @@ public:
     pele::physics::transport::TransParm<
       pele::physics::EosType,
       pele::physics::TransportType> const* ltransparm,
-    const amrex::Real spray_cfl_lev = -1.,
-    amrex::MultiFab* u_mac = nullptr);
+    const amrex::Real spray_cfl_lev = -1.);
 
   /// \brief Update particle data and solve gas-phase source terms
   void updateParticles(
@@ -242,8 +225,7 @@ public:
     pele::physics::transport::TransParm<
       pele::physics::EosType,
       pele::physics::TransportType> const* ltransparm,
-    const amrex::Real spray_cfl_lev,
-    amrex::MultiFab* u_mac);
+    const amrex::Real spray_cfl_lev);
 
   /// \brief Sum boundary and copy temporary source term
   /// @param source_ghosts Number of ghost cells needed for source terms
@@ -281,12 +263,17 @@ public:
       amrex::MultiFab::Add(
         actSource, tmpSource, 0, 0, actSource.nComp(), nghost); // NOLINT
     } else {
-      for (amrex::MFIter mfi(actSource, amrex::TilingIfNotGPU()); mfi.isValid();
-           ++mfi) {
-        const amrex::Box vbox = mfi.growntilebox(nghost);
-        auto const& tmp_array = tmpSource.array(mfi);
-        auto const& act_array = actSource.array(mfi);
-        addSpraySrc(vbox, tmp_array, act_array);
+#ifdef AMREX_USE_OMP
+#pragma omp parallel if (Gpu::notInLaunchRegion())
+#endif
+      {
+        for (amrex::MFIter mfi(actSource, amrex::TilingIfNotGPU());
+             mfi.isValid(); ++mfi) {
+          const amrex::Box vbox = mfi.growntilebox(nghost);
+          auto const& tmp_array = tmpSource.array(mfi);
+          auto const& act_array = actSource.array(mfi);
+          addSpraySrc(vbox, tmp_array, act_array);
+        }
       }
     }
     tmpSource.setVal(0.);
@@ -294,7 +281,7 @@ public:
 
   /// \brief Add spray source term data with components pstateNum to data
   /// containing total number of conservative variables
-  inline void addSpraySrc(
+  static void addSpraySrc(
     const amrex::Box& vbox,
     amrex::Array4<const amrex::Real> const& tmp_array,
     amrex::Array4<amrex::Real> const& act_array)
@@ -331,6 +318,17 @@ public:
 #endif
   );
 
+  /// \brief Generalized initializer routine. Calls #InitSprayParticles and
+  /// #PostInitRestart
+  void SprayInitialize(
+#ifdef PELELM_USE_SPRAY
+    ProbParm const& prob_parm,
+#else
+    ProbParmHost const& prob_parm,
+    ProbParmDevice const& prob_parm_d,
+#endif
+    const std::string& restart_dir = "");
+
   /// \brief Problem specific initialization routine. Typically initializes the
   /// SprayJet pointers or calls #uniformSprayInit
   void InitSprayParticles(
@@ -361,9 +359,27 @@ public:
     return m_sprayDeriveVars;
   }
 
+  /// \brief Return host spray data pointer
+  static SprayData* getSprayData() { return m_sprayData; }
+
+  /// \brief Return fuel species index
+  static int getFuelIndx(const int spf) { return m_sprayData->dep_indx[spf]; }
+
+  /// \brief Return spray indices
+  static SprayComps getSprayComps() { return m_sprayIndx; }
+
+  static void AssignSprayComps(SprayComps scomps) { m_sprayIndx = scomps; }
+
   static std::string m_sprayFuelNames[SPRAY_FUEL_NUM];
   static std::string m_sprayDepNames[SPRAY_FUEL_NUM];
   static amrex::Vector<std::string> m_sprayDeriveVars;
+  static SprayData* m_sprayData;
+  static SprayData* d_sprayData;
+  static SprayComps m_sprayIndx;
+  static amrex::Real spray_cfl;
+  static bool write_ascii_files;
+  static bool plot_spray_src;
+  static std::string spray_init_file;
 
 private:
   /// \brief This defines reflect_lo and reflect_hi from phys_bc
@@ -372,12 +388,6 @@ private:
   amrex::BCRec* phys_bc;
   bool reflect_lo[AMREX_SPACEDIM];
   bool reflect_hi[AMREX_SPACEDIM];
-  SprayData* m_sprayData;
-  SprayData* d_sprayData = nullptr;
-  SprayComps m_sprayIndx;
-  // Particle CFL, used for injection cases with LMeX
-  amrex::Real m_partCFL;
-  amrex::Real m_injectVel = 0.;
   amrex::Vector<std::unique_ptr<SprayJet>> m_sprayJets;
 };
 
