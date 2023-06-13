@@ -142,6 +142,7 @@ calculateSpraySource(
   const amrex::Real flow_dt,
   GasPhaseVals& gpv,
   const SprayData& fdat,
+  const amrex::Real inv_vol,
   SprayParticleContainer::ParticleType& p,
   pele::physics::transport::TransParm<
     pele::physics::EosType,
@@ -153,6 +154,7 @@ calculateSpraySource(
   const amrex::Real C_eps = 1.E-15;
   const amrex::Real B_eps = 1.E-7;
   const amrex::Real min_mass = SPU.min_mass;
+  const amrex::Real num_ppp = fdat.num_ppp;
   const int nSubMax = 100;
   bool get_xi = false;
   bool get_Ddiag = true;
@@ -272,11 +274,11 @@ calculateSpraySource(
       0.75 * rho_skin * drag_coef * diff_vel_mag / (dia_part * rho_part);
     part_vel_src = drag_force_p * diff_vel + fdat.body_force;
     if (fdat.mom_trans) {
-      gpv.fluid_mom_src += drag_force * diff_vel;
+      gpv.fluid_mom_src += num_ppp * drag_force * diff_vel;
 #ifndef PELELM_USE_SPRAY
       // s_d,mu dot u_d
       amrex::Real S_dmu_dot_u = diff_vel.dotProduct(vel_part);
-      gpv.fluid_eng_src += drag_force * S_dmu_dot_u;
+      gpv.fluid_eng_src += num_ppp * drag_force * S_dmu_dot_u;
 #endif
       if (isub == 1) {
         amrex::Real inv_tau_var = drag_force_p;
@@ -289,6 +291,7 @@ calculateSpraySource(
     // Solve mass and energy transfer source terms
     amrex::Real part_temp_src = 0.;
     amrex::Real m_dot = 0.;
+    amrex::Real conv_src = 0.;
     if (fdat.mass_trans) {
       amrex::Real Pr_skin = mu_skin * cp_skin / lambda_skin;
       amrex::Real powR =
@@ -336,8 +339,8 @@ calculateSpraySource(
         // Still do convective heat transfer for saturated gas
         Nu_num = Nu_0;
       }
-      amrex::Real conv_src = M_PI * lambda_skin * dia_part * delT * Nu_num;
-      gpv.fluid_eng_src += conv_src;
+      conv_src = M_PI * lambda_skin * dia_part * delT * Nu_num;
+      gpv.fluid_eng_src += num_ppp * conv_src;
       part_temp_src = (sumL + conv_src) * inv_pmass / cp_part;
       if (isub == 1 && delT > C_eps) {
         // Limit dt so change in mass does not exceed 10%
@@ -390,6 +393,33 @@ calculateSpraySource(
         } else {
           rho_part = fdat.rhoL(amrex::min(T_part, cBoilT[0]), 0);
         }
+        amrex::Real src_coeff = num_ppp * part_dt * inv_vol;
+        // Update gas phase virtual cell
+        amrex::Real new_rho = gpv.rho_fluid - src_coeff * m_dot;
+        amrex::Real diff_h = 0.;
+        for (int n = 0; n < NUM_SPECIES; ++n) {
+          bool found_spec = false;
+          for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
+            const int fdspec = fdat.dep_indx[spf];
+            if (n == fdspec) {
+              found_spec = true;
+              amrex::Real old_rhoY = gpv.rho_fluid & gpv.Y_fluid[fdspec];
+              amrex::Real new_rhoY = old_rhoY - src_coff * mi_dot[spf];
+              diff_h += mi_dot[spf] * h_part[fdspec];
+              gpv.Y_fluid[fdspec] = new_rhoY / new_rho;
+            }
+          }
+          if (!found_spec) {
+            gpv.Y_fluid[n] *= gpv.rho_fluid / new_rho;
+          }
+        }
+        amrex::Real cp_gas;
+        eos.TY2Cp(gpv.T_fluid, gpv.Y_fluid.data(), cp_gas);
+        gpv.T_fluid = (gpv.rho_fluid * gpv.T_fluid -
+                       src_coeff * (conv_src + diff_h) / cp_gas) /
+                      new_rho;
+        gpv.rho_fluid = new_rho;
+        gpv.define();
         pmass = new_mass;
         dia_part = std::cbrt(6. * pmass / (M_PI * rho_part));
       } else {
@@ -408,13 +438,13 @@ calculateSpraySource(
   // Must add any mass related sources at the end in case
   // some species disappear completely
   amrex::Real mdot_total = (pmass - startmass) / (fdat.dtmod * flow_dt);
-  gpv.fluid_mass_src = mdot_total;
+  gpv.fluid_mass_src = num_ppp * mdot_total;
 #ifndef PELELM_USE_SPRAY
   amrex::Real part_ke = 0.5 * vel_part.radSquared();
-  gpv.fluid_eng_src += part_ke * mdot_total;
+  gpv.fluid_eng_src += num_ppp * part_ke * mdot_total;
 #endif
   if (fdat.mom_trans) {
-    gpv.fluid_mom_src += vel_part * mdot_total;
+    gpv.fluid_mom_src += num_ppp * vel_part * mdot_total;
   }
   for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
     const int fdspec = fdat.dep_indx[spf];
@@ -422,8 +452,8 @@ calculateSpraySource(
     amrex::Real newY = Y_part[spf];
     amrex::Real midot =
       (newY * pmass - oldY * startmass) / (fdat.dtmod * flow_dt);
-    gpv.fluid_Y_dot[spf] = midot;
-    gpv.fluid_eng_src += midot * h_part[fdspec];
+    gpv.fluid_Y_dot[spf] = num_ppp * midot;
+    gpv.fluid_eng_src += num_ppp * midot * h_part[fdspec];
     p.rdata(SprayComps::pstateY + spf) = Y_part[spf];
   }
   AMREX_D_TERM(p.rdata(SprayComps::pstateVel) = vel_part[0];

@@ -307,7 +307,7 @@ SprayParticleContainer::updateParticles(
               indx_array.data(), weights.data());
             // Solve for avg mw and pressure at droplet location
             gpv.define();
-            calculateSpraySource(sub_dt, gpv, *fdat, p, ltransparm);
+            calculateSpraySource(sub_dt, gpv, *fdat, inv_vol, p, ltransparm);
             IntVect cur_indx = ijkc;
             Real cvol = inv_vol;
 #ifdef AMREX_USE_EB
@@ -315,7 +315,7 @@ SprayParticleContainer::updateParticles(
               cvol *= 1. / (volfrac_fab(cur_indx));
             }
 #endif
-            Real cur_coef = -fdat->num_ppp * cvol * sub_dt / flow_dt;
+            Real cur_coef = -cvol * sub_dt / flow_dt;
             if (!src_box.contains(cur_indx)) {
               if (!isGhost) {
                 Abort("SprayParticleContainer::updateParticles() -- source box "
