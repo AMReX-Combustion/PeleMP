@@ -156,6 +156,20 @@ SprayParticleContainer::updateParticles(
   BL_PROFILE("SprayParticleContainer::updateParticles()");
   AMREX_ASSERT(OnSameGrids(level, state));
   AMREX_ASSERT(OnSameGrids(level, source));
+  if (m_verbose > 2 && ParallelDescriptor::IOProcessor()) {
+    std::string move_str = "MK";
+    if (do_move) {
+      move_str = "MKD";
+    }
+    std::string part_type = "Active";
+    if (isGhost) {
+      part_type = "Ghost";
+    } else if (isVirt) {
+      part_type = "Virtual";
+    }
+    Print() << move_string << " on " << part_type << " particles on level "
+            << level << std::endl;
+  }
   const auto dxiarr = this->Geom(level).InvCellSizeArray();
   const auto dxarr = this->Geom(level).CellSizeArray();
   const auto ploarr = this->Geom(level).ProbLoArray();
@@ -380,6 +394,7 @@ SprayParticleContainer::updateParticles(
           } // End of subcycle loop
         }   // End of p.id() > 0 check
       });   // End of loop over particles
-    }       // for (int MyParIter pti..
+      Gpu::streamSynchronize();
+    } // for (int MyParIter pti..
   }
 }
