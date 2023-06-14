@@ -403,8 +403,8 @@ calculateSpraySource(
             const int fdspec = fdat.dep_indx[spf];
             if (n == fdspec) {
               found_spec = true;
-              amrex::Real old_rhoY = gpv.rho_fluid & gpv.Y_fluid[fdspec];
-              amrex::Real new_rhoY = old_rhoY - src_coff * mi_dot[spf];
+              amrex::Real old_rhoY = gpv.rho_fluid * gpv.Y_fluid[fdspec];
+              amrex::Real new_rhoY = old_rhoY - src_coeff * mi_dot[spf];
               diff_h += mi_dot[spf] * h_part[fdspec];
               gpv.Y_fluid[fdspec] = new_rhoY / new_rho;
             }
