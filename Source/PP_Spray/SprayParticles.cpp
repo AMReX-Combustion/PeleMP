@@ -166,6 +166,20 @@ SprayParticleContainer::updateParticles(
   Real B1 = m_khrtB1;
   Real C3 = m_khrtC3;
   Real max_ppp = m_maxNumPPP;
+  if (m_verbose > 2 && ParallelDescriptor::IOProcessor()) {
+    std::string move_str = "MK";
+    if (do_move) {
+      move_str = "MKD";
+    }
+    std::string part_type = "Active";
+    if (isGhost) {
+      part_type = "Ghost";
+    } else if (isVirt) {
+      part_type = "Virtual";
+    }
+    Print() << move_string << " on " << part_type << " particles on level "
+            << level << std::endl;
+  }
   const auto dxiarr = this->Geom(level).InvCellSizeArray();
   const auto dxarr = this->Geom(level).CellSizeArray();
   const auto ploarr = this->Geom(level).ProbLoArray();
@@ -482,6 +496,7 @@ SprayParticleContainer::updateParticles(
           CreateSBDroplets(Np, sub_dt, N_SB_h.data(), rfh, level);
         }
       }
+      Gpu::streamSynchronize();
     } // for (int MyParIter pti..
   }
 }
