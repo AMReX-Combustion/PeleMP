@@ -103,7 +103,7 @@ SprayParticleContainer::sprayInjection(
     bool make_new_part = spray_jet->get_new_particle(
       time, phi_radial, cur_rad, umag, theta_spread, phi_swirl, dia_part,
       T_part, Y_part);
-    if (make_new_part && dia_part > min_dia) {
+    if (make_new_part && dia_part > min_dia && umag > 0.) {
       amrex::RealVect part_loc, vel_part;
       spray_jet->transform_loc_vel(
         theta_spread, phi_radial, cur_rad, umag, phi_swirl, vel_part, part_loc);
