@@ -269,7 +269,7 @@ SprayParticleContainer::updateParticles(
         volfrac_fab = volfrac->array(pti);
       }
 #endif
-      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
+      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(Long pid) noexcept {
         ParticleType& p = pstruct[pid];
         if (p.id() > 0) {
           auto eos = pele::physics::PhysicsType::eos();
