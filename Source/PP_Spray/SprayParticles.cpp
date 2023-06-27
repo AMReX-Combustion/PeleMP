@@ -298,7 +298,7 @@ SprayParticleContainer::updateParticles(
         wf_arr = wf_fab.array();
         // TODO: Adjust this for EB faces
         Real face_area = AMREX_D_TERM(dx[0], *dx[1], *dx[2]);
-        amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
+        amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(Long pid) noexcept {
           ParticleType& p = pstruct[pid];
           if (p.id() > 0 && p.rdata(SprayComps::pstateFilmHght) > 0.) {
             fillFilmFab(wf_arr, p, face_area, plo, dx);
@@ -321,7 +321,7 @@ SprayParticleContainer::updateParticles(
         refv.fillPtrs_d(rf_d);
       }
       auto N_SB = N_SB_d.dataPtr();
-      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
+      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(Long pid) noexcept {
         ParticleType& p = pstruct[pid];
         if (p.id() > 0) {
           auto eos = pele::physics::PhysicsType::eos();
