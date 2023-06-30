@@ -249,8 +249,8 @@ impose_wall(
   amrex::Array4<amrex::Real const> const& vfrac,
   const amrex::Real min_eb_vfrac,
 #endif
-  amrex::IntVect& ijkc,
-  amrex::IntVect& ijkc_prev)
+  const amrex::IntVect ijkc,
+  const amrex::IntVect ijkc_prev)
 {
   amrex::Real par_dot = 2.;
   amrex::RealVect normal;
@@ -258,72 +258,25 @@ impose_wall(
     p.rdata(SprayComps::pstateVel), p.rdata(SprayComps::pstateVel + 1),
     p.rdata(SprayComps::pstateVel + 2)));
   amrex::RealVect normphi;
+  amrex::RealVect normpos;
   // Normalize pos
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    p.pos(dir) = (p.pos(dir) - plo[dir]) / dx[dir];
+    normpos[dir] = (p.pos(dir) - plo[dir]) / dx[dir];
     normphi[dir] = (phi[dir] - plo[dir]) / dx[dir];
   }
   // Check if particle is behind a wall
   bool do_refl = check_wall(
-    p.pos(), bflags, ijkc,
+    normpos, bflags, ijkc,
 #ifdef AMREX_USE_EB
     ijkc_prev, vel_part, use_EB, flags, bcent, bnorm, vfrac, min_eb_vfrac,
 #endif
     par_dot, normal);
-  // Keep track of number of times particle bounces
-  int bounce_counter = 0;
-  // Maximum allowable bounces
-  int max_bounce = 5;
-  while (do_refl) {
-    // Plane ref point
+  if (do_refl) {
     amrex::Real Nw_Vp = normal.dotProduct(vel_part);
-    if (!use_EB) {
-      ijkc_prev = ijkc;
-    }
-#ifdef AMREX_USE_EB
-    else {
-      if (!flags(ijkc).isCovered()) {
-        ijkc_prev = ijkc;
-      }
-    }
-#endif
-    // Reflect particle position and velocity around the boundary
+    vel_part -= 2. * Nw_Vp * normal;
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
       p.pos(dir) -= 2. * par_dot * normal[dir];
-      p.rdata(SprayComps::pstateVel + dir) -= 2. * Nw_Vp * normal[dir];
-      vel_part[dir] = p.rdata(SprayComps::pstateVel + dir);
-      ijkc[dir] = static_cast<int>(amrex::Math::floor(p.pos(dir)));
     }
-    bool left_dom =
-      check_bounds_norm(p.pos(), normphi, bndry_lo, bndry_hi, bflags);
-    if (left_dom) {
-      p.id() = -1;
-      return;
-    }
-    do_refl = check_wall(
-      p.pos(), bflags, ijkc,
-#ifdef AMREX_USE_EB
-      ijkc_prev, vel_part, use_EB, flags, bcent, bnorm, vfrac, min_eb_vfrac,
-#endif
-      par_dot, normal);
-    bounce_counter++;
-    // If particle exceeds max bounces, place near wall and set normal velocity
-    // to zero
-    if (bounce_counter > max_bounce && do_refl) {
-      Nw_Vp = normal.dotProduct(vel_part);
-      for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        p.pos(dir) +=
-          (0.5 * p.rdata(SprayComps::pstateDia) / dx[dir] - par_dot) *
-          normal[dir];
-        p.rdata(SprayComps::pstateVel + dir) -= Nw_Vp * normal[dir];
-        ijkc[dir] = static_cast<int>(amrex::Math::floor(p.pos(dir)));
-      }
-      do_refl = false;
-    }
-  }
-  // Undo normalization
-  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    p.pos(dir) = p.pos(dir) * dx[dir] + plo[dir];
   }
 }
 #endif // _WALLFUNCTIONS_H
