@@ -108,9 +108,9 @@ SprayParticleContainer::estTimestep(int level) const
       for (MyParConstIter pti(*this, level); pti.isValid(); ++pti) {
         const AoS& pbox = pti.GetArrayOfStructs();
         const ParticleType* pstruct = pbox().data();
-        const Long n = pbox.numParticles();
+        const int n = pbox.numParticles();
         reduce_op.eval(
-          n, reduce_data, [=] AMREX_GPU_DEVICE(const Long i) -> ReduceTuple {
+          n, reduce_data, [=] AMREX_GPU_DEVICE(const int i) -> ReduceTuple {
             const ParticleType& p = pstruct[i];
             if (p.id() > 0) {
               const Real max_mag_vdx = amrex::max(AMREX_D_DECL(
@@ -250,7 +250,7 @@ SprayParticleContainer::updateParticles(
       const Box src_box = pti.growntilebox(source_ghosts);
       const Box state_box = pti.growntilebox(state_ghosts);
       bool at_bounds = tile_at_bndry(tile_box, bndry_lo, bndry_hi, domain);
-      const Long Np = pti.numParticles();
+      const int Np = pti.numParticles();
       if (Np == 0) {
         continue;
       }
@@ -298,7 +298,7 @@ SprayParticleContainer::updateParticles(
         wf_arr = wf_fab.array();
         // TODO: Adjust this for EB faces
         Real face_area = AMREX_D_TERM(dx[0], *dx[1], *dx[2]);
-        amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(Long pid) noexcept {
+        amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
           ParticleType& p = pstruct[pid];
           if (p.id() > 0 && p.rdata(SprayComps::pstateFilmHght) > 0.) {
             fillFilmFab(wf_arr, p, face_area, plo, dx);
@@ -321,7 +321,7 @@ SprayParticleContainer::updateParticles(
         refv.fillPtrs_d(rf_d);
       }
       auto N_SB = N_SB_d.dataPtr();
-      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(Long pid) noexcept {
+      amrex::ParallelFor(Np, [=] AMREX_GPU_DEVICE(int pid) noexcept {
         ParticleType& p = pstruct[pid];
         if (p.id() > 0) {
           auto eos = pele::physics::PhysicsType::eos();
@@ -484,7 +484,7 @@ SprayParticleContainer::updateParticles(
         Gpu::copy(
           Gpu::deviceToHost, N_SB_d.begin(), N_SB_d.end(), N_SB_h.begin());
         bool get_new_parts = false;
-        for (Long n = 0; n < Np; n++) {
+        for (int n = 0; n < Np; n++) {
           if (N_SB_h[n] != splash_breakup::no_change) {
             get_new_parts = true;
           }
