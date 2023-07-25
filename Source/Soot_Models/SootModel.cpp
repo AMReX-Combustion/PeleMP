@@ -1,15 +1,6 @@
 
-// Standard library includes
-#include <string>
-#include <map>
-
 // AMReX include statements
-#include <AMReX_ParmParse.H>
-#include <AMReX_Utility.H>
-#include <AMReX_Print.H>
-#include <AMReX_Vector.H>
-#include <AMReX_CONSTANTS.H>
-#include <AMReX_FArrayBox.H>
+#include <AMReX_Reduce.H>
 
 // PelePhysics include statements
 #include "PelePhysics.H"
@@ -272,9 +263,9 @@ SootModel::computeSootSourceTerm(
 
   const SootData* sd = d_sootData;
   const SootReaction* sr = d_sootReact;
+  SootConst sc;
   amrex::ParallelFor(vbox, [=] AMREX_GPU_DEVICE(int i, int j, int k) noexcept {
     auto eos = pele::physics::PhysicsType::eos();
-    SootConst sc;
     GpuArray<Real, NUM_SPECIES> mw_fluidF;
     GpuArray<Real, NUM_SOOT_GS> mw_fluid;
     eos.molecular_weight(mw_fluidF.data());
@@ -463,12 +454,12 @@ SootModel::estSootDt(const Box& vbox, Array4<const Real> const& Qstate) const
   ReduceData<Real> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
   Real soot_dt = std::numeric_limits<Real>::max();
+  SootConst sc;
   BL_PROFILE("estSootDt()");
   reduce_op.eval(
     vbox, reduce_data,
     [=] AMREX_GPU_DEVICE(int i, int j, int k) -> ReduceTuple {
       auto eos = pele::physics::PhysicsType::eos();
-      SootConst sc;
       GpuArray<Real, NUM_SPECIES> mw_fluidF;
       GpuArray<Real, NUM_SOOT_GS> mw_fluid;
       eos.molecular_weight(mw_fluidF.data());
@@ -479,7 +470,9 @@ SootModel::estSootDt(const Box& vbox, Array4<const Real> const& Qstate) const
       Real* momentsPtr = moments.data();
       GpuArray<Real, NUM_SOOT_MOMENTS + 2> mom_fv;
       Real* mom_fvPtr = mom_fv.data();
+#ifndef PELELM_USE_SOOT
       const Real rho = Qstate(i, j, k, qRhoIndx) * sc.rho_conv;
+#endif
       const Real T = Qstate(i, j, k, qTempIndx);
       if (T < Tcutoff) {
         return 1.E20;

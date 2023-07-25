@@ -183,8 +183,6 @@ impose_wall(
   const amrex::RealVect& dx,
   const amrex::RealVect& plo,
   const amrex::RealVect& phi,
-  const amrex::IntVect bndry_lo,
-  const amrex::IntVect bndry_hi,
   amrex::IntVect& bflags,
   const amrex::Real* cBoilT,
   const amrex::Real p_fluid,
