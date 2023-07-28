@@ -75,6 +75,7 @@ check_bounds_norm(
 Determines if particle must be reflected off BC or EB
 @param[in] pos Position of the particle after advecting, normalized by dx
 @param[in] bflags Flags if particle is outside reflective boundaries
+@param[in] dx Grid spacing
 @param[in] ijkc Grid cell index containing particle
 @param[in] ijkc_prev Previous grid cell index containing particle
 @param[in] vel_part Velocity of the particle
@@ -95,6 +96,7 @@ bool
 check_wall(
   const amrex::RealVect pos,
   const amrex::IntVect bflags,
+  const amrex::RealVect dx,
   const amrex::IntVect ijkc,
 #ifdef AMREX_USE_EB
   const amrex::IntVect ijkc_prev,
@@ -217,8 +219,8 @@ check_wall(
     const amrex::Real tolerance = std::numeric_limits<amrex::Real>::epsilon();
     // Projection of vector pointing from EB centroid to particle onto EB normal
     par_dot = AMREX_D_TERM(
-      (pos[0] - bcentv[0]) * normal[0], +(pos[1] - bcentv[1]) * normal[1],
-      +(pos[2] - bcentv[2]) * normal[2]);
+      (pos[0] - bcentv[0]) * dx[0] * normal[0], +(pos[1] - bcentv[1]) * dx[1] * normal[1],
+      +(pos[2] - bcentv[2]) * dx[2] * normal[2]);
     if (par_dot < tolerance) {
       refl_check = true;
     }
@@ -264,7 +266,7 @@ impose_wall(
   }
   // Check if particle is behind a wall
   bool do_refl = check_wall(
-    normpos, bflags, ijkc,
+    normpos, bflags, dx, ijkc,
 #ifdef AMREX_USE_EB
     ijkc_prev, vel_part, use_EB, flags, bcent, bnorm, vfrac, min_eb_vfrac,
 #endif
