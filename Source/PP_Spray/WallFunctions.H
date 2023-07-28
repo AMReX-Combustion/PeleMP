@@ -94,10 +94,6 @@ check_wall(
   const amrex::IntVect& bflags,
   const amrex::RealVect dx,
   const amrex::IntVect& ijkc,
-  const amrex::RealVect pos,
-  const amrex::IntVect bflags,
-  const amrex::RealVect dx,
-  const amrex::IntVect ijkc,
 #ifdef AMREX_USE_EB
   const amrex::IntVect& ijkc_prev,
   const amrex::RealVect& vel_part,
