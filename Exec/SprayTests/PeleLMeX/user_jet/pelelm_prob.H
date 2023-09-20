@@ -6,17 +6,17 @@
 #include <AMReX_ParmParse.H>
 #include <AMReX_SPACE.H>
 
-#include <pelelm_prob_parm.H>
+#include <pelelmex_prob_parm.H>
 #include <PMF.H>
 #include <PMFData.H>
-#include <PeleLM_Index.H>
+#include <PeleLMeX_Index.H>
 
 #include <PelePhysics.H>
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
-pelelm_initdata(
+pelelmex_initdata(
   int i,
   int j,
   int k,
