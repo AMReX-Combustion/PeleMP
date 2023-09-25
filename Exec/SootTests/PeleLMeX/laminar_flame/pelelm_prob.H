@@ -5,18 +5,18 @@
 #include <AMReX_FArrayBox.H>
 #include <AMReX_ParmParse.H>
 
-#include <pelelm_prob_parm.H>
+#include <pelelmex_prob_parm.H>
 #include <PMF.H>
 #include <PMFData.H>
 
-#include <PeleLM_Index.H>
+#include <PeleLMeX_Index.H>
 #include <PelePhysics.H>
 #include "SootModel.H"
 
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
-pelelm_initdata(
+pelelmex_initdata(
   int i,
   int j,
   int k,

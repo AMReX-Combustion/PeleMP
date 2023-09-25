@@ -1,5 +1,5 @@
 #include <PeleLM.H>
-#include <pelelm_prob.H>
+#include <pelelmex_prob.H>
 
 void
 PeleLM::readProbParm()

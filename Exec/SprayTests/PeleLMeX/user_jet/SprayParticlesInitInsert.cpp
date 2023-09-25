@@ -1,7 +1,7 @@
 
 #include "SprayParticles.H"
 #include "SprayInjection.H"
-#include "pelelm_prob.H"
+#include "pelelmex_prob.H"
 
 // This demonstrates a way to override the get_new_particle function in the
 // SprayJet class
