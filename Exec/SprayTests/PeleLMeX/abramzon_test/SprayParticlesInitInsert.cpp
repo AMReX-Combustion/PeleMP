@@ -1,6 +1,6 @@
 
 #include "SprayParticles.H"
-#include <pelelm_prob.H>
+#include <pelelmex_prob.H>
 
 bool
 SprayParticleContainer::injectParticles(
