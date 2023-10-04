@@ -25,7 +25,7 @@ THREAD_SANITIZER = FALSE
 
 # PeleC
 Eos_Model := Fuego
-Chemistry_Model := multi_dechep
+Chemistry_Model := dodecane_lu
 Transport_Model := Simple
 
 # PeleMP
