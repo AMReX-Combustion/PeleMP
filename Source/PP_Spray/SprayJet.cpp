@@ -77,6 +77,20 @@ SprayJet::SprayJet(const std::string& jet_name, const amrex::Geometry& geom)
     }
   }
   ps.query("hollow_spray", m_hollowSpray);
+  ps.query("hollow_cone", m_hollowCone);
+  if (m_hollowCone) {
+      ps.get("hollowConeMaxRad", m_hollowConeMaxRad);
+      ps.get("hollowConeMinRad", m_hollowConeMinRad);
+      ps.get("halfConeAngle", m_halfConeAngle);
+
+      m_halfConeAngle = std::abs(m_halfConeAngle)*M_PI / 180.0;
+
+
+      if (m_hollowConeMinRad == 0 || m_hollowConeMaxRad ==0 || m_hollowConeMinRad>=m_hollowConeMaxRad) {
+           amrex::Abort("'Hollow cone min or max radius = 0 or min radius<=max radius'");
+         }
+
+  }
   if (m_hollowSpray) {
     ps.query("hollow_spread", m_hollowSpread);
     if (m_hollowSpread < 0. || m_hollowSpread > 180.) {

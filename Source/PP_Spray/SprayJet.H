@@ -84,6 +84,7 @@ public:
   }
 
   inline bool hollow_spray() const { return m_hollowSpray; }
+  inline bool hollow_cone() const { return m_hollowCone; }
 
   /// Returns the average values given for the jet
   amrex::Real get_avg_dia() const { return m_avgDia; }
@@ -208,10 +209,12 @@ public:
     amrex::Real ct1 = std::cos(theta_jet);
     amrex::Real st2 = std::sin(theta_spread);
     amrex::Real ct2 = std::cos(theta_spread);
+
 #if AMREX_SPACEDIM == 3
     amrex::RealVect dp(AMREX_D_DECL(
-      cp1 * cp2 * ct1 - sp1 * sp2, sp1 * cp2 * ct1 + cp1 * sp2,
-      -std::sin(theta_jet) * cp2));
+                                      cp1 * cp2 * ct1 - sp1 * sp2,
+                                      sp1 * cp2 * ct1 + cp1 * sp2,
+                                      -std::sin(theta_jet) * cp2));             //Translation from cent to particle location
     // Add phi_swirl for velocity
     amrex::Real phivel = phi_radial + phi_swirl;
     sp2 = std::sin(phivel);
@@ -263,6 +266,10 @@ public:
   amrex::Real m_totalInjMass = 0.;
   amrex::Real m_totalInjTime = 0.;
 
+  amrex::Real m_hollowConeMaxRad = 0.;          //Max radius of hollow cone
+  amrex::Real m_hollowConeMinRad = 0.;          //Min radius of hollow cone
+  amrex::Real m_halfConeAngle = 45.0;
+
 protected:
   // Member data
   std::string m_jetName;
@@ -271,6 +278,7 @@ protected:
   amrex::Real m_spreadAngle = 0.;
   amrex::Real m_swirlAngle = 0.;
   amrex::Real m_jetDia = -1.;
+
   amrex::Real m_jetVel = -1.;
   amrex::Real m_maxJetVel = -1.;
   amrex::Real m_massFlow = -1.;
@@ -281,6 +289,7 @@ protected:
   amrex::Real m_startTime = 0.;
   amrex::Real m_endTime = 1.E8;
   bool m_hollowSpray = false;
+  bool m_hollowCone = false;            //Added by Sreejith for A74 Sims. I see that hollowcone injects particles exactly at jet dia and not in an annulus
   amrex::Real m_hollowSpread = 0.;
   int m_proc = 0;
   bool m_useROI = false;

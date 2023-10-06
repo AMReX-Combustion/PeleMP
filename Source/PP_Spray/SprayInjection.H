@@ -7,30 +7,32 @@
  problem-specific SprayParticlesInitInsert.cpp file, when necessary.
 */
 
-void
-SprayParticleContainer::sprayInjection(
-  const amrex::Real time,
-  SprayJet* spray_jet,
-  const amrex::Real sim_dt,
-  const int level)
+void SprayParticleContainer::sprayInjection(  const amrex::Real time,
+                                              SprayJet* spray_jet,
+                                              const amrex::Real sim_dt,
+                                              const int level)
 {
-  if (
-    !spray_jet->jet_active(time) || sim_dt <= 0. ||
-    spray_jet->jet_vel(time) < 0.) {
-    return;
-  }
+  if (!spray_jet->jet_active(time) || sim_dt <= 0. || spray_jet->jet_vel(time) < 0.)
+    {
+      return;
+    }
+
   int curProc = amrex::ParallelDescriptor::MyProc();
   int injProc = spray_jet->Proc();
-  if (curProc != injProc) {
-    return;
-  }
+  if (curProc != injProc)
+    {
+      return;
+    }
+
   SprayUnits SPU;
   const SprayData* fdat = m_sprayData;
-  amrex::Real rho_avg = 0.;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    rho_avg +=
-      spray_jet->get_avg_Y(spf) / fdat->rhoL(spray_jet->get_avg_T(), spf);
-  }
+  amrex::Real rho_avg = 0.;             //density of liquid mixture
+
+  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
+    {
+      rho_avg += spray_jet->get_avg_Y(spf) / fdat->rhoL(spray_jet->get_avg_T(), spf);
+    }
+
   rho_avg = 1. / rho_avg;
   const amrex::Real Pi_six = M_PI / 6.;
   // Number of particles per parcel
@@ -39,123 +41,155 @@ SprayParticleContainer::sprayInjection(
   const amrex::Real avg_dia = spray_jet->get_avg_dia();
   const amrex::Real avg_mass = Pi_six * rho_avg * std::pow(avg_dia, 3);
   const amrex::Real min_dia = std::cbrt(6. * SPU.min_mass / (M_PI * rho_avg));
-  if (avg_dia < min_dia || avg_mass < SPU.min_mass) {
-    amrex::Abort(
-      "Average droplet size too small, floating point issues expected");
-  }
+
+  if (avg_dia < min_dia || avg_mass < SPU.min_mass)
+    {
+      amrex::Abort("Average droplet size too small, floating point issues expected");
+    }
+
   // Minimum number of parcels we want injected at a time
   const amrex::Real min_inj_parcel = spray_jet->m_minParcel;
   amrex::Real dt = sim_dt;
   amrex::Real mdot = spray_jet->mass_flow_rate(time);
-  amrex::Real inject_mass = mdot * sim_dt;
+  amrex::Real inject_mass = mdot * sim_dt;      //mass injected in a time step
+
   // See if there is uninjected mass from previous time steps
-  if (spray_jet->m_sumInjMass > 0.) {
-    dt += spray_jet->m_sumInjTime;
-    inject_mass += spray_jet->m_sumInjMass;
-  }
-  if (inject_mass / (num_ppp * avg_mass) < min_inj_parcel) {
-    spray_jet->m_sumInjMass = inject_mass;
-    spray_jet->m_sumInjTime = dt;
-    return;
-  }
+  if (spray_jet->m_sumInjMass > 0.)
+    {
+      dt += spray_jet->m_sumInjTime;
+      inject_mass += spray_jet->m_sumInjMass;
+    }
+  if (inject_mass / (num_ppp * avg_mass) < min_inj_parcel)
+    {
+      spray_jet->m_sumInjMass = inject_mass;
+      spray_jet->m_sumInjTime = dt;
+      return;
+    }
 
   amrex::ParticleLocData pld;
-  std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
-    host_particles;
+  std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>> host_particles;
   amrex::Real cur_mass = 0.;
-  while (cur_mass < inject_mass) {
-    // Pick random percentage from 0 to 1
-    amrex::Real radp = amrex::Random();
-#if AMREX_SPACEDIM == 3
-    if (spray_jet->hollow_spray()) {
-      radp = 1.;
-    }
-    amrex::Real phi_radial = amrex::Random() * 2. * M_PI;
-    // This determines the radial location of the particle within the jet inlet
-    amrex::Real cur_rad = radp * spray_jet->jet_dia() / 2.;
-#else
-    if (spray_jet->hollow_spray()) {
-      if (radp <= 0.5) {
-        radp = 0.;
-      } else {
-        radp = 1.;
-      }
-    }
-    amrex::Real phi_radial = 0.;
-    amrex::Real cur_rad = (radp - 0.5) * spray_jet->jet_dia();
-#endif
-    // phi_radial - azimuthal angle, called phi_j in docs
-    // theta_spread - inclination angle, called theta_j in docs
-    // phi_swirl - azimuthal swirling component, called phi_s in docs
-    amrex::Real umag, theta_spread, phi_swirl, dia_part, T_part;
-    amrex::Real Y_part[SPRAY_FUEL_NUM];
-    bool make_new_part = spray_jet->get_new_particle(
-      time, phi_radial, cur_rad, umag, theta_spread, phi_swirl, dia_part,
-      T_part, Y_part);
-    if (make_new_part && dia_part > min_dia && umag > 0.) {
-      amrex::RealVect part_loc, part_vel;
-      spray_jet->transform_loc_vel(
-        theta_spread, phi_radial, cur_rad, umag, phi_swirl, part_vel, part_loc);
-      ParticleType p;
-      p.id() = ParticleType::NextID();
-      p.cpu() = amrex::ParallelDescriptor::MyProc();
-      AMREX_D_TERM(p.rdata(SprayComps::pstateVel) = part_vel[0];
-                   , p.rdata(SprayComps::pstateVel + 1) = part_vel[1];
-                   , p.rdata(SprayComps::pstateVel + 2) = part_vel[2];);
-      p.rdata(SprayComps::pstateT) = T_part;
-      // Never add particle with less than minimum mass
-      p.rdata(SprayComps::pstateDia) = dia_part;
-      amrex::Real rho_part = 0.;
-      if (SPRAY_FUEL_NUM > 1) {
-        for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-          p.rdata(SprayComps::pstateY + spf) = Y_part[spf];
-          rho_part += Y_part[spf] / fdat->rhoL(T_part, spf);
+  while (cur_mass < inject_mass)
+    {
+      // Pick random percentage from 0 to 1
+      amrex::Real radp = amrex::Random();
+      #if AMREX_SPACEDIM == 3
+      if (spray_jet->hollow_spray())
+        {
+          radp = 1.;
         }
-        rho_part = 1. / rho_part;
-      } else {
-        rho_part = fdat->rhoL(T_part, 0);
-        p.rdata(SprayComps::pstateY) = 1.;
-      }
-      // Add particles as if they have advanced some random portion of
-      // dt
-      amrex::Real pmov = amrex::Random();
-      for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        p.pos(dir) =
-          part_loc[dir] + pmov * dt * p.rdata(SprayComps::pstateVel + dir);
-      }
-      amrex::Real pmass = Pi_six * rho_part * std::pow(dia_part, 3);
-      amrex::Real new_mass = cur_mass + num_ppp * pmass;
-      bool where = Where(p, pld);
-      if (!where) {
-        amrex::Abort("Bad injection particle");
-      }
-      std::pair<int, int> ind(pld.m_grid, pld.m_tile);
-      host_particles[ind].push_back(p);
-      cur_mass = new_mass;
+      if (spray_jet->hollow_cone())
+        {
+          radp = amrex::Random();
+        }
+      amrex::Real phi_radial = amrex::Random() * 2. * M_PI;
+      // This determines the radial location of the particle within the jet inlet
+      amrex::Real cur_rad = radp * spray_jet->jet_dia() / 2.;
+      if (spray_jet->hollow_cone())
+        {
+          cur_rad = spray_jet->m_hollowConeMinRad + radp*(spray_jet->m_hollowConeMaxRad-spray_jet->m_hollowConeMinRad);
+
+        }
+      #else
+      if (spray_jet->hollow_spray())
+        {
+          if (radp <= 0.5)
+            {
+              radp = 0.;
+            }
+          else
+            {
+              radp = 1.;
+            }
+        }
+      amrex::Real phi_radial = 0.;
+      amrex::Real cur_rad = (radp - 0.5) * spray_jet->jet_dia();
+
+      if (spray_jet->hollow_cone())
+        {
+          radp = amrex::Random();
+          cur_rad = spray_jet->m_hollowConeMinRad + radp*(spray_jet->m_hollowConeMaxRad-spray_jet->m_hollowConeMinRad);
+
+
+        }
+      #endif
+
+      // phi_radial - azimuthal angle, called phi_j in docs
+      // theta_spread - inclination angle, called theta_j in docs
+      // phi_swirl - azimuthal swirling component, called phi_s in docs
+      amrex::Real umag, theta_spread, phi_swirl, dia_part, T_part;
+      amrex::Real Y_part[SPRAY_FUEL_NUM];
+      bool make_new_part = spray_jet->get_new_particle(time, phi_radial, cur_rad, umag, theta_spread, phi_swirl, dia_part,T_part, Y_part);
+      if (make_new_part && dia_part > min_dia && umag > 0.)
+        {
+          amrex::RealVect part_loc, part_vel;
+          spray_jet->transform_loc_vel(theta_spread, phi_radial, cur_rad, umag, phi_swirl, part_vel, part_loc);
+          ParticleType p;
+          p.id() = ParticleType::NextID();
+          p.cpu() = amrex::ParallelDescriptor::MyProc();
+          AMREX_D_TERM(p.rdata(SprayComps::pstateVel) = part_vel[0];
+                     , p.rdata(SprayComps::pstateVel + 1) = part_vel[1];
+                     , p.rdata(SprayComps::pstateVel + 2) = part_vel[2];);
+          p.rdata(SprayComps::pstateT) = T_part;
+          // Never add particle with less than minimum mass
+          p.rdata(SprayComps::pstateDia) = dia_part;
+          amrex::Real rho_part = 0.;
+          if (SPRAY_FUEL_NUM > 1)
+            {
+              for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf)
+                {
+                  p.rdata(SprayComps::pstateY + spf) = Y_part[spf];
+                  rho_part += Y_part[spf] / fdat->rhoL(T_part, spf);
+                }
+              rho_part = 1. / rho_part;
+            }
+          else
+            {
+              rho_part = fdat->rhoL(T_part, 0);
+              p.rdata(SprayComps::pstateY) = 1.;
+            }
+          // Add particles as if they have advanced some random portion of
+          // dt
+          amrex::Real pmov = amrex::Random();
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+            {
+              p.pos(dir) =  part_loc[dir] + pmov * dt * p.rdata(SprayComps::pstateVel + dir);
+            }
+          amrex::Real pmass = Pi_six * rho_part * std::pow(dia_part, 3);
+          amrex::Real new_mass = cur_mass + num_ppp * pmass;
+          bool where = Where(p, pld);
+          if (!where)
+            {
+              amrex::Abort("Bad injection particle");
+            }
+          std::pair<int, int> ind(pld.m_grid, pld.m_tile);
+          host_particles[ind].push_back(p);
+          cur_mass = new_mass;
+        }
     }
-  }
-  amrex::Real est_mdot = cur_mass / dt;
-  // If we are over-injecting mass, increase the minimum parcels needed for
-  // injection
-  if (est_mdot - mdot > 0.5 * mdot) {
-    spray_jet->m_minParcel += 1.;
-  }
-  spray_jet->m_totalInjMass += cur_mass;
-  spray_jet->m_totalInjTime += dt;
-  for (auto& kv : host_particles) {
-    auto grid = kv.first.first;
-    auto tile = kv.first.second;
-    const auto& src_tile = kv.second;
-    auto& dst_tile = GetParticles(level)[std::make_pair(grid, tile)];
-    auto old_size = dst_tile.GetArrayOfStructs().size();
-    auto new_size = old_size + src_tile.size();
-    dst_tile.resize(new_size);
-    // Copy the AoS part of the host particles to the GPU
-    amrex::Gpu::copy(
-      amrex::Gpu::hostToDevice, src_tile.begin(), src_tile.end(),
-      dst_tile.GetArrayOfStructs().begin() + old_size);
-  }
-  spray_jet->reset_sum();
+
+    amrex::Real est_mdot = cur_mass / dt;
+    // If we are over-injecting mass, increase the minimum parcels needed for
+    // injection
+    if (est_mdot - mdot > 0.5 * mdot)
+      {
+        spray_jet->m_minParcel += 1.;
+      }
+    spray_jet->m_totalInjMass += cur_mass;
+    spray_jet->m_totalInjTime += dt;
+    for (auto& kv : host_particles)
+      {
+        auto grid = kv.first.first;
+        auto tile = kv.first.second;
+        const auto& src_tile = kv.second;
+        auto& dst_tile = GetParticles(level)[std::make_pair(grid, tile)];
+        auto old_size = dst_tile.GetArrayOfStructs().size();
+        auto new_size = old_size + src_tile.size();
+        dst_tile.resize(new_size);
+        // Copy the AoS part of the host particles to the GPU
+        amrex::Gpu::copy(amrex::Gpu::hostToDevice, src_tile.begin(), src_tile.end(), dst_tile.GetArrayOfStructs().begin() + old_size);
+      }
+    spray_jet->reset_sum();
 }
 
 amrex::IntVect
