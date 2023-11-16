@@ -67,7 +67,8 @@ peleLM.use_typ_vals_chem = 0          # Use species/temp typical values in CVODE
 # ode.rtol = 1.0e-6                     # Relative tolerance of the chemical solve
 # ode.atol = 1.0e-5                     # Absolute tolerance factor applied on typical values
 #cvode.solve_type = GMRES
-cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton direction) 
+#cvode.solve_type = denseAJ_direct     # CVODE Linear solve type (for Newton direction) 
+cvode.solve_type = magma_direct     # CVODE Linear solve type (for Newton direction) 
 #cvode.max_order  = 4                  # CVODE max BDF order.
 #ode.atol = 1.E-12
 
@@ -91,7 +92,6 @@ amrex.fpe_trap_overflow = 1
 
 #--------------------RADIATION MODELING------------------------
 peleLM.do_rad_solve = 1
-pelerad.kppath = "/ccs/home/gwjgavin/Pele_dev/PeleRad/data/kpDB/"
 pelerad.composite_solve = 1
 pelerad.use_hypre = 0
 pelerad.verbose = 0
@@ -109,3 +109,4 @@ pelerad.linop_maxorder = 2
 pelerad.max_fmg_iter = 0
 pelerad.lo_bc = Robin Periodic Periodic
 pelerad.hi_bc = Robin Periodic Periodic
+#please set the pelerad.kppath

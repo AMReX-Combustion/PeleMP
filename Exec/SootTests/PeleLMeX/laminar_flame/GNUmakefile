@@ -30,4 +30,4 @@ LIBRARIES += -lstdc++fs
 endif
 endif
 
-include $(PELELMEX_HOME)/Utils/Make.PeleLMeX
+include $(PELELMEX_HOME)/Exec/Make.PeleLMeX
