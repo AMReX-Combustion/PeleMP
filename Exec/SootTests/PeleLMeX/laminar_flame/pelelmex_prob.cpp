@@ -1,4 +1,4 @@
-#include <PeleLM.H>
+#include <PeleLMeX.H>
 #include <pelelmex_prob.H>
 
 void

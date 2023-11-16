@@ -1,5 +1,3 @@
-
-
 # AMReX
 DIM             = 2
 DEBUG           = FALSE
@@ -24,5 +22,12 @@ Transport_Model = Simple
 
 USE_SOOT = TRUE
 NUM_SOOT_MOMENTS = 3
+
+USE_PELERAD = TRUE
+ifeq ($(USE_PELERAD), TRUE)
+ifeq ($(USE_HIP), TRUE)
+LIBRARIES += -lstdc++fs
+endif
+endif
 
 include $(PELELMEX_HOME)/Utils/Make.PeleLMeX

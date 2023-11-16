@@ -60,7 +60,7 @@ pelelmex_initdata(
 
   eos.TY2H(state(i, j, k, TEMP), massfrac.data(), state(i, j, k, RHOH));
   state(i, j, k, RHOH) = state(i, j, k, RHOH) * 1.0e-4 *
-                             state(i, j, k, DENSITY); // CGS -> MKS conversion
+                         state(i, j, k, DENSITY); // CGS -> MKS conversion
 
   for (int n = 0; n < NUM_SPECIES; n++) {
     state(i, j, k, FIRSTSPEC + n) = massfrac[n] * state(i, j, k, DENSITY);
@@ -106,8 +106,7 @@ bcnormal(
     s_ext[DENSITY] = rho_cgs * 1.0e3;
 
     eos.TY2H(s_ext[TEMP], massfrac, RhoH_temp);
-    s_ext[RHOH] =
-      RhoH_temp * 1.0e-4 * s_ext[DENSITY]; // CGS -> MKS conversion
+    s_ext[RHOH] = RhoH_temp * 1.0e-4 * s_ext[DENSITY]; // CGS -> MKS conversion
 
     for (int n = 0; n < NUM_SPECIES; n++) {
       s_ext[FIRSTSPEC + n] = massfrac[n] * s_ext[DENSITY];
@@ -121,16 +120,21 @@ bcnormal(
 AMREX_GPU_DEVICE
 AMREX_FORCE_INLINE
 void
-zero_visc (int i, int j, int k,
-           amrex::Array4<amrex::Real> const& beta,
-           amrex::GeometryData const& geomdata,
-           amrex::Box const& domainBox,
-           const int  dir,
-           const int  beta_comp,
-           const int  nComp)
+zero_visc(
+  int i,
+  int j,
+  int k,
+  amrex::Array4<amrex::Real> const& beta,
+  amrex::GeometryData const& geomdata,
+  amrex::Box const& domainBox,
+  const int dir,
+  const int beta_comp,
+  const int nComp)
 {
-     amrex::ignore_unused(i,j,k,beta,geomdata,domainBox,dir,beta_comp,nComp);
-    // We treat species when beta_comp == 0 and nComp == NUM_SPECIES
-    // otherwise this routine could be called for other face diffusivity (Temp, velocity, ...)
+  amrex::ignore_unused(
+    i, j, k, beta, geomdata, domainBox, dir, beta_comp, nComp);
+  // We treat species when beta_comp == 0 and nComp == NUM_SPECIES
+  // otherwise this routine could be called for other face diffusivity (Temp,
+  // velocity, ...)
 }
 #endif
