@@ -12,10 +12,15 @@
 #include "prob_parm.H"
 #endif
 
+// Need components for velocity, diameter, temperature, mass fractions,
+// breakup model variables, and wall film volume
 #define NSR_SPR (SprayComps::pstateNum)
 #define NSI_SPR 0
 #define NAR_SPR 0
 #define NAI_SPR 0
+
+// Forward declarations
+class SBPtrs;
 
 class MyParIter : public amrex::ParIter<NSR_SPR, NSI_SPR, NAR_SPR, NAI_SPR>
 {
@@ -66,6 +71,7 @@ public:
   /// @param Y_part Pointer to array of droplet mass fractions
   /// @param level Current AMR level
   /// @param num_redist Number of redistributes to do during initialization
+  /// @param num_ppp Number of droplets per parcel
   void uniformSprayInit(
     const amrex::IntVect num_part,
     const amrex::RealVect vel_part,
@@ -73,13 +79,22 @@ public:
     const amrex::Real T_part,
     const amrex::Real* Y_part,
     const int level,
-    const int num_redist = 1);
+    const int num_redist = 1,
+    const amrex::Real num_ppp = 1.);
 
   /// \brief Setup spray parameters
   static void spraySetup(const amrex::Real* body_force);
 
   /// \brief Read in spray parameters from input file
   static void readSprayParams(int& particle_verbose);
+
+  /// \brief Create droplets from splashing or breakup
+  void CreateSBDroplets(
+    const int Np,
+    const amrex::Real sub_dt,
+    const splash_breakup* N_SB_h,
+    const SBPtrs& rfh,
+    const int level);
 
   /// \brief Spray particle write routine, writes plot, checkpoint, ascii, and
   /// injection data files
@@ -373,6 +388,14 @@ public:
   static std::string m_sprayFuelNames[SPRAY_FUEL_NUM];
   static std::string m_sprayDepNames[SPRAY_FUEL_NUM];
   static amrex::Vector<std::string> m_sprayDeriveVars;
+  static amrex::Real m_maxNumPPP;
+  // Factor for balancing number of child parcels formed versus child parcel
+  // number density 1: Fewer parcels, higher number densities 0: More parcels,
+  // lower number densities
+  static amrex::Real m_breakupPPPFact;
+  static amrex::Real m_khrtB0;
+  static amrex::Real m_khrtB1;
+  static amrex::Real m_khrtC3;
   static SprayData* m_sprayData;
   static SprayData* d_sprayData;
   static SprayComps m_sprayIndx;

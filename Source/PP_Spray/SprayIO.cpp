@@ -17,6 +17,19 @@ SprayParticleContainer::SprayParticleIO(
     real_comp_names[SprayComps::pstateY + sp] =
       "spray_mf_" + m_sprayFuelNames[sp];
   }
+  real_comp_names[SprayComps::pstateNumDens] = "number_density";
+  real_comp_names[SprayComps::pstateN0] = "num_dens0";
+  if (m_sprayData->do_breakup == 1) {
+    real_comp_names[SprayComps::pstateBM1] = "Y_TAB";
+    real_comp_names[SprayComps::pstateBM2] = "Ydot_TAB";
+  } else if (m_sprayData->do_breakup == 2) {
+    real_comp_names[SprayComps::pstateBM1] = "shed_mass";
+    real_comp_names[SprayComps::pstateBM2] = "rt_time";
+  } else {
+    real_comp_names[SprayComps::pstateBM1] = "unused1";
+    real_comp_names[SprayComps::pstateBM2] = "unused2";
+  }
+  real_comp_names[SprayComps::pstateFilmHght] = "wall_film_height";
   Vector<std::string> int_comp_names;
   Checkpoint(dir, "particles", is_checkpoint, real_comp_names, int_comp_names);
   // Here we write ascii information every time we write a plot file
@@ -69,9 +82,10 @@ SprayParticleContainer::SprayParticleIO(
         if (!file.good()) {
           FileOpenFailed(filename);
         }
-        file << js->jet_name() << " " << js->m_sumInjMass << " "
-             << js->m_sumInjTime << " " << js->m_minParcel << " "
-             << js->m_totalInjMass << " " << js->m_totalInjTime << "\n";
+        file << js->jet_name() << " " << js->num_ppp() << " "
+             << js->m_sumInjMass << " " << js->m_sumInjTime << " "
+             << js->m_minParcel << " " << js->m_totalInjMass << " "
+             << js->m_totalInjTime << "\n";
         file.flush();
         file.close();
         if (!file.good()) {
@@ -110,20 +124,23 @@ SprayParticleContainer::PostInitRestart(const std::string& dir)
       int in_numjets;
       JetDataFile >> in_numjets;
       Vector<std::string> in_jet_names(in_numjets);
+      Vector<Real> in_inj_ppp(in_numjets);
       Vector<Real> in_inj_mass(in_numjets);
       Vector<Real> in_inj_time(in_numjets);
       Vector<Real> in_min_parcel(in_numjets);
       Vector<Real> in_total_mass(in_numjets);
       Vector<Real> in_total_time(in_numjets);
       for (int i = 0; i < in_numjets; ++i) {
-        JetDataFile >> in_jet_names[i] >> in_inj_mass[i] >> in_inj_time[i] >>
-          in_min_parcel[i] >> in_total_mass[i] >> in_total_time[i];
+        JetDataFile >> in_jet_names[i] >> in_inj_ppp[i] >> in_inj_mass[i] >>
+          in_inj_time[i] >> in_min_parcel[i] >> in_total_mass[i] >>
+          in_total_time[i];
       }
       for (int ijets = 0; ijets < in_numjets; ++ijets) {
         std::string in_name = in_jet_names[ijets];
         for (int mjets = 0; mjets < numjets; ++mjets) {
           SprayJet* js = m_sprayJets[mjets].get();
           if (js->jet_name() == in_name) {
+            js->set_num_ppp(in_inj_ppp[ijets]);
             js->m_sumInjMass = in_inj_mass[ijets];
             js->m_sumInjTime = in_inj_time[ijets];
             js->m_minParcel = in_min_parcel[ijets];

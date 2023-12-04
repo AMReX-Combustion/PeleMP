@@ -42,6 +42,9 @@ SprayParticleContainer::InitSprayParticles(
     for (int n = 0; n < SPRAY_FUEL_NUM; ++n) {
       p.rdata(SprayComps::pstateY + n) = prob_parm.Y_drop[n];
     }
+    p.rdata(SprayComps::pstateTABY) = 0.;
+    p.rdata(SprayComps::pstateTABYdot) = 0.;
+    p.rdata(SprayComps::pstateFilmVol) = 0.;
     amrex::ParticleLocData pld;
     std::map<std::pair<int, int>, amrex::Gpu::HostVector<ParticleType>>
       host_particles;

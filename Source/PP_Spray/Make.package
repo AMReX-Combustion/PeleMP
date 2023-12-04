@@ -9,6 +9,7 @@ CEXE_sources += SprayParticles.cpp
 CEXE_sources += SprayDerive.cpp
 CEXE_sources += SprayParticlesInitInsert.cpp
 CEXE_sources += SpraySetup.cpp
+CEXE_sources += SpraySB.cpp
 CEXE_sources += SprayJet.cpp
 CEXE_sources += SprayIO.cpp
 

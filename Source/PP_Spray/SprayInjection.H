@@ -1,5 +1,5 @@
-#ifndef SPRAYINJECTTEMPLATE_H
-#define SPRAYINJECTTEMPLATE_H
+#ifndef SPRAYINJECTION_H
+#define SPRAYINJECTION_H
 #include "SprayParticles.H"
 
 /*
@@ -33,8 +33,6 @@ SprayParticleContainer::sprayInjection(
   }
   rho_avg = 1. / rho_avg;
   const amrex::Real Pi_six = M_PI / 6.;
-  // Number of particles per parcel
-  const amrex::Real num_ppp = fdat->num_ppp;
   // Check if mass must be injected across multiple timesteps
   const amrex::Real avg_dia = spray_jet->get_avg_dia();
   const amrex::Real avg_mass = Pi_six * rho_avg * std::pow(avg_dia, 3);
@@ -43,8 +41,13 @@ SprayParticleContainer::sprayInjection(
     amrex::Abort(
       "Average droplet size too small, floating point issues expected");
   }
+  amrex::Real initial_bm2 = 0.;
+  if (fdat->do_breakup == 2) {
+    // If KHRT is used, BM2 is RT time
+    initial_bm2 = -1.;
+  }
   // Minimum number of parcels we want injected at a time
-  const amrex::Real min_inj_parcel = spray_jet->m_minParcel;
+  amrex::Real min_inj_parcel = spray_jet->m_minParcel;
   amrex::Real dt = sim_dt;
   amrex::Real mdot = spray_jet->mass_flow_rate(time);
   amrex::Real inject_mass = mdot * sim_dt;
@@ -53,6 +56,17 @@ SprayParticleContainer::sprayInjection(
     dt += spray_jet->m_sumInjTime;
     inject_mass += spray_jet->m_sumInjMass;
   }
+  // TODO: Add check to set particle number density so that the injected
+  // particle volume are less than 10% of the finest cell volume
+  // This is very important
+  amrex::Real num_ppp = spray_jet->num_ppp();
+  // Set initial injection number density
+  if (num_ppp < 0.) {
+    num_ppp = inject_mass / avg_mass;
+    spray_jet->set_num_ppp(num_ppp);
+  }
+  // If we can't get enough mass to create the desired minimum parcel injection,
+  // accumulate mass injection over more time steps
   if (inject_mass / (num_ppp * avg_mass) < min_inj_parcel) {
     spray_jet->m_sumInjMass = inject_mass;
     spray_jet->m_sumInjTime = dt;
@@ -93,15 +107,15 @@ SprayParticleContainer::sprayInjection(
       time, phi_radial, cur_rad, umag, theta_spread, phi_swirl, dia_part,
       T_part, Y_part);
     if (make_new_part && dia_part > min_dia && umag > 0.) {
-      amrex::RealVect part_loc, part_vel;
+      amrex::RealVect part_loc, vel_part;
       spray_jet->transform_loc_vel(
-        theta_spread, phi_radial, cur_rad, umag, phi_swirl, part_vel, part_loc);
+        theta_spread, phi_radial, cur_rad, umag, phi_swirl, vel_part, part_loc);
       ParticleType p;
       p.id() = ParticleType::NextID();
       p.cpu() = amrex::ParallelDescriptor::MyProc();
-      AMREX_D_TERM(p.rdata(SprayComps::pstateVel) = part_vel[0];
-                   , p.rdata(SprayComps::pstateVel + 1) = part_vel[1];
-                   , p.rdata(SprayComps::pstateVel + 2) = part_vel[2];);
+      AMREX_D_TERM(p.rdata(SprayComps::pstateVel) = vel_part[0];
+                   , p.rdata(SprayComps::pstateVel + 1) = vel_part[1];
+                   , p.rdata(SprayComps::pstateVel + 2) = vel_part[2];);
       p.rdata(SprayComps::pstateT) = T_part;
       // Never add particle with less than minimum mass
       p.rdata(SprayComps::pstateDia) = dia_part;
@@ -124,6 +138,13 @@ SprayParticleContainer::sprayInjection(
           part_loc[dir] + pmov * dt * p.rdata(SprayComps::pstateVel + dir);
       }
       amrex::Real pmass = Pi_six * rho_part * std::pow(dia_part, 3);
+      // If KHRT is used, BM1 is shed mass
+      // If TAB is used, BM1 is y
+      p.rdata(SprayComps::pstateBM1) = 0.;
+      p.rdata(SprayComps::pstateBM2) = initial_bm2;
+      p.rdata(SprayComps::pstateFilmHght) = 0.;
+      p.rdata(SprayComps::pstateN0) = num_ppp;
+      p.rdata(SprayComps::pstateNumDens) = num_ppp;
       amrex::Real new_mass = cur_mass + num_ppp * pmass;
       bool where = Where(p, pld);
       if (!where) {
@@ -182,7 +203,8 @@ SprayParticleContainer::uniformSprayInit(
   const amrex::Real T_part,
   const amrex::Real* Y_part,
   const int level,
-  const int num_redist)
+  const int num_redist,
+  const amrex::Real num_ppp)
 {
   const int MyProc = amrex::ParallelDescriptor::MyProc();
   const int NProcs = amrex::ParallelDescriptor::NProcs();
@@ -204,9 +226,17 @@ SprayParticleContainer::uniformSprayInit(
   }
   part_vals[SprayComps::pstateT] = T_part;
   part_vals[SprayComps::pstateDia] = dia_part;
-  for (int spf = 0; spf < SPRAY_FUEL_NUM; ++spf) {
-    part_vals[SprayComps::pstateY + spf] = Y_part[spf];
+  const SprayData* fdat = m_sprayData;
+  amrex::Real initial_bm2 = 0.;
+  if (fdat->do_breakup == 2) {
+    // If KHRT is used, BM2 is RT time
+    initial_bm2 = -1.;
   }
+  part_vals[SprayComps::pstateNumDens] = num_ppp;
+  part_vals[SprayComps::pstateN0] = num_ppp;
+  part_vals[SprayComps::pstateBM1] = 0.;
+  part_vals[SprayComps::pstateBM2] = initial_bm2;
+  part_vals[SprayComps::pstateFilmHght] = 0.;
   const amrex::RealVect dx_part(AMREX_D_DECL(
     Geom(level).ProbLength(0) / amrex::Real(num_part[0]),
     Geom(level).ProbLength(1) / amrex::Real(num_part[1]),

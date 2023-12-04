@@ -12,6 +12,11 @@ SprayComps SprayParticleContainer::m_sprayIndx;
 Real SprayParticleContainer::spray_cfl = 0.5;
 bool SprayParticleContainer::write_ascii_files = false;
 bool SprayParticleContainer::plot_spray_src = false;
+Real SprayParticleContainer::m_maxNumPPP = 100.;
+Real SprayParticleContainer::m_breakupPPPFact = 0.5;
+Real SprayParticleContainer::m_khrtB0 = 0.61;
+Real SprayParticleContainer::m_khrtB1 = 7.;
+Real SprayParticleContainer::m_khrtC3 = 1.;
 std::string SprayParticleContainer::spray_init_file;
 
 void
@@ -125,16 +130,59 @@ SprayParticleContainer::readSprayParams(int& particle_verbose)
     }
   }
 
-  Real parcel_size = 1;
   Real spray_ref_T = 300.;
   bool splash_model = false;
+  int breakup_model = 0;
   //
   // Set the number of particles per parcel
   //
-  pp.query("parcel_size", parcel_size);
   pp.query("use_splash_model", splash_model);
-  if (splash_model) {
-    Abort("Splash model is not fully implemented");
+  std::string breakup_model_str = "None";
+  pp.query("use_breakup_model", breakup_model_str);
+  if (breakup_model_str == "TAB") {
+    breakup_model = 1;
+    pp.query("max_parcel_size", m_maxNumPPP);
+  } else if (breakup_model_str == "KHRT") {
+    breakup_model = 2;
+    pp.query("KHRT_B0", m_khrtB0);
+    pp.query("KHRT_B1", m_khrtB1);
+    pp.query("KHRT_C3", m_khrtC3);
+  } else if (breakup_model_str == "None") {
+    breakup_model = 0;
+  } else {
+    Abort("'use_breakup_model' input not recognized. Must be 'TAB', 'KHRT', or "
+          "'None'");
+  }
+  if (splash_model || (breakup_model > 0)) {
+    pp.query("breakup_parcel_factor", m_breakupPPPFact);
+    if (m_breakupPPPFact > 1. || m_breakupPPPFact < 0.) {
+      Abort("'breakup_parcel_factor' must be between 0 and 1");
+    }
+    bool wrong_data = false;
+    for (int i = 0; i < nfuel; ++i) {
+      std::string var_read = fuel_names[i] + "_mu";
+      if (!pp.contains(var_read.c_str())) {
+        wrong_data = true;
+      }
+    }
+    if (wrong_data || !pp.contains("fuel_sigma")) {
+      Abort(
+        "fuel_sigma and mu coeffs must be set for splash or breakup model.");
+    }
+    if (splash_model) {
+      // TODO: Have this retrieved from proper boundary data
+      pp.get("wall_temp", m_sprayData->wall_T);
+      Real theta_c_deg = -1.;
+      pp.get("contact_angle", theta_c_deg);
+      if (theta_c_deg < 0. || theta_c_deg > 180.) {
+        Abort("'contact_angle' must be between 0 and 180");
+      }
+      m_sprayData->theta_c = theta_c_deg * M_PI / 180.;
+    }
+    // Set the fuel surface tension and contact angle
+    pp.get("fuel_sigma", m_sprayData->sigma);
+    m_sprayData->do_splash = splash_model;
+    m_sprayData->do_breakup = breakup_model;
   }
 
   // Must use same reference temperature for all fuels
@@ -159,7 +207,6 @@ SprayParticleContainer::readSprayParams(int& particle_verbose)
   pp.query("min_eb_vfrac", m_sprayData->min_eb_vfrac);
 #endif
 
-  m_sprayData->num_ppp = parcel_size;
   m_sprayData->ref_T = spray_ref_T;
 
   // List of known derived spray quantities
@@ -172,7 +219,10 @@ SprayParticleContainer::readSprayParams(int& particle_verbose)
     "spray_vol_frac",  // Volume fraction of liquid in cell
     "d10",             // Average diameter
     "d32",             // SMD
+    "wall_film_hght",  // Wall film height
+    "wall_film_mass",  // Wall film mass
     "spray_temp",      // Mass-weighted average temperature
+    "num_parcels",     // Number of parcels in a cell
     AMREX_D_DECL("spray_x_vel", "spray_y_vel", "spray_z_vel")};
   int derive_plot_vars = 1;
   pp.query("derive_plot_vars", derive_plot_vars);
@@ -197,7 +247,6 @@ SprayParticleContainer::readSprayParams(int& particle_verbose)
     }
 #endif
     Print() << std::endl;
-    Print() << "Number of particles per parcel " << parcel_size << std::endl;
   }
   Gpu::streamSynchronize();
   ParallelDescriptor::Barrier();
