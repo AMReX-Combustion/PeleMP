@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soot Flags and Inputs &mdash; PeleMP 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/mywrap.css?v=d9e67d65" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Equations" href="Equations.html" />
+    <link rel="prev" title="Spray Flags and Inputs" href="SprayInputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PeleMP
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="GettingStarted.html">Getting Started</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="SprayInputs.html">Spray Flags and Inputs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Soot Flags and Inputs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Equations.html">Equations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification and Validation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PeleMP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="GettingStarted.html">Getting Started</a></li>
+      <li class="breadcrumb-item active">Soot Flags and Inputs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/SootInputs.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="soot-flags-and-inputs">
+<span id="sootinputs"></span><h1>Soot Flags and Inputs<a class="headerlink" href="#soot-flags-and-inputs" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>, specify <code class="docutils literal notranslate"><span class="pre">USE_SOOT</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> and <code class="docutils literal notranslate"><span class="pre">NUM_SOOT_MOMENTS</span> <span class="pre">=</span> <span class="pre">N</span></code> where <code class="docutils literal notranslate"><span class="pre">N</span></code> is the number of moments to be used in the solution, either 3 or 6.</p></li>
+<li><p>Depending on the gas phase solver, soot solving functionality can be turned on in the input file using <code class="docutils literal notranslate"><span class="pre">pelec.add_soot_src</span> <span class="pre">=</span> <span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">peleLM.do_soot_solve</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p></li>
+<li><p>The chemistry model specified with <code class="docutils literal notranslate"><span class="pre">Chemistry_model</span> <span class="pre">=</span></code> in  <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> must contain the PAH inception species, as well as <code class="docutils literal notranslate"><span class="pre">H2</span></code>, <code class="docutils literal notranslate"><span class="pre">H</span></code>, <code class="docutils literal notranslate"><span class="pre">OH</span></code>, <code class="docutils literal notranslate"><span class="pre">H2O</span></code>, <code class="docutils literal notranslate"><span class="pre">CO</span></code>, <code class="docutils literal notranslate"><span class="pre">C2H2</span></code>, and <code class="docutils literal notranslate"><span class="pre">O2</span></code>.</p></li>
+<li><p>A PAH inception species must be provided in the input file using <code class="docutils literal notranslate"><span class="pre">soot.incept_pah</span> <span class="pre">=</span></code>. Currently, only one of three inputs are accepted: <code class="docutils literal notranslate"><span class="pre">A2</span></code>, <code class="docutils literal notranslate"><span class="pre">A3</span></code>, or <code class="docutils literal notranslate"><span class="pre">A4</span></code>; which correspond to naphthalene (C10H8), phenathrene (C14H10), or pyrene (C16H10).</p>
+<ul>
+<li><p>If the inception species is named something other than <code class="docutils literal notranslate"><span class="pre">A#</span></code> in the chemistry model, a different name can be specified using <code class="docutils literal notranslate"><span class="pre">soot.pah_name</span> <span class="pre">=</span></code>. However, <code class="docutils literal notranslate"><span class="pre">soot.incept_pah</span></code> must be set to <code class="docutils literal notranslate"><span class="pre">A2</span></code>, <code class="docutils literal notranslate"><span class="pre">A3</span></code>, or <code class="docutils literal notranslate"><span class="pre">A4</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SprayInputs.html" class="btn btn-neutral float-left" title="Spray Flags and Inputs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Equations.html" class="btn btn-neutral float-right" title="Equations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PeleTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verification and Validation &mdash; PeleMP 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/mywrap.css?v=d9e67d65" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Equations" href="Equations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PeleMP
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Equations.html">Equations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Verification and Validation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#single-droplet-tests">Single Droplet Tests</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PeleMP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Verification and Validation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Verification.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="verification-and-validation">
+<span id="verification"></span><h1>Verification and Validation<a class="headerlink" href="#verification-and-validation" title="Link to this heading"></a></h1>
+<section id="single-droplet-tests">
+<h2>Single Droplet Tests<a class="headerlink" href="#single-droplet-tests" title="Link to this heading"></a></h2>
+<p>Single droplet tests are performed with <cite>PeleMP</cite> and compared with computational or experimental results published in literature. These tests are setup in <code class="docutils literal notranslate"><span class="pre">PeleProduction/PeleMPruns/single_drop_test</span></code>. To run a test case, simply open <code class="docutils literal notranslate"><span class="pre">Validate.py</span></code> and set the case name from the table below</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>case = TestCaseName()
+</pre></div>
+</div>
+<p>then do <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">Validate.py</span></code>.
+The following table details the parameters of each test:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Test Case Name</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(T_g\)</span> [K]</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(p_g\)</span> [bar]</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(T_d\)</span> [K]</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(d_d\)</span> [um]</p></th>
+<th class="head"><p><span class="math notranslate nohighlight">\(\Delta u\)</span> [m/s]</p></th>
+<th class="head"><p>Ref</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Tonini_4_33</span></code></p></td>
+<td><p>1000</p></td>
+<td><p>1</p></td>
+<td><p>300</p></td>
+<td><p>200</p></td>
+<td><p>6.786</p></td>
+<td><p><a class="footnote-reference brackets" href="#ton" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Abramzon</span></code></p></td>
+<td><p>1500</p></td>
+<td><p>10</p></td>
+<td><p>300</p></td>
+<td><p>100</p></td>
+<td><p>15</p></td>
+<td><p><a class="footnote-reference brackets" href="#abram" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Daif</span></code></p></td>
+<td><p>348</p></td>
+<td><p>1</p></td>
+<td><p>294</p></td>
+<td><p>1334</p></td>
+<td><p>3.10</p></td>
+<td><p><a class="footnote-reference brackets" href="#daif" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RungeHep</span></code>
+<code class="docutils literal notranslate"><span class="pre">RungeDec</span></code>
+<code class="docutils literal notranslate"><span class="pre">RungeMix</span></code></p></td>
+<td><p>273</p></td>
+<td><p>1</p></td>
+<td><p>272</p></td>
+<td><p>500-570</p></td>
+<td><p>2.5</p></td>
+<td><p><a class="footnote-reference brackets" href="#runge" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<figure class="align-center" id="id8" style="width: 80%">
+<img alt="_images/ton_res.png" src="_images/ton_res.png" />
+<figcaption>
+<p><span class="caption-text">Droplet diameter, temperature, and n-octane mass fraction comparisons with Figure 4.33 in <a class="footnote-reference brackets" href="#ton" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></span><a class="headerlink" href="#id8" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id9" style="width: 80%">
+<img alt="_images/abram_res.png" src="_images/abram_res.png" />
+<figcaption>
+<p><span class="caption-text">Droplet diameter and temperature comparisons with <a class="footnote-reference brackets" href="#abram" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></span><a class="headerlink" href="#id9" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id10" style="width: 80%">
+<img alt="_images/daif_res.png" src="_images/daif_res.png" />
+<figcaption>
+<p><span class="caption-text">Droplet diameter and temperature comparisons with <a class="footnote-reference brackets" href="#daif" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></span><a class="headerlink" href="#id10" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="ton" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id5">2</a>)</span>
+<p>“Fuel spray modeling in direct-injection diesel and gasoline engines”, S. Tonini, Dissertation, City University London (2006)</p>
+</aside>
+<aside class="footnote brackets" id="abram" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id2">1</a>,<a role="doc-backlink" href="#id6">2</a>)</span>
+<p>“Droplet vaporization model for spray combustion calculations”, B. Abramzon and W. A. Sirignano, Int. J. Heat Mass Transfer, Vol. 32, No. 9, pp. 1605-1618 (1989)</p>
+</aside>
+<aside class="footnote brackets" id="daif" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id7">2</a>)</span>
+<p>“Comparison of multicomponent fuel droplet vaporization experiments in forced convection with the Sirignano model”, A. Daı̈f and M. Bouaziz and X. Chesneau and A. Ali Chérif, Exp. Therm. Fluid Sci., Vol. 18, No. 4, pp. 282-290, Issn 0894-1777 (1998)</p>
+</aside>
+<aside class="footnote brackets" id="runge" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<p>“Low-temperature vaporization of JP-4 and JP-8 fuel droplets”, T. Runge and M. Teske and C. E. Polymeropoulos, At. Sprays, Vol. 8, pp. 25-44 (1998)</p>
+</aside>
+</aside>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Equations.html" class="btn btn-neutral float-left" title="Equations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PeleTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

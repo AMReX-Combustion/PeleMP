@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Equations &mdash; PeleMP 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/mywrap.css?v=d9e67d65" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2709fde1"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Verification and Validation" href="Verification.html" />
+    <link rel="prev" title="Soot Flags and Inputs" href="SootInputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PeleMP
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Equations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#spray-equations">Spray Equations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#soot-equations">Soot Equations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification and Validation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PeleMP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Equations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Equations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="equations">
+<span id="id1"></span><h1>Equations<a class="headerlink" href="#equations" title="Link to this heading"></a></h1>
+<section id="spray-equations">
+<h2>Spray Equations<a class="headerlink" href="#spray-equations" title="Link to this heading"></a></h2>
+<p>This section outlines the modeling and mathematics for the spray routines in <cite>PeleMP</cite>.
+Firstly, spray modeling in <cite>PeleMP</cite> relies on the following assumptions:</p>
+<ul class="simple">
+<li><p>Dilute spray: droplet volume inside an Eulerian cell is much smaller than the volume of the gas phase; the droplets can be modeled as Lagrangian point source terms relative to the Eulerian gas phase</p></li>
+<li><p>Infinite conductivity model: temperature within a droplet is temporally varying but spatially uniform</p></li>
+<li><p>One-third rule: the thermophysical properties in the film of an evaporating droplet can be approximated as a weighted average of the state at the droplet surface (weighted as 2/3) and the state of the surrounding gas (weighted as 1/3)</p></li>
+<li><p>Ideal equilibrium: the liquid and vapor state at the surface of the droplet are in equilibrium</p></li>
+<li><p>The radiation, Soret, and Dufour effects are neglected</p></li>
+</ul>
+<p>The evaporation models follow the work by Abramzon and Sirignano <a class="footnote-reference brackets" href="#abram" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and the multicomponent evaporation is based on work by Tonini. <a class="footnote-reference brackets" href="#ton" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> Details regarding the energy balance are provided in Ge et al. <a class="footnote-reference brackets" href="#ge" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p>
+<p>The subscript notation for this section is: <span class="math notranslate nohighlight">\(d\)</span> relates to the liquid droplet, <span class="math notranslate nohighlight">\(v\)</span> relates to the vapor state that is in equilibrium with the liquid and gas phase, <span class="math notranslate nohighlight">\(L\)</span> relates to the liquid phase, and <span class="math notranslate nohighlight">\(g\)</span> relates to the gas phase. The subscript <span class="math notranslate nohighlight">\(r\)</span> relates to the reference state with which to approximate the thermophysical and transport properties. This reference state is assumed to be in the evaporating film that surrounds the droplet state and is approximated as</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}T_r &amp;= T_d + A (T_g - T_d)\\Y_{r,n} &amp;= Y_{v,n} + A (Y_{g,n} - Y_{v,n})\end{aligned}\end{align} \]</div>
+<p>where <span class="math notranslate nohighlight">\(A = 1/3\)</span> according the the one-third rule.
+Additional nomenclature: <span class="math notranslate nohighlight">\(M_n\)</span> is the molar mass of species <span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(\overline{M}\)</span> is the average molar mass of a mixture, <span class="math notranslate nohighlight">\(\mathcal{R}\)</span> is the universal gas constant, <span class="math notranslate nohighlight">\(N_L\)</span> is the number of liquid species, and <span class="math notranslate nohighlight">\(N_s\)</span> is the number of gas phase species. <span class="math notranslate nohighlight">\(Y_n\)</span> and <span class="math notranslate nohighlight">\(\chi_n\)</span> are the mass and molar fractions of species <span class="math notranslate nohighlight">\(n\)</span>, respectively.
+The user is required to provide a reference temperature for the liquid properties, <span class="math notranslate nohighlight">\(T^*\)</span>, the critical temperature for each liquid species, <span class="math notranslate nohighlight">\(T_{c,n}\)</span>, the boiling temperature for each liquid species at atmospheric pressure, <span class="math notranslate nohighlight">\(T^*_{b,n}\)</span>, the latent heat and liquid specific heat at the reference temperature, <span class="math notranslate nohighlight">\(h_{L,n}(T^*)\)</span> and <span class="math notranslate nohighlight">\(c_{p,L,n}(T^*)\)</span>, respectively.
+Note: this reference temperature is a constant value for all species and is not related to the reference state denoted by the subscript <span class="math notranslate nohighlight">\(r\)</span>.</p>
+<p>The equations of motion, mass, momentum, and energy for the Lagrangian spray droplet are:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\frac{d \mathbf{X}_d}{d t} &amp;= \mathbf{u}_d,\\\frac{d m_d}{d t} &amp;= \sum^{N_L}_{n=0} \dot{m}_n,\\m_d \frac{d Y_{d,n}}{d t} &amp;= \dot{m}_n - Y_{d,n} \frac{d m_d}{d t},\\m_d \frac{d \mathbf{u}_d}{d t} &amp;= \mathbf{F}_d + m_d \mathbf{g},\\m_d c_{p,L} \frac{d T_d}{d t} &amp;= \sum^{N_L}_{n=0} \dot{m}_n h_{L,n}(T_d) + \mathcal{Q}_d.\end{aligned}\end{align} \]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{X}_d\)</span> is the spatial vector, <span class="math notranslate nohighlight">\(\mathbf{u}_d\)</span> is the velocity vector, <span class="math notranslate nohighlight">\(T_d\)</span> is the droplet temperature, <span class="math notranslate nohighlight">\(m_d\)</span> is the mass of the droplet, <span class="math notranslate nohighlight">\(\mathbf{g}\)</span> is an external body force (like gravity), <span class="math notranslate nohighlight">\(\dot{m}\)</span> is evaporated mass, <span class="math notranslate nohighlight">\(\mathcal{Q}_d\)</span> is the heat transfer between the droplet and the surrounding gas, and <span class="math notranslate nohighlight">\(\mathbf{F}_d\)</span> is the momentum source term.
+The density of the liquid mixture, <span class="math notranslate nohighlight">\(\rho_d\)</span>, depends on the liquid mass fractions of the dropet, <span class="math notranslate nohighlight">\(Y_{d,n}\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\rho_d = \left( \sum^{N_L}_{n=0} \frac{Y_{d,n}}{\rho_{L,n}} \right)^{-1}\]</div>
+<p>The droplets are assumed to be spherical with diameter <span class="math notranslate nohighlight">\(d_d\)</span>. Therefore, the mass is computed as</p>
+<div class="math notranslate nohighlight">
+\[m_d = \frac{\pi}{6} \rho_d d_d^3\]</div>
+<p>The procedure is as follows for updating the spray droplet:</p>
+<ol class="arabic">
+<li><p>Interpolate the gas phase state to the droplet location using a trilinear interpolation scheme.</p></li>
+<li><p>Compute the boiling temperature for species <span class="math notranslate nohighlight">\(n\)</span> at the current gas phase pressure using the Clasius-Clapeyron relation</p>
+<div class="math notranslate nohighlight">
+\[T_{b,n} = \left(\log\left(\frac{p_{\rm{atm}}}{p_g}\right) \frac{\mathcal{R}}{M_n h_{L,n}(T^*_{b,n})} + \frac{1}{T^*_{b,n}}\right)\]</div>
+<p>The boiling temperature of the droplet is computed as</p>
+<div class="math notranslate nohighlight">
+\[T_{d,b} = \sum^{N_L}_{n=0} Y_{d,n} T_{b,n}\]</div>
+<p>Since we only have the latent heat at the reference condition temperature, we estimate the enthalpy at the boiling condition using Watson’s law</p>
+<div class="math notranslate nohighlight">
+\[h_{L,n}(T^*_{b,n}) = h_{L,n}(T^*) \left(\frac{T_{c,n} - T^*}{T_{c,n} - T^*_{b,n}} \right)^{-0.38}\]</div>
+</li>
+<li><p>Compute the latent heat of the droplet using</p>
+<div class="math notranslate nohighlight">
+\[h_{L,n}(T_d) = h_{g,n}(T_d) - h_{g,n}(T^*) + h_{L,n}(T^*) - c_{p,L,n}(T^*) (T_d - T^*) \,.\]</div>
+<p>and the saturation pressure using either the Clasius-Clapeyron relation</p>
+<div class="math notranslate nohighlight">
+\[p_{{\rm{sat}}, n} = p_{\rm{atm}} \exp\left(\frac{h_{L,n}(T_d) M_n}{\mathcal{R}} \left(\frac{1}{T^*_{b,n}} - \frac{1}{T_d}\right)\right)\]</div>
+<p>or the Antoine curve fit</p>
+<div class="math notranslate nohighlight">
+\[p_{{\rm{sat}},n} = d 10^{a - b / (T_d + c)}\]</div>
+</li>
+<li><p>Estimate the mass fractions in the vapor state using Raoult’s law</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}Y_{v,n} &amp;= \frac{\chi_{v,n} M_n}{\overline{M}_v + \overline{M}_g (1 - \chi_{v,{\rm{sum}}})} \; \forall n \in N_L\\\chi_{v,{\rm{sum}}} &amp;= \sum^{N_L}_{n=0} \chi_{v,n}\\\chi_{v,n} &amp;= \frac{\chi_{d,n} p_{{\rm{sat}},n}}{p_g}\\\chi_{d,n} &amp;= \frac{Y_{d,n}}{M_n}\left(\sum^{N_L}_{k=0} \frac{Y_{d,k}}{M_k}\right)^{-1}\\\overline{M}_v &amp;= \sum^{N_L}_{n=0} \chi_{v,n} M_n\end{aligned}\end{align} \]</div>
+<p>If <span class="math notranslate nohighlight">\(\chi_{g,n} p_g &gt; p_{{\rm{sat}},n}\)</span>, then <span class="math notranslate nohighlight">\(\chi_{v,n} = Y_{v,n} = 0\)</span> for that particular species in the equations above, since that means the gas phase is saturated. The mass fractions in the reference state for the fuel are computed using the one-third rule and the remaining reference mass fractions are normalized gas phase mass fractions to ensure they sum to 1</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Y_{r,n} = \left\{\begin{array}{c l}
+\displaystyle Y_{v,n} + A (Y_{g,n} - Y_{v,n}) &amp; {\text{If $Y_{v,n} &gt; 0$}}, \\
+\displaystyle\frac{1 - \sum^{N_L}_{k=0} Y_{v,k}}{1 - \sum^{N_L}_{k=0} Y_{g,k}} Y_{g,n} &amp; {\text{Otherwise}}.
+\end{array}\right. \; \forall n \in N_s.\end{split}\]</div>
+</li>
+<li><p>The average molar mass, specific heat, and density of the reference state in the gas film are computed as</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\overline{M}_r &amp;= \left(\sum^{N_s}_{n=0} \frac{Y_{r,n}}{M_n}\right)^{-1},\\c_{p,r} &amp;= \sum^{N_s}_{n=0} Y_{s,n} c_{p,g,n}(T_r),\\\rho_r &amp;= \frac{\overline{M}_r p_g}{\mathcal{R} T_r}.\end{aligned}\end{align} \]</div>
+</li>
+<li><p>Transport properties are computed using the reference state: dynamic viscosity, <span class="math notranslate nohighlight">\(\mu_r\)</span>, thermal conductivity, <span class="math notranslate nohighlight">\(\lambda_r\)</span>, and mass diffusion coefficient for species <span class="math notranslate nohighlight">\(n\)</span>, <span class="math notranslate nohighlight">\(D_{r,n}\)</span>.</p></li>
+<li><p>It is important to note that <cite>PelePhysics</cite> provides mixture averaged mass diffusion coefficient <span class="math notranslate nohighlight">\(\overline{(\rho D)}_{r,n}\)</span>, which is converted into the binary mass diffusion coefficient using</p>
+<div class="math notranslate nohighlight">
+\[(\rho D)_{r,n} = \overline{(\rho D)}_{r,n} \overline{M}_r / M_n.\]</div>
+<p>Mass diffusion coefficient is then normalized by the total fuel vapor molar fraction</p>
+<div class="math notranslate nohighlight">
+\[(\rho D)^*_{r,n} = \frac{\chi_{v,n} (\rho D)_{r,n}}{\chi_{v,{\rm{sum}}}} \; \forall n \in N_L\]</div>
+<p>and the total is</p>
+<div class="math notranslate nohighlight">
+\[(\rho D)_r = \sum_{n=0}^{N_L} (\rho D)_{r,n}^*\]</div>
+</li>
+<li><p>The momentum source is a function of the drag force</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_d = \frac{1}{2} \rho_r C_D A_d \left\|\Delta \mathbf{u}\right\| \Delta \mathbf{u}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta \mathbf{u} = \mathbf{u}_g - \mathbf{u}_d\)</span>, <span class="math notranslate nohighlight">\(A_d = \pi d_d^2/4\)</span> is the frontal area of the droplet, and <span class="math notranslate nohighlight">\(C_D\)</span> is the drag coefficient for a sphere, which is estimated using the standard drag curve for an immersed sphere</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}C_D = \frac{24}{{\rm{Re}}_d}\left\{\begin{array}{c l}
+1 &amp; {\text{If Re$_d$ &lt; 1}}, \\
+\displaystyle 1 + \frac{{\rm{Re}}^{2/3}_d}{6} &amp; {\text{Otherwise}}.
+\end{array}\right.\end{split}\]</div>
+<p>The droplet Reynolds number is defined as</p>
+<div class="math notranslate nohighlight">
+\[{\rm{Re}}_d = \frac{\rho_r d_d \left\|\Delta \mathbf{u}\right\|}{\mu_r}\]</div>
+</li>
+<li><p>The mass source term is modeled according to Abramzon and Sirignano (1989). The following non-dimensional numbers and factors are used:</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}F(B) &amp;= (1 + B)^{0.7}\frac{\log(1 + B)}{B}\\F_2 &amp;= \max(1, \min(400, {\rm{Re}}_d)^{0.077})\\{\rm{Pr}}_r &amp;= \frac{\mu_r c_{p,r}}{\lambda_r}\\{\rm{Sc}}_r &amp;= \frac{\mu_r}{(\rho D)_r}\\{\rm{Sh}}_0 &amp;= 1 + (1 + {\rm{Re}}_d {\rm{Sc}}_r)^{1/3} F_2\\{\rm{Nu}}_0 &amp;= 1 + (1 + {\rm{Re}}_d {\rm{Pr}}_r)^{1/3} F_2\\{\rm{Sh}}^* &amp;= 2 + \frac{{\rm{Sh}}_0 - 2}{F(B_M)}\\{\rm{Nu}}^* &amp;= 2 + \frac{{\rm{Nu}}_0 - 2}{F(B_T)}\end{aligned}\end{align} \]</div>
+<ul>
+<li><p>The Spalding numbers for mass transfer, <span class="math notranslate nohighlight">\(B_M\)</span>, and heat transfer, <span class="math notranslate nohighlight">\(B_T\)</span>, are computed using</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}B_M &amp;= \displaystyle\frac{\sum^{N_L}_{n=0} Y_{v,n} - \sum^{N_L}_{n=0} Y_{g,n}}{1 - \sum^{N_L}_{n=0} Y_{v,n}}\\B_T &amp;= \left(1 + B_M\right)^{\phi} - 1\end{aligned}\end{align} \]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\phi = \frac{c_{p,r} (\rho D)_r {\rm{Sh}}^*}{\lambda_r {\rm{Nu}}^*}\]</div>
+<p>Note the dependence of <span class="math notranslate nohighlight">\({\rm{Nu}}^*\)</span> on <span class="math notranslate nohighlight">\(B_T\)</span> means an iterative scheme is required to solve for both. The droplet vaporization rate and heat transfer become</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\dot{m}_n &amp;= -\pi (\rho D)_{r,n}^* d_d {\rm{Sh}}^* \log(1 + B_M). \; \forall n \in N_L\\\mathcal{Q}_d &amp;= \pi \lambda_r d_d (T_g - T_d) {\rm{Nu}}^* \frac{\log(1 + B_T)}{B_T}\end{aligned}\end{align} \]</div>
+</li>
+<li><p>If the gas phase is saturated for all liquid species, the equations for heat and mass transfer become</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\dot{m}_n &amp;= 0\\\mathcal{Q}_d &amp;= \pi \lambda_r d_d (T_g - T_d) {\rm{Nu}}_0\end{aligned}\end{align} \]</div>
+</li>
+</ul>
+</li>
+<li><p>To alleviate conservation issues at AMR interfaces, each parcel only contributes to the gas phase source term of the cell containing it. The gas phase source terms for a single parcel to the cell are</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}S_{\rho} &amp;= \mathcal{C} \sum^{N_L}_{n=0} \dot{m}_n,\\S_{\rho Y_n} &amp;= \mathcal{C} \dot{m}_n,\\\mathbf{S}_{\rho \mathbf{u}} &amp;= \mathcal{C} \mathbf{F}_d,\\S_{\rho h} &amp;= \mathcal{C}\left(\mathcal{Q}_d + \sum_{n=0}^{N_L} \dot{m}_n h_{g,n}(T_d)\right),\\S_{\rho E} &amp;= S_{\rho h} + \frac{1}{2}\left\|\mathbf{u}_d\right\| S_{\rho} + \mathcal{C} \mathbf{F}_d \cdot \mathbf{u}_d\end{aligned}\end{align} \]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{C} = -\frac{N_{d}}{V_{\rm{cell}}},\]</div>
+<p><span class="math notranslate nohighlight">\(N_{d}\)</span> is the number of droplets per computational parcel, and <span class="math notranslate nohighlight">\(V_{\rm{cell}}\)</span> is the volume for the cell of interest. Note that the cell volume can vary depending on AMR level and if an EB is present.</p>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="soot-equations">
+<h2>Soot Equations<a class="headerlink" href="#soot-equations" title="Link to this heading"></a></h2>
+<p>In <cite>PeleMP</cite>, soot formation, growth, and oxidation is modeled using the hybrid-method of moments (HMOM) model developed by Mueller et al. <a class="footnote-reference brackets" href="#mueller" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a>. This approach combines the numerical ease of the method of moments with interpolative closure (MOMIC) with the ability to capture the bimodal nature of the soot number density function (NDF) provided by the direct quadrature method of moments (DQMOM). <span class="math notranslate nohighlight">\(M_{x,y}\)</span> is the moment of the soot NDF, where <span class="math notranslate nohighlight">\(x\)</span> is the order for volume and <span class="math notranslate nohighlight">\(y\)</span> for surface area; these terms are modeled according to</p>
+<div class="math notranslate nohighlight">
+\[M_{x,y} = N_0 V_0^x S_0^y + \exp{\left(\sum_{r=0}^R \sum_{k = 0}^r a_{r,k} x^k y^{r-k}\right)},\]</div>
+<p>where <span class="math notranslate nohighlight">\(R\)</span> is the order of the polynomial interpolation, <span class="math notranslate nohighlight">\(a_{r,k}\)</span> are the interpolation coefficients, <span class="math notranslate nohighlight">\(N_0\)</span> is the weight of the delta function, and <span class="math notranslate nohighlight">\(V_0\)</span> and <span class="math notranslate nohighlight">\(S_0\)</span> are the volume and surface area of the nucleated spherical soot particles, respectively. The location of the delta function is fixed at coordinates <span class="math notranslate nohighlight">\(V_0\)</span> and <span class="math notranslate nohighlight">\(S_0\)</span> and assumed to be equal to the nucleated particle size.
+The nucleated particle volume and surface area are fixed according to <span class="math notranslate nohighlight">\(V_0 = 2 W_C C_{\rm{dimer}} / \rho_{\rm{soot}}\)</span> and <span class="math notranslate nohighlight">\(S_0 = (36 \pi)^{1/3} V_0^{2/3}\)</span>, where <span class="math notranslate nohighlight">\(W_C\)</span> is the molar mass of carbon, <span class="math notranslate nohighlight">\(C_{\rm{dimer}}\)</span> is the average number of carbon atoms per dimer, and <span class="math notranslate nohighlight">\(\rho_{\rm{soot}}\)</span> is the density of soot (<span class="math notranslate nohighlight">\(\rho_{\rm{soot}} = 1800 {\text{ kg/m}}^3\)</span>). If the first-order polynomial interpolation of the moments (<span class="math notranslate nohighlight">\(R=1\)</span>) is used, the above equation reduces to</p>
+<div class="math notranslate nohighlight">
+\[M_{x,y} = N_0 V_0^x S_0^y + N_L V_L^x S_L^y,\]</div>
+<p>where <span class="math notranslate nohighlight">\(V_L\)</span> and <span class="math notranslate nohighlight">\(S_L\)</span> are the mean volume and surface area of the second mode (large particles). For first-order polynomial interpolation, four transport equations are solved: <span class="math notranslate nohighlight">\(M_{0,0}\)</span> (number density), <span class="math notranslate nohighlight">\(M_{1,0}\)</span> (volume fraction, also denoted as <span class="math notranslate nohighlight">\(f_v\)</span>), <span class="math notranslate nohighlight">\(M_{0,1}\)</span>, and <span class="math notranslate nohighlight">\(N_0\)</span>.
+The governing equations for the soot moments are <a class="footnote-reference brackets" href="#bisetti" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial M_{x,y}}{\partial t} + \frac{\partial M_{x,y} \mathbf{u}_g}{\partial \mathbf{X}} = -\frac{\partial \boldsymbol{J}_{M}}{\partial \mathbf{X}} + \dot{M}_{x,y},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\boldsymbol{J}_{M}\)</span> is the soot mass flux and <span class="math notranslate nohighlight">\(\dot{M}_{x,y}\)</span> is the soot source term.
+The current formulation ignores the molecular diffusion and thermophoretic effects of the soot, making the first term of the right-hand side zero.</p>
+<p>For more details regarding the HMOM model, users are encouraged to consult the references cited.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="abram" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p>“Droplet vaporization model for spray combustion calculations”, B. Abramzon and W. A. Sirignano, Int. J. Heat Mass Transf., Vol. 32, No. 9, pp. 1605-1618 (1989)</p>
+</aside>
+<aside class="footnote brackets" id="ton" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<p>“Fuel spray modeling in direct-injection diesel and gasoline engines”, S. Tonini, Dissertation, City University London (2006)</p>
+</aside>
+<aside class="footnote brackets" id="ge" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">3</a><span class="fn-bracket">]</span></span>
+<p>“Development of a CPU/GPU portable software library for Lagrangian-Eulerian simulations of liquid sprays”, W. Ge and R. Sankaran and J. H. Chen, Int. J. Multiph. Flow, Vol. 128 (2020)</p>
+</aside>
+<aside class="footnote brackets" id="mueller" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">4</a><span class="fn-bracket">]</span></span>
+<p>“Hybrid Method of Moments for modeling soot formation and growth”, M. E. Mueller and G. Blanquart and H. Pitsch, Comb. Flame, Vol. 156, No. 6, pp. 1143-1155 (2009)</p>
+</aside>
+<aside class="footnote brackets" id="bisetti" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">5</a><span class="fn-bracket">]</span></span>
+<p>“On the formation and early evolution of soot in turbulent nonpremixed flames”, F. Bisetti and G. Blanquart and M. E. Mueller and H. Pitsch, Comb. Flame, Vol. 159, No. 1, pp. 317-335 (2012)</p>
+</aside>
+</aside>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="SootInputs.html" class="btn btn-neutral float-left" title="Soot Flags and Inputs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Verification.html" class="btn btn-neutral float-right" title="Verification and Validation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, PeleTeam.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
