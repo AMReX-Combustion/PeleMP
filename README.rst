@@ -6,13 +6,13 @@ PeleMP: Multiphysics solver for the Pele code suite
 
 `PeleMP` was the multiphysics code extension for `PeleC`, `PeleLM`, and `PeleLMeX`. It provided models for sprays and soot.
 
-.. warning::
+WARNING
+-------
 
-   The physics modules and documentation of PeleMP have been moved to
-   `PelePhysics <https://github.com/AMReX-Combustion/PelePhysics>`_,
-   and this repository is now archived. Further development is continuing
-   within PelePhysics. The test cases have moved to the
-   PeleC and PeleLMeX repositorties.
+The physics modules and documentation of PeleMP have been moved to
+`PelePhysics <https://github.com/AMReX-Combustion/PelePhysics>`_,
+and this repository is now archived. Further development is continuing
+within PelePhysics. The test cases have moved to the PeleC and PeleLMeX repositorties.
 
 Getting Started
 ~~~~~~~~~~~~~~~
